@@ -53,9 +53,9 @@ When you process a Mooncard transaction:
 
 * for an *expense* transaction, Odoo will:
 
-  . create and validate a supplier invoice and put the image of the receipt as attachment,
-  . create a payment in the Mooncard Bank Journal,
-  . reconcile the supplier invoice and the payment.
+  - create and validate a supplier invoice and put the image of the receipt as attachment,
+  - create a payment in the Mooncard Bank Journal,
+  - reconcile the supplier invoice and the payment.
 
 Roadmap
 =======
