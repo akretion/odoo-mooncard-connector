@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<openerp>
+<data>
+
+<record id="mooncard_transaction_form" model="ir.ui.view">
+    <field name="name">Invoice Mooncard Transaction Form</field>
+    <field name="model">mooncard.transaction</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_transaction_form"/>
+    <field name="arch"  type="xml">
+        <group name="main" position="after">
+            <group name="accounting" string="Accounting">
+                <field name="invoice_id"
+                    attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
+                <field name="invoice_state"
+                    attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
+                <field name="payment_move_id"
+                    attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
+                <field name="reconcile_id"
+                    attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
+                <field name="load_move_id"
+                    attrs="{'invisible': [('transaction_type', '!=', 'load')]}"/>
+            </group>
+        </group>
+    </field>
+</record>
+
+<record id="mooncard_transaction_tree" model="ir.ui.view">
+    <field name="name">Invoice Mooncard Transaction Tree</field>
+    <field name="model">mooncard.transaction</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_transaction_tree"/>
+    <field name="arch"  type="xml">
+        <button name="process_line" position="before">
+            <field name="invoice_id"/>
+        </button>
+    </field>
+</record>
+
+</data>
+</openerp>

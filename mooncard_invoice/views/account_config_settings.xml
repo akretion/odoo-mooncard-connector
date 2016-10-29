@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<openerp>
+<data>
+
+
+<record id="view_account_config_settings" model="ir.ui.view">
+    <field name="name">mooncard_invoice.account.config.settings.form</field>
+    <field name="model">account.config.settings</field>
+    <field name="inherit_id" ref="mooncard_base.view_account_config_settings" />
+    <field name="arch" type="xml">
+        <group name="mooncard" position="inside">
+            <field name="internal_bank_transfer_account_id"
+                context="{'default_reconcile': True}"/>
+        </group>
+    </field>
+</record>
+
+
+</data>
+</openerp>

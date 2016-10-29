@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<openerp>
+<data>
+
+<record id="mooncard_csv_import_form" model="ir.ui.view">
+    <field name="name">mooncard.csv.import.form</field>
+    <field name="model">mooncard.csv.import</field>
+    <field name="arch"  type="xml">
+        <form string="Mooncard Invoice Import Wizard">
+            <group name="help-import">
+              <div>
+                <p>Upload the transactions CSV file downloaded from <a href="https://app.mooncard.co/">Mooncard</a></p>
+              </div>
+            </group>
+            <group name="import">
+                <field name="mooncard_file"/>
+            </group>
+            <footer>
+                <button name="mooncard_import" type="object"
+                    class="oe_highlight" string="Import"/>
+                <button special="cancel" string="Cancel" class="oe_link"/>
+            </footer>
+        </form>
+    </field>
+</record>
+
+<record id="mooncard_csv_import_action" model="ir.actions.act_window">
+    <field name="name">Mooncard Import</field>
+    <field name="res_model">mooncard.csv.import</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+</record>
+
+<menuitem id="mooncard_csv_import_menu" action="mooncard_csv_import_action"
+    parent="mooncard_menu" sequence="20"/>
+
+<!--
+<act_window
+    id="mooncard_csv_import_action"
+    name="Import Mooncard CSV"
+    res_model="mooncard.csv.import"
+    src_model="mooncard.transaction"
+    key2="tree_but_open"/>
+-->
+
+</data>
+</openerp>

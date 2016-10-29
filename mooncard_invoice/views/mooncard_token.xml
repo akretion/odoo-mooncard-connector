@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<openerp>
+<data>
+
+<record id="mooncard_token_form" model="ir.ui.view">
+    <field name="name">Invoice Mooncard Token Form</field>
+    <field name="model">mooncard.token</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_token_form"/>
+    <field name="arch"  type="xml">
+        <field name="active" position="after">
+            <field name="journal_id"/>
+        </field>
+    </field>
+</record>
+
+<record id="mooncard_token_tree" model="ir.ui.view">
+    <field name="name">Invoice Mooncard Token Tree</field>
+    <field name="model">mooncard.token</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_token_tree"/>
+    <field name="arch"  type="xml">
+        <field name="active" position="after">
+            <field name="journal_id" context="{'default_type': 'bank'}"/>
+        </field>
+    </field>
+</record>
+
+<record id="mooncard_token_search" model="ir.ui.view">
+    <field name="name">Invoice Mooncard Token Search</field>
+    <field name="model">mooncard.token</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_token_search"/>
+    <field name="arch"  type="xml">
+        <group name="groupby" position="inside">
+            <filter name="journal_groupby" string="Mooncard Bank Journal"
+                context="{'group_by': 'journal_id'}"/>
+        </group>
+    </field>
+</record>
+
+
+</data>
+</openerp>

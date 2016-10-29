@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<openerp>
+<data>
+
+<record id="mooncard_token_form" model="ir.ui.view">
+    <field name="name">Mooncard Token Form</field>
+    <field name="model">mooncard.token</field>
+    <field name="arch"  type="xml">
+        <form string="Mooncard Token">
+            <group name="main">
+                <field name="name"/>
+                <field name="active"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </group>
+        </form>
+    </field>
+</record>
+
+<record id="mooncard_token_tree" model="ir.ui.view">
+    <field name="name">Mooncard Token Tree</field>
+    <field name="model">mooncard.token</field>
+    <field name="arch"  type="xml">
+        <tree string="Mooncard Tokens" editable="bottom">
+            <field name="name"/>
+            <field name="active"/>
+            <field name="company_id" groups="base.group_multi_company"/>
+        </tree>
+    </field>
+</record>
+
+<record id="mooncard_token_search" model="ir.ui.view">
+    <field name="name">Mooncard Token search view</field>
+    <field name="model">mooncard.token</field>
+    <field name="arch"  type="xml">
+        <search string="Search Mooncard Tokens">
+            <field name="name"/>
+            <group name="groupby" string="Group By">
+            </group>
+        </search>
+    </field>
+</record>
+
+<record id="mooncard_token_action" model="ir.actions.act_window">
+    <field name="name">Mooncard Tokens</field>
+    <field name="res_model">mooncard.token</field>
+    <field name="view_mode">tree,form</field>
+</record>
+
+<menuitem id="mooncard_token_menu" action="mooncard_token_action"
+    parent="account.menu_configuration_misc" sequence="100"/>
+
+</data>
+</openerp>
