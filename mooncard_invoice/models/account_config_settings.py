@@ -8,6 +8,5 @@ from openerp import models, fields
 class AccountConfigSettings(models.TransientModel):
     _inherit = 'account.config.settings'
 
-    internal_bank_transfer_account_id = fields.Many2one(
-        'account.account',
-        related='company_id.internal_bank_transfer_account_id')
+    transfer_account_id = fields.Many2one(
+        'account.account', related='company_id.transfer_account_id')

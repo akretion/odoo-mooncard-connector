@@ -11,12 +11,15 @@
 <record id="view_account_config_settings" model="ir.ui.view">
     <field name="name">mooncard_invoice.account.config.settings.form</field>
     <field name="model">account.config.settings</field>
-    <field name="inherit_id" ref="mooncard_base.view_account_config_settings" />
+    <field name="inherit_id" ref="account.view_account_config_settings" />
     <field name="arch" type="xml">
-        <group name="mooncard" position="inside">
-            <field name="internal_bank_transfer_account_id"
-                context="{'default_reconcile': True}"/>
-        </group>
+        <div name="account_config" position="inside">
+            <div name="mooncard">
+                <label for="transfer_account_id"/>
+                <field name="transfer_account_id"
+                    context="{'default_reconcile': True}" class="oe_inline"/>
+            </div>
+        </div>
     </field>
 </record>
 
