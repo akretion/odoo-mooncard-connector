@@ -57,8 +57,7 @@ class MooncardTransaction(models.Model):
         'res.currency', string='Expense Currency', readonly=True)
     total_currency = fields.Float(
         string='Total Amount in Expense Currency', readonly=True)
-    image_url = fields.Char(string='Image URL')
-    image = fields.Binary(string='Image')
+    image_url = fields.Char(string='Image URL', readonly=True)
     # Should I put it in attachment ?
     # Only URL and a click on it would open the image in Web browser ?
     state = fields.Selection([

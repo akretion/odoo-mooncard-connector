@@ -5,7 +5,7 @@
 from openerp import models, fields
 
 
-class AccountConfigSettings(models.Model):
+class AccountConfigSettings(models.TransientModel):
     _inherit = 'account.config.settings'
 
     internal_bank_transfer_account_id = fields.Many2one(
