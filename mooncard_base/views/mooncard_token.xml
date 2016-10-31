@@ -14,6 +14,8 @@
         <form string="Mooncard Token">
             <group name="main">
                 <field name="name"/>
+                <field name="code"/>
+                <field name="user_id"/>
                 <field name="active"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </group>
@@ -25,9 +27,10 @@
     <field name="name">Mooncard Token Tree</field>
     <field name="model">mooncard.token</field>
     <field name="arch"  type="xml">
-        <tree string="Mooncard Tokens" editable="bottom">
+        <tree string="Mooncard Tokens">
             <field name="name"/>
-            <field name="active"/>
+            <field name="code"/>
+            <field name="user_id"/>
             <field name="company_id" groups="base.group_multi_company"/>
         </tree>
     </field>
@@ -38,7 +41,8 @@
     <field name="model">mooncard.token</field>
     <field name="arch"  type="xml">
         <search string="Search Mooncard Tokens">
-            <field name="name"/>
+            <field name="name" string="Token Number, Short Name or User"
+                filter_domain="['|', '|', ('name', 'ilike', self), ('code', 'ilike', self), ('user_id', 'ilike', self)]"/>
             <group name="groupby" string="Group By">
             </group>
         </search>

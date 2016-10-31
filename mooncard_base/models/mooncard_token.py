@@ -9,14 +9,29 @@ from openerp.exceptions import ValidationError
 class MooncardToken(models.Model):
     _name = 'mooncard.token'
     _description = 'Mooncard Tokens'
+    _rec_name = 'display_name'
 
+    code = fields.Char(string='Short Name')
+    user_id = fields.Many2one(
+        'res.users', string='User',
+        help="Link to user ; only for information purpose.")
     name = fields.Char(
         string='Token Number', required=True, size=9, copy=False)
+    display_name = fields.Char(
+        compute='_compute_display_name_field', readonly=True, store=True)
     active = fields.Boolean(string='Active', default=True)
     company_id = fields.Many2one(
         'res.company', string='Company', required=True,
         default=lambda self: self.env['res.company']._company_default_get(
             'mooncard.token'))
+
+    @api.one
+    @api.depends('code', 'name')
+    def _compute_display_name_field(self):
+        dname = self.name
+        if self.code:
+            dname = '%s (%s)' % (dname, self.code)
+        self.display_name = dname
 
     @api.one
     @api.constrains('name')

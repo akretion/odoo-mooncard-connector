@@ -4,7 +4,7 @@
 
 from openerp import models, fields, api, workflow, _
 from openerp.exceptions import Warning as UserError
-from openerp.tools import float_compare, float_is_zero
+from openerp.tools import float_compare
 import requests
 import base64
 import logging
@@ -157,11 +157,9 @@ class MooncardTransaction(models.Model):
     def _countries_vat_refund(self):
         return self.env.user.company_id.country_id
 
-    @api.one
-    def generate_invoice(self):
-        assert not self.invoice_id, 'already linked to an invoice'
-        assert self.transaction_type == 'presentment', 'wrong transaction type'
-        aiio = self.env['account.invoice.import']
+    @api.multi
+    def _prepare_invoice_import(self):
+        self.ensure_one()
         precision = self.env['decimal.precision'].precision_get('Account')
         date = self.date[:10]
         partner = self.env.ref('mooncard_base.mooncard_supplier')
@@ -169,10 +167,9 @@ class MooncardTransaction(models.Model):
             raise UserError(_(
                 "Missing Expense Product on Mooncard transaction %s")
                 % self.name)
-
-        if (
-                not float_is_zero(
-                    self.vat_company_currency, precision_digits=precision)):
+        vat_compare = float_compare(
+            self.vat_company_currency, 0, precision_digits=precision)
+        if vat_compare:
             if (
                     self.country_id and
                     self.company_id.country_id and
@@ -183,6 +180,13 @@ class MooncardTransaction(models.Model):
                     "the VAT amount of that transaction should be updated "
                     "to 0.")
                     % (self.name, self.country_id.name))
+            total_compare = float_compare(
+                self.total_company_currency, 0, precision_digits=precision)
+            if vat_compare != total_compare:
+                raise UserError(_(
+                    "The sign of the VAT amount (%s) should be the same as "
+                    "the sign of the total amount (%s).")
+                    % (self.vat_company_currency, self.total_company_currency))
             product_taxes = self.product_id.supplier_taxes_id
             if not product_taxes:
                 raise UserError(_(
@@ -213,6 +217,8 @@ class MooncardTransaction(models.Model):
         image_b64 = base64.encodestring(rimage.content)
         file_extension = os.path.splitext(urlparse(url).path)[1]
         filename = 'Receipt-%s%s' % (self.name, file_extension)
+        origin = _('Mooncard %s') % (
+            self.mooncard_token_id.code or self.mooncard_token_id.name)
         parsed_inv = {
             'partner': {'recordset': partner},
             'date': date,
@@ -229,7 +235,17 @@ class MooncardTransaction(models.Model):
                 'uom': {'recordset': self.env.ref('product.product_uom_unit')},
                 }],
             'attachments': {filename: image_b64},
+            'origin': origin,
             }
+        return parsed_inv
+
+    @api.one
+    def generate_invoice(self):
+        assert not self.invoice_id, 'already linked to an invoice'
+        assert self.transaction_type == 'presentment', 'wrong transaction type'
+        aiio = self.env['account.invoice.import']
+        precision = self.env['decimal.precision'].precision_get('Account')
+        parsed_inv = self._prepare_invoice_import()
         logger.debug('Mooncard invoice import parsed_inv=%s', parsed_inv)
         parsed_inv = aiio.update_clean_parsed_inv(parsed_inv)
         invoice = aiio._create_invoice(parsed_inv)

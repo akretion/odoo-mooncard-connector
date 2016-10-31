@@ -12,7 +12,7 @@
     <field name="model">mooncard.token</field>
     <field name="inherit_id" ref="mooncard_base.mooncard_token_form"/>
     <field name="arch"  type="xml">
-        <field name="active" position="after">
+        <field name="user_id" position="after">
             <field name="journal_id"/>
         </field>
     </field>
@@ -23,7 +23,7 @@
     <field name="model">mooncard.token</field>
     <field name="inherit_id" ref="mooncard_base.mooncard_token_tree"/>
     <field name="arch"  type="xml">
-        <field name="active" position="after">
+        <field name="user_id" position="after">
             <field name="journal_id" context="{'default_type': 'bank'}"/>
         </field>
     </field>
