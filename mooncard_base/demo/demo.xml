@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<openerp>
+<data noupdate="1">
+
+<record id="token1" model="mooncard.token">
+    <field name="name">684842987</field>
+    <field name="code">AdL</field>
+</record>
+
+<record id="load1" model="mooncard.transaction">
+    <field name="unique_import_id">beaf9990-8ed1-4v31-aa70-3bef49za86b0</field>
+    <field name="transaction_type">load</field>
+    <field name="date" eval="time.strftime('%Y-01-01 %H:%M:%S')"/>
+    <field name="mooncard_token_id" ref="token1"/>
+    <field name="total_company_currency">1000</field>
+    <field name="total_currency">-1000</field>
+</record>
+
+<record id="expense1" model="mooncard.transaction">
+    <field name="unique_import_id">beaf9990-8ed1-4v31-aa70-3bef49za86b1</field>
+    <field name="transaction_type">presentment</field>
+    <field name="description">Déjeuner avec Syleam</field>
+    <field name="date" eval="time.strftime('%Y-01-02 %H:%M:10')"/>
+    <field name="mooncard_token_id" ref="token1"/>
+    <field name="expense_categ_code">7300</field>
+    <field name="expense_categ_name">Repas - boissons (avec client)</field>
+    <field name="product_id" ref="mooncard_base.mooncard_product_7300"/>
+    <field name="merchant">Pizzeria OpenWeb</field>
+    <field name="country_id" ref="base.fr"/>
+    <field name="vat_company_currency">-3.54</field>
+    <field name="total_company_currency">-35.40</field>
+    <field name="total_currency">-35.40</field>
+    <field name="currency_id" ref="base.EUR"/>
+    <!-- I put a dumb image... but it should be the URL of the image of the receipt -->
+    <field name="image_url">https://pixabay.com/static/uploads/photo/2016/02/19/11/30/pizza-1209748_960_720.jpg</field>
+</record>
+
+<record id="expense2" model="mooncard.transaction">
+    <field name="unique_import_id">beaf9990-8ed1-4v31-aa70-3bef49za86b2</field>
+    <field name="transaction_type">presentment</field>
+    <field name="description">Vol A-R Genêve - Naples (Code sprint OCA Sorrento)</field>
+    <field name="date" eval="time.strftime('%Y-01-03 15:45:10')"/>
+    <field name="mooncard_token_id" ref="token1"/>
+    <field name="expense_categ_code">8070</field>
+    <field name="expense_categ_name">Transport / Avions</field>
+    <field name="product_id" ref="mooncard_base.mooncard_product_8060"/>
+    <field name="merchant">EasyJet</field>
+    <field name="country_id" ref="base.fr"/>
+    <field name="vat_company_currency">0</field>
+    <field name="total_company_currency">-180.30</field>
+    <field name="total_currency">-180.30</field>
+    <field name="currency_id" ref="base.EUR"/>
+    <field name="image_url">http://www.air-journal.fr/wp-content/uploads/aj_easyjet-a319-2.jpg</field>
+</record>
+
+<record id="expense3" model="mooncard.transaction">
+    <field name="unique_import_id">beaf9990-8ed1-4v31-aa70-3bef49za86b3</field>
+    <field name="transaction_type">presentment</field>
+    <field name="description">Train Lyon-Genêve (Code sprint OCA Sorrento)</field>
+    <field name="date" eval="time.strftime('%Y-01-02 15:45:10')"/>
+    <field name="mooncard_token_id" ref="token1"/>
+    <field name="expense_categ_code">8060</field>
+    <field name="expense_categ_name">Transport / Train et métro</field>
+    <field name="product_id" ref="mooncard_base.mooncard_product_8060"/>
+    <field name="merchant">SNCF</field>
+    <field name="country_id" ref="base.fr"/>
+    <field name="vat_company_currency">0</field>
+    <field name="total_company_currency">-25.50</field>
+    <field name="total_currency">-25.50</field>
+    <field name="currency_id" ref="base.EUR"/>
+    <field name="image_url">http://img.20mn.fr/vmEmhNsWS2iTdgT-ki-OVg/2048x1536-fit_lyon-le-19-novembre-2014-la-premiere-rame-ter-regio2n-vient-d-etre-livree-en-rhone-alpes-d-ici-a-mi.jpg</field>
+</record>
+
+
+</data>
+</openerp>

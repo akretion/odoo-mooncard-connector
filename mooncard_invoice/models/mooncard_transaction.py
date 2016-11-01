@@ -79,7 +79,7 @@ class MooncardTransaction(models.Model):
                     }),
                 (0, 0, {
                     'account_id':
-                    self.company_id.internal_bank_transfer_account_id.id,
+                    self.company_id.transfer_account_id.id,
                     'debit': credit,
                     'credit': debit,
                     'name': _('Load Mooncard prepaid-account'),
@@ -91,7 +91,7 @@ class MooncardTransaction(models.Model):
     @api.one
     def generate_load_move(self):
         assert not self.load_move_id, 'already has a load move !'
-        if not self.company_id.internal_bank_transfer_account_id:
+        if not self.company_id.transfer_account_id:
             raise UserError(_(
                 "Missing 'Internal Bank Transfer Account' on company %s.")
                 % self.company_id.name)

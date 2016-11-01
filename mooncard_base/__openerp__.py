@@ -23,5 +23,6 @@
         'security/ir.model.access.csv',
         'security/mooncard_security.xml',
     ],
+    'demo': ['demo/demo.xml'],
     'installable': True,
 }
