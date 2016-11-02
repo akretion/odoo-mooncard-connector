@@ -25,8 +25,8 @@ class MooncardTransaction(models.Model):
     unique_import_id = fields.Char(
         string='Unique Identifier', readonly=True, copy=False)
     date = fields.Datetime(string='Date', required=True, readonly=True)
-    mooncard_token_id = fields.Many2one(
-        'mooncard.token', string='Mooncard Token', readonly=True)
+    card_id = fields.Many2one(
+        'mooncard.card', string='Moon Card', readonly=True)
     expense_categ_code = fields.Char(
         string='Expense Category Code', readonly=True)
     expense_categ_name = fields.Char(
@@ -43,6 +43,7 @@ class MooncardTransaction(models.Model):
     transaction_type = fields.Selection([
         ('load', 'Load'),
         ('presentment', 'Expense'),
+        ('authorization', 'Authorization'),
         ], string='Transaction Type', readonly=True)
     vat_company_currency = fields.Float(
         string='VAT Amount',

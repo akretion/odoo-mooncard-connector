@@ -14,7 +14,7 @@
     'data': [
         'data/partner.xml',
         'views/mooncard_transaction.xml',
-        'views/mooncard_token.xml',
+        'views/mooncard_card.xml',
         'views/account_config_settings.xml',
         'views/company.xml',
     ],

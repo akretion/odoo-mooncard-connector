@@ -7,7 +7,7 @@
 <openerp>
 <data noupdate="1">
 
-<record id="token1" model="mooncard.token">
+<record id="card1" model="mooncard.card">
     <field name="name">684842987</field>
     <field name="code">AdL</field>
 </record>
@@ -16,9 +16,10 @@
     <field name="unique_import_id">beaf9990-8ed1-4v31-aa70-3bef49za86b0</field>
     <field name="transaction_type">load</field>
     <field name="date" eval="time.strftime('%Y-01-01 %H:%M:%S')"/>
-    <field name="mooncard_token_id" ref="token1"/>
+    <field name="card_id" ref="card1"/>
     <field name="total_company_currency">1000</field>
     <field name="total_currency">-1000</field>
+    <field name="currency_id" ref="base.EUR"/>
 </record>
 
 <record id="expense1" model="mooncard.transaction">
@@ -26,7 +27,7 @@
     <field name="transaction_type">presentment</field>
     <field name="description">Déjeuner avec Syleam</field>
     <field name="date" eval="time.strftime('%Y-01-02 %H:%M:10')"/>
-    <field name="mooncard_token_id" ref="token1"/>
+    <field name="card_id" ref="card1"/>
     <field name="expense_categ_code">7300</field>
     <field name="expense_categ_name">Repas - boissons (avec client)</field>
     <field name="product_id" ref="mooncard_base.mooncard_product_7300"/>
@@ -45,7 +46,7 @@
     <field name="transaction_type">presentment</field>
     <field name="description">Vol A-R Genêve - Naples (Code sprint OCA Sorrento)</field>
     <field name="date" eval="time.strftime('%Y-01-03 15:45:10')"/>
-    <field name="mooncard_token_id" ref="token1"/>
+    <field name="card_id" ref="card1"/>
     <field name="expense_categ_code">8070</field>
     <field name="expense_categ_name">Transport / Avions</field>
     <field name="product_id" ref="mooncard_base.mooncard_product_8060"/>
@@ -63,7 +64,7 @@
     <field name="transaction_type">presentment</field>
     <field name="description">Train Lyon-Genêve (Code sprint OCA Sorrento)</field>
     <field name="date" eval="time.strftime('%Y-01-02 15:45:10')"/>
-    <field name="mooncard_token_id" ref="token1"/>
+    <field name="card_id" ref="card1"/>
     <field name="expense_categ_code">8060</field>
     <field name="expense_categ_name">Transport / Train et métro</field>
     <field name="product_id" ref="mooncard_base.mooncard_product_8060"/>

@@ -5,8 +5,8 @@
 from openerp import models, fields
 
 
-class MooncardToken(models.Model):
-    _inherit = 'mooncard.token'
+class MooncardCard(models.Model):
+    _inherit = 'mooncard.card'
 
     journal_id = fields.Many2one(
         'account.journal', string='Mooncard Bank Journal',

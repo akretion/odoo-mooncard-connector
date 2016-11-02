@@ -53,6 +53,7 @@ class MooncardCsvImport(models.TransientModel):
                     and product_sinfos[0].product_tmpl_id.\
                     product_variant_ids[0].id
         vals = {
+            'transaction_type': line.get('transaction_type'),
             'description': line.get('title'),
             'expense_categ_code': line.get('expense_category_code'),
             'expense_categ_name': line.get('expense_category_name'),
@@ -76,23 +77,22 @@ class MooncardCsvImport(models.TransientModel):
         currencies = self.env['res.currency'].search(
             [('name', '=', line.get('original_currency'))])
         currency_id = currencies and currencies[0].id or False
-        mooncard_token_id = False
+        card_id = False
         if line.get('card_token'):
-            mooncard_token_id = tokens.get(line.get('card_token'))
-            if not mooncard_token_id:
+            card_id = tokens.get(line.get('card_token'))
+            if not card_id:
                 raise UserError(_(
-                    "The CSV file contains the Mooncard Token '%s'. This "
-                    "token is not registered in Odoo, cf menu "
+                    "The CSV file contains the Moon Card '%s'. This "
+                    "card is not registered in Odoo, cf menu "
                     "Accounting > Configuration > Miscellaneous > "
-                    "Mooncard Tokens)") % line.get('card_token'))
+                    "Moon Cards)") % line.get('card_token'))
 
         vals.update({
             'unique_import_id': line.get('id'),
             'date': self.convert_datetime_to_utc(line['date_transaction']),
-            'mooncard_token_id': mooncard_token_id,
+            'card_id': card_id,
             'country_id': country_id,
             'merchant': line.get('merchant'),
-            'transaction_type': line.get('transaction_type'),
             'total_company_currency': line.get('amount_eur'),
             'total_currency': line.get('amount_currency'),
             'currency_id': currency_id,
@@ -103,10 +103,10 @@ class MooncardCsvImport(models.TransientModel):
     def mooncard_import(self):
         self.ensure_one()
         mto = self.env['mooncard.transaction']
-        mtko = self.env['mooncard.token']
+        mco = self.env['mooncard.card']
         logger.info('Importing Mooncard transactions.csv')
         company = self.env.user.company_id
-        token_res = mtko.search_read(
+        token_res = mco.search_read(
             [('company_id', '=', company.id)], ['name'])
         tokens = {}
         for token in token_res:

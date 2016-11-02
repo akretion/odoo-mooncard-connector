@@ -39,7 +39,7 @@ Configuration
 
 The module will create a new Product Category *Mooncard Expenses* with about 30 new products, one for each Mooncard expense category. For each of these new products, you should have a look at the *Supplier Taxes* parameter: check that it has the right purchase VAT tax (the VAT purchase taxes used on Mooncard products must have the option *Tax included in price* disabled). The Mooncard products have been configured with a generic supplier *Mooncard Misc Suppliers* and a special *Supplier Product Code*: don't change those parameters!
 
-In the menu *Accounting > Configuration > Miscellaneous > Mooncard Tokens*, you must create your Mooncard Tokens, one for each of your Mooncards. The Mooncard token is the number written at the bottom of the front side of the Mooncard.
+In the menu *Accounting > Configuration > Miscellaneous > Moon Cards*, you must create your Moon Cards, one for each of your Mooncards.
 
 Usage
 =====

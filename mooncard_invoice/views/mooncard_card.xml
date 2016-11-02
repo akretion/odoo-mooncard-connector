@@ -7,10 +7,10 @@
 <openerp>
 <data>
 
-<record id="mooncard_token_form" model="ir.ui.view">
-    <field name="name">Invoice Mooncard Token Form</field>
-    <field name="model">mooncard.token</field>
-    <field name="inherit_id" ref="mooncard_base.mooncard_token_form"/>
+<record id="mooncard_card_form" model="ir.ui.view">
+    <field name="name">Invoice Moon Card Form</field>
+    <field name="model">mooncard.card</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_card_form"/>
     <field name="arch"  type="xml">
         <field name="user_id" position="after">
             <field name="journal_id"/>
@@ -18,10 +18,10 @@
     </field>
 </record>
 
-<record id="mooncard_token_tree" model="ir.ui.view">
-    <field name="name">Invoice Mooncard Token Tree</field>
-    <field name="model">mooncard.token</field>
-    <field name="inherit_id" ref="mooncard_base.mooncard_token_tree"/>
+<record id="mooncard_card_tree" model="ir.ui.view">
+    <field name="name">Invoice Moon Card Tree</field>
+    <field name="model">mooncard.card</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_card_tree"/>
     <field name="arch"  type="xml">
         <field name="user_id" position="after">
             <field name="journal_id" context="{'default_type': 'bank'}"/>
@@ -29,10 +29,10 @@
     </field>
 </record>
 
-<record id="mooncard_token_search" model="ir.ui.view">
-    <field name="name">Invoice Mooncard Token Search</field>
-    <field name="model">mooncard.token</field>
-    <field name="inherit_id" ref="mooncard_base.mooncard_token_search"/>
+<record id="mooncard_card_search" model="ir.ui.view">
+    <field name="name">Invoice Moon Card Search</field>
+    <field name="model">mooncard.card</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_card_search"/>
     <field name="arch"  type="xml">
         <group name="groupby" position="inside">
             <filter name="journal_groupby" string="Mooncard Bank Journal"

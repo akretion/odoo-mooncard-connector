@@ -17,7 +17,7 @@
         'data/product.xml',
         'data/sequence.xml',
         'views/mooncard_transaction.xml',
-        'views/mooncard_token.xml',
+        'views/mooncard_card.xml',
         'wizard/mooncard_csv_import_view.xml',
         'wizard/mooncard_process_lines_view.xml',
         'security/ir.model.access.csv',

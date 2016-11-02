@@ -30,8 +30,8 @@ class TestMooncardInvoice(TransactionCase):
             'default_debit_account_id': self.moon_bank_account.id,
             'default_credit_account_id': self.moon_bank_account.id,
             })
-        self.token1 = self.env.ref('mooncard_base.token1')
-        self.token1.write({
+        self.card1 = self.env.ref('mooncard_base.card1')
+        self.card1.write({
             'journal_id': self.moon_bank_journal.id})
         accounts = self.account_model.search(
             [('reconcile', '=', True), ('type', '=', 'other')])
@@ -49,7 +49,7 @@ class TestMooncardInvoice(TransactionCase):
         load1.process_line()
         self.assertEqual(load1.state, 'done')
         self.assertTrue(load1.load_move_id)
-        self.assertEqual(load1.load_move_id.journal_id, self.token1.journal_id)
+        self.assertEqual(load1.load_move_id.journal_id, self.card1.journal_id)
         self.assertEqual(load1.load_move_id.date, load1.date[:10])
 
     def test_expense_line(self):
@@ -77,5 +77,5 @@ class TestMooncardInvoice(TransactionCase):
             pay_move_line = expense.payment_move_line_id
             self.assertTrue(pay_move_line)
             self.assertEqual(pay_move_line.date, expense.date[:10])
-            self.assertEqual(pay_move_line.journal_id, self.token1.journal_id)
+            self.assertEqual(pay_move_line.journal_id, self.card1.journal_id)
             self.assertTrue(expense.reconcile_id)

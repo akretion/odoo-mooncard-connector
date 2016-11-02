@@ -27,7 +27,7 @@ First, read the configuration instructions of the *mooncard_base* module.
 
 As Mooncard is attached to a pre-paid account, you must create a dedicated bank journal and accounting account that will correspond to the Mooncard pre-paid account. On this journal, the *Default Debit Account* and the *Default Credit Account* must be set to the Mooncard accounting account.
 
-Then, in the menu *Accounting > Configuration > Miscellaneous > Mooncard Tokens*, for each Mooncard Token, you must configure the related *Mooncard Bank Journal*. If all the Mooncards are attached to the same Mooncard account, you will just create one Mooncard journal and attach all your Mooncard tokens to this journal.
+Then, in the menu *Accounting > Configuration > Miscellaneous > Moon Cards*, for each Moon Card, you must configure the related *Mooncard Bank Journal*. If all the Mooncards are attached to the same Mooncard account, you will just create one Mooncard journal and attach all your Moon Cards to this journal.
 
 In the menu *Settings > Configuration > Accounting*, in the *Mooncard* section, you must select the *Internal Bank Transfer Account* (580000 in the French chart of accounts).
 

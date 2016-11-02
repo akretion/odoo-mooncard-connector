@@ -50,6 +50,10 @@ class MooncardTransaction(models.Model):
             elif line.transaction_type == 'load':
                 line.generate_load_move()
                 line.state = 'done'
+            elif line.transaction_type == 'authorization':
+                raise UserError(_(
+                    'Cannot process mooncard transaction %s because it is '
+                    'still in authorization state at the bank.') % line.name)
 
     @api.multi
     def _prepare_load_move(self):
@@ -64,7 +68,7 @@ class MooncardTransaction(models.Model):
         else:
             credit = load_amount
             debit = 0
-        journal = self.mooncard_token_id.journal_id
+        journal = self.card_id.journal_id
         mvals = {
             'journal_id': journal.id,
             'date': date,
@@ -95,10 +99,10 @@ class MooncardTransaction(models.Model):
             raise UserError(_(
                 "Missing 'Internal Bank Transfer Account' on company %s.")
                 % self.company_id.name)
-        if not self.mooncard_token_id.journal_id:
+        if not self.card_id.journal_id:
             raise UserError(_(
-                "Bank Journal not configured on Mooncard Token '%s'")
-                % self.mooncard_token_id.name)
+                "Bank Journal not configured on Moon Card '%s'")
+                % self.card_id.name)
         move = self.env['account.move'].create(self._prepare_load_move())
         move.post()
         self.load_move_id = move.id
@@ -107,11 +111,11 @@ class MooncardTransaction(models.Model):
     @api.one
     def generate_bank_journal_move(self):
         assert not self.payment_move_line_id, 'Payment line already created'
-        if not self.mooncard_token_id.journal_id:
+        if not self.card_id.journal_id:
             raise UserError(_(
-                "Bank Journal not configured on Mooncard Token '%s'")
-                % self.mooncard_token_id.name)
-        journal = self.mooncard_token_id.journal_id
+                "Bank Journal not configured on Moon Card '%s'")
+                % self.card_id.name)
+        journal = self.card_id.journal_id
         amlo = self.env['account.move.line']
         date = self.date[:10]
         partner = self.env.ref('mooncard_base.mooncard_supplier')
@@ -218,7 +222,7 @@ class MooncardTransaction(models.Model):
         file_extension = os.path.splitext(urlparse(url).path)[1]
         filename = 'Receipt-%s%s' % (self.name, file_extension)
         origin = _('Mooncard %s') % (
-            self.mooncard_token_id.code or self.mooncard_token_id.name)
+            self.card_id.code or self.card_id.name)
         parsed_inv = {
             'partner': {'recordset': partner},
             'date': date,
