@@ -6,10 +6,10 @@
 Mooncard Invoice
 ================
 
-This module is part of the Odoo-Mooncard connector. `Mooncard <https://www.mooncard.co/>`_ is a new-generation enterprise credit card that propose:
+This module is part of the Odoo-Mooncard connector. `Mooncard <https://www.mooncard.co/>`_ is a new-generation corporate card that propose:
 
-* instant notification of each credit card payment on your mobile phone,
-* easy and fast recording of your credit card expenses from your mobile phone.
+* instant notification of each card payment on your mobile phone,
+* easy and fast recording of your card expenses from your mobile phone.
 
 Mooncard is only available in France for the moment, but it will be extended to other countries in the future.
 

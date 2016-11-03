@@ -6,19 +6,19 @@
 Odoo-Mooncard connector
 =======================
 
-This project is a connector between `Odoo <https://www.odoo.com/>`_, the leading OpenSource ERP solution, and `Mooncard <https://www.mooncard.co/>`_, a new-generation enterprise credit card solution.
+This project is a connector between `Odoo <https://www.odoo.com/>`_, the leading OpenSource ERP solution, and `Mooncard <https://www.mooncard.co/>`_, a new-generation corporate card solution.
 
 Mooncard propose:
 
-* instant notification of each credit card payment on your mobile phone,
-* easy and fast recording of your credit card expenses from your mobile phone.
+* instant notification of each card payment on your mobile phone,
+* easy and fast recording of your card expenses from your mobile phone.
 
 Mooncard has been launched in France in October 2016 ; it will be extended to other countries in the future.
 
-Recording credit card expenses in accounting
-============================================
+Recording card expenses in accounting
+=====================================
 
-To record a credit card transaction in the books of the company, you need 6 things:
+To record a corporate card transaction in the books of the company, you need 6 things:
 
 1. the date of the expense,
 2. the total amount,
@@ -36,9 +36,9 @@ Then, with these 6 things, the accountant will have to:
 How Mooncard works
 ==================
 
-A Mooncard is a special `MasterCard <http://www.mastercard.com/>`_ credit card, linked to a dedicated bank account. To make a payment, you can use the Mooncard like any MasterCard credit card. When you make a payment:
+A Mooncard is a special `MasterCard <http://www.mastercard.com/>`_, linked to a dedicated bank account. To make a payment, you can use the Mooncard like any MasterCard card. When you make a payment:
 
-* Mooncard instantly receives the raw credit card transaction, which contains all the details about the payment (date, time, amount in local currency, amount in EUR) and about the vendor (vendor name, country, activity, etc.). Among the 6 things needed to record the transaction in the accounting:
+* Mooncard instantly receives the raw bank transaction, which contains all the details about the payment (date, time, amount in local currency, amount in EUR) and about the vendor (vendor name, country, activity, etc.). Among the 6 things needed to record the transaction in the accounting:
 
   - item 1 (date) is known,
   - item 2 (total amount) is known,
@@ -54,14 +54,14 @@ A Mooncard is a special `MasterCard <http://www.mastercard.com/>`_ credit card, 
 
 * Once the user has validated the information on his smartphone, the information is sent to Mooncard ; the 6 things required for the accoutant are now registered !
 
-Competing enterprise expense management solutions also take advantage of the smartphone of the user to take a picture of the receipt and then use OCR (Optical Character Recognition) to try to extract the relevant information. But the experience has prooved that it regularly fails to extract all the required information. The solution proposed by Mooncard, with the use of a special credit card, is better and more reliable than the competing solutions.
+Competing enterprise expense management solutions also take advantage of the smartphone of the user to take a picture of the receipt and then use OCR (Optical Character Recognition) to try to extract the relevant information. But the experience has prooved that it regularly fails to extract all the required information. The solution proposed by Mooncard, with the use of a special corporate card, is better and more reliable than the competing solutions.
 
 How the Odoo-Mooncard connector works
 =====================================
 
 Upon installation of the Odoo modules for Mooncard, one product is created for each kind of expense as per the Mooncard expense nomenclature (which has 33 expense categories). As any Odoo product, each product is attached to an expense account and an optional VAT tax.
 
-The Mooncard connector will download the credit card transactions in Odoo ; each transaction will be mapped to the corresponding Odoo product.
+The Mooncard connector will download the card transactions in Odoo ; each transaction will be mapped to the corresponding Odoo product.
 
 Then, in Odoo, the accountant can:
 
