@@ -476,6 +476,7 @@
     <field name="product_code">8070</field>
 </record>
 
+<!-- But how do you pay this with a Mooncard ? -->
 <record id="mooncard_product_8099" model="product.product">
     <field name="name">Transport / Indemnité KM</field>
     <field name="default_code">MOON-8099</field>

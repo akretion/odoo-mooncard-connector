@@ -24,5 +24,6 @@
         'security/mooncard_security.xml',
     ],
     'demo': ['demo/demo.xml'],
+    'post_init_hook': 'set_accounts_on_products',
     'installable': True,
 }

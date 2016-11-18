@@ -194,7 +194,9 @@ class MooncardTransaction(models.Model):
             product_taxes = self.product_id.supplier_taxes_id
             if not product_taxes:
                 raise UserError(_(
-                    "Missing supplier taxes on product '%s'.")
+                    "Missing supplier taxes on product '%s', or, if it's on "
+                    "purpose because there is no VAT on this kind of expense, "
+                    "the VAT amount of this transaction should be 0.")
                     % self.product_id.name_get()[0][1])
             if any([tax.price_include for tax in product_taxes]):
                 raise UserError(_(
