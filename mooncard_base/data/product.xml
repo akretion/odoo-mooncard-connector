@@ -327,7 +327,7 @@
 </record>
 
 <record id="mooncard_product_7200" model="product.product">
-    <field name="name">Repas - boissons (réception)</field>
+    <field name="name">Repas - boissons (mission)</field>
     <field name="default_code">MOON-7200</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -342,7 +342,7 @@
 </record>
 
 <record id="mooncard_product_7300" model="product.product">
-    <field name="name">Repas - boissons (mission)</field>
+    <field name="name">Repas - boissons (avec client)</field>
     <field name="default_code">MOON-7300</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
