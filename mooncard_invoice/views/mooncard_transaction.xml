@@ -12,6 +12,10 @@
     <field name="model">mooncard.transaction</field>
     <field name="inherit_id" ref="mooncard_base.mooncard_transaction_form"/>
     <field name="arch"  type="xml">
+        <field name="product_id" position="after">
+            <field name="expense_account_id"/>
+            <field name="force_expense_account_id"/>
+        </field>
         <group name="main" position="after">
             <group name="accounting" string="Accounting">
                 <field name="invoice_id"

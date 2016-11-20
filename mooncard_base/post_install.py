@@ -25,7 +25,7 @@ MAPPING = {
         'MOON-6030': {'account': '626', 'tax': 'ACH-20.0'},  # Better account ?
         'MOON-6040': {},  # Internet ventes; which account ?
         'MOON-6050': {'account': '6237', 'tax': 'ACH-20.0'},
-        'MOON-6900': {'account': '651', 'tax': 'ACH-20.0'},
+        'MOON-6900': {'account': '6064', 'tax': 'ACH-20.0'},
         'MOON-7000': {'account': '6251', 'tax': False},
         'MOON-7200': {'account': '6256', 'tax': 'ACH-10.0'},
         'MOON-7300': {'account': '6257', 'tax': 'ACH-10.0'},

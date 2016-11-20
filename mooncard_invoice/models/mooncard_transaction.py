@@ -17,6 +17,13 @@ logger = logging.getLogger(__name__)
 class MooncardTransaction(models.Model):
     _inherit = 'mooncard.transaction'
 
+    expense_account_id = fields.Many2one(
+        related='product_id.property_account_expense', readonly=True,
+        string='Expense Account of the Product')
+    force_expense_account_id = fields.Many2one(
+        'account.account', string='Override Expense Account',
+        help="Override the expense account configured on the product",
+        domain=[('type', 'not in', ('view', 'closed'))])
     invoice_id = fields.Many2one(
         'account.invoice', string='Invoice', readonly=True)
     invoice_state = fields.Selection(
@@ -214,7 +221,12 @@ class MooncardTransaction(models.Model):
                 % self.name)
         amount_untaxed = self.total_company_currency * -1\
             - self.vat_company_currency * -1
-        rimage = requests.get(url)
+        try:
+            rimage = requests.get(url)
+        except Exception, e:
+            raise UserError(_(
+                "Failed to download the image of the receipt. "
+                "Error message: %s.") % e)
         if rimage.status_code != 200:
             raise UserError(_(
                 "Could not download the image of Mooncard transaction %s "
@@ -257,6 +269,14 @@ class MooncardTransaction(models.Model):
         invoice = aiio._create_invoice(parsed_inv)
         invoice.message_post(_(
             "Invoice created from Mooncard transaction %s.") % self.name)
+        if self.force_expense_account_id:
+            invoice.invoice_line[0].account_id =\
+                self.force_expense_account_id.id
+            invoice.message_post(_(
+                "Expense account forced on the Mooncard transaction "
+                "from '%s' to '%s'.") % (
+                    self.expense_account_id.name_get()[0][1],
+                    self.force_expense_account_id.name_get()[0][1]))
         workflow.trg_validate(
             self._uid, 'account.invoice', invoice.id, 'invoice_open', self._cr)
         assert float_compare(
