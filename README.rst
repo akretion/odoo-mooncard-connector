@@ -10,24 +10,29 @@ This project is a connector between `Odoo <https://www.odoo.com/>`_, the leading
 
 Mooncard propose:
 
-* instant notification of each card payment on your mobile phone,
-* easy and fast recording of your card expenses from your mobile phone.
+* instant notification of each card payment on your smartphone,
+* easy and fast recording of your card expenses from your smartphone.
+
+The diagram below illustrate the full process from the payment with Mooncard to the accounting entries in Odoo:
+
+.. figure:: http://public.akretion.com/diagram_odoo_mooncard.jpg
+   :alt: Diagram to illustrate the full process from a payment with Mooncard to the accounting entries in Odoo
 
 Mooncard has been launched in France in October 2016 ; it will be extended to other countries in the future.
 
 Recording card expenses in accounting
 =====================================
 
-To record a corporate card transaction in the books of the company, you need 6 things:
+To record a corporate card transaction in the books of the company, you need:
 
-1. the date of the expense,
-2. the total amount,
-3. the VAT amount, to be able to refund VAT,
-4. the description of the expense,
-5. the kind of expense (train ticket, hotel, book, gift, etc.), to be able to choose the right expense account in the chart of accounts,
-6. a receipt, to have a proof of the expense for the fiscal administration.
+1. the **date** of the expense,
+2. the **total amount**,
+3. the **VAT amount**, to be able to refund VAT,
+4. the **description** of the expense,
+5. the **kind of expense** (train ticket, hotel, book, gift, etc.), to be able to choose the right expense account in the chart of accounts,
+6. a **receipt**, to have a proof of the expense for the fiscal administration.
 
-Then, with these 6 things, the accountant will have to:
+Then, the accountant will have to:
 
 * create an account move to record the expense,
 * create an account move to record the payment,
@@ -36,37 +41,40 @@ Then, with these 6 things, the accountant will have to:
 How Mooncard works
 ==================
 
-A Mooncard is a special `MasterCard <http://www.mastercard.com/>`_, linked to a dedicated bank account. To make a payment, you can use the Mooncard like any MasterCard card. When you make a payment:
+A Mooncard is a special `MasterCard <http://www.mastercard.com/>`_ card linked to a dedicated bank account. To make a payment, you can use the Mooncard like any MasterCard card. When you make a payment with your Mooncard:
 
-* Mooncard instantly receives the raw bank transaction, which contains all the details about the payment (date, time, amount in local currency, amount in EUR) and about the vendor (vendor name, country, activity, etc.). Among the 6 things needed to record the transaction in the accounting:
+1. Mooncard instantly receives the raw bank transaction, which contains all the details about the payment (date, time, amount in local currency, amount in EUR) and about the vendor (vendor name, country, activity, etc.). Among the 6 information needed to record the transaction in the accounting:
 
-  - item 1 (date) is known,
-  - item 2 (total amount) is known,
-  - item 5 (kind of expense) can be guessed from the activity of the vendor,
-  - item 3 (VAT amount) can be guessed from the kind of expense and the country of the vendor.
+  - the **date** is known,
+  - the **total amount** is known,
+  - the **kind of expense** can be guessed from the activity of the vendor,
+  - the **VAT amount** can be guessed from the kind of expense and the country of the vendor.
 
-* The user is instantly notified of the payment on his smartphone. With his smartphone, he can:
+2. The user is instantly notified of the payment on his smartphone. With his smartphone, he can:
 
-  - item 5: modify the kind of expense if needed,
-  - item 3: modify the VAT amount if needed,
-  - item 4: enter a description of the expense. If he has granted Mooncard read access to his agenda, he can select any entry of his agenda as a description of the expense (e.g. *Lunch with Mr Chic*)
-  - item 6: take a picture of the receipt with the camera of his smartphone.
+  - modify the **kind of expense** if needed,
+  - modify the **VAT amount** if needed,
+  - write a **description** of the expense. If he has granted Mooncard read access to his agenda, he can select any entry of his agenda as a description of the expense (e.g. *Lunch with Mr Chic*)
+  - take a **picture of the receipt** with the camera of his smartphone.
 
-* Once the user has validated the information on his smartphone, the information is sent to Mooncard ; the 6 things required for the accoutant are now registered !
+3. Once the user has validated the information on his smartphone, the information is sent to Mooncard.
 
-Competing enterprise expense management solutions also take advantage of the smartphone of the user to take a picture of the receipt and then use OCR (Optical Character Recognition) to try to extract the relevant information. But the experience has prooved that it regularly fails to extract all the required information. The solution proposed by Mooncard, with the use of a special corporate card, is better and more reliable than the competing solutions.
+4. The accountant can import the transaction from Mooncard to the accounting software; with the Odoo-Mooncard connector, it is very easy!
+
+Competing enterprise expense management solutions also take advantage of the smartphone of the user to take a picture of the receipt and then use OCR (Optical Character Recognition) to try to extract the relevant information. But real-life experience shows that it regularly fails to extract all the required information. The solution proposed by Mooncard, with the use of a special corporate card, is better and more reliable than the competing solutions.
 
 How the Odoo-Mooncard connector works
 =====================================
 
 Upon installation of the Odoo modules for Mooncard, one product is created for each kind of expense as per the Mooncard expense nomenclature (which has 33 expense categories). As any Odoo product, each product is attached to an expense account and an optional VAT tax.
 
-The Mooncard connector will download the card transactions in Odoo ; each transaction will be mapped to the corresponding Odoo product.
+The Mooncard connector will download the card transactions in Odoo; each transaction will be mapped to the corresponding Odoo product.
 
 Then, in Odoo, the accountant can:
 
-* check the information of each expense by comparing them with the image of the receipt. He can modify the description of the expense, the VAT amount or the expense category if needed.
-* when the accountant has validated the information, he can process the transactions in just one click! For each transaction, Odoo will create a supplier invoice, attach the image of the receipt to that invoice and create the corresponding payment.
+1. check the information of each expense by comparing them with the image of the receipt. He can modify the description of the expense, the VAT amount, the expense category and the expense account if needed.
+
+2. process the transactions in just one click! For each transaction, Odoo will create a supplier invoice, attach the image of the receipt to that invoice and create the corresponding payment.
 
 Please refer to the README of each module for a detailed instructions to configure and use the Odoo-Mooncard connector.
 
