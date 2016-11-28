@@ -18,5 +18,9 @@
         'views/account_config_settings.xml',
         'views/company.xml',
     ],
+    'images': [
+        'static/description/banner_odoo_mooncard.jpg',
+        'static/description/diagram_odoo_mooncard.jpg',
+        ],
     'installable': True,
 }
