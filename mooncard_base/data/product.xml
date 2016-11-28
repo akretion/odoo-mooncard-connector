@@ -18,12 +18,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_1000" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_1000_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1000</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_1010" model="product.product">
@@ -33,12 +35,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_1010" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_1010_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1010</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_1020" model="product.product">
@@ -48,12 +52,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_1020" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_1020_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1020</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_1030" model="product.product">
@@ -63,12 +69,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_1030" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_1030_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1030</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_1040" model="product.product">
@@ -78,12 +86,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_1040" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_1040_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1040</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_1100" model="product.product">
@@ -93,12 +103,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_1100" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_1100_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1100</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_1200" model="product.product">
@@ -108,12 +120,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_1200" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_1200_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1200</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_2000" model="product.product">
@@ -123,12 +137,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_2000" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_2000_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">2000</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_2500" model="product.product">
@@ -138,12 +154,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_2500" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_2500_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">2500</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_3000" model="product.product">
@@ -153,12 +171,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_3000" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_3000_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">3000</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_3100" model="product.product">
@@ -168,12 +188,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_3100" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_3100_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">3100</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_3500" model="product.product">
@@ -183,12 +205,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_3500" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_3500_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">3500</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_4000" model="product.product">
@@ -198,12 +222,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_4000" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_4000_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">4000</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_6000" model="product.product">
@@ -213,12 +239,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_6000" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_6000_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">6000</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_6010" model="product.product">
@@ -228,12 +256,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_6010" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_6010_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">6010</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_6020" model="product.product">
@@ -243,12 +273,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_6020" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_6020_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">6020</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_6030" model="product.product">
@@ -258,12 +290,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_6030" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_6030_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">6030</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_6040" model="product.product">
@@ -273,12 +307,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_6040" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_6040_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">6040</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_6050" model="product.product">
@@ -288,12 +324,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_6050" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_6050_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">6050</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_6900" model="product.product">
@@ -303,12 +341,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_6900" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_6900_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">6900</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_7000" model="product.product">
@@ -318,12 +358,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_7000" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_7000_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">7000</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_7200" model="product.product">
@@ -333,12 +375,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_7200" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_7200_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">7200</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_7300" model="product.product">
@@ -348,12 +392,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_7300" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_7300_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">7300</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_8000" model="product.product">
@@ -363,12 +409,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8000" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8000_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8000</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_8010" model="product.product">
@@ -378,12 +426,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8010" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8010_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8010</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_8020" model="product.product">
@@ -393,12 +443,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8020" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8020_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8020</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_8030" model="product.product">
@@ -408,12 +460,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8030" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8030_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8030</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_8040" model="product.product">
@@ -423,12 +477,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8040" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8040_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8040</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_8050" model="product.product">
@@ -438,12 +494,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8050" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8050_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8050</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_8060" model="product.product">
@@ -453,12 +511,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8060" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8060_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8060</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_8070" model="product.product">
@@ -468,12 +528,14 @@
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8070" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8070_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8070</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <!-- You cannot pay this with a Mooncard, but I guess it's for the future
@@ -485,12 +547,14 @@ when mooncard will handle KM compensation -->
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_8099" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_8099_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">8099</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_product_9000" model="product.product">
@@ -500,12 +564,14 @@ when mooncard will handle KM compensation -->
     <field name="categ_id" ref="mooncard_product_categ"/>
     <field name="sale_ok" eval="0"/>
     <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
 </record>
 
 <record id="mooncard_supplierinfo_9000" model="product.supplierinfo">
     <field name="product_tmpl_id" ref="mooncard_product_9000_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">9000</field>
+    <field name="company_id" eval="False"/>
 </record>
 
 

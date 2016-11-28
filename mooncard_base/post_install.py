@@ -65,7 +65,8 @@ def set_accounts_on_products(cr, registry):
                 if val_dict.get('account'):
                     accounts = env['account.account'].search([
                         ('code', '=like', val_dict['account'] + '%'),
-                        ('type', 'not in', ('view', 'closed'))])
+                        ('type', 'not in', ('view', 'closed')),
+                        ('company_id', '=', company.id)])
                     if accounts:
                         product.with_context(force_company=company.id).\
                             property_account_expense = accounts[0].id
@@ -73,7 +74,8 @@ def set_accounts_on_products(cr, registry):
                     if val_dict['tax']:
                         taxes = env['account.tax'].search([
                             ('type_tax_use', 'in', ('all', 'purchase')),
-                            ('description', '=', val_dict['tax'])])
+                            ('description', '=', val_dict['tax']),
+                            ('company_id', '=', company.id)])
                         if taxes:
                             product.with_context(force_company=company.id).\
                                 supplier_taxes_id = [(6, 0, [taxes[0].id])]
