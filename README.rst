@@ -6,7 +6,7 @@
 Odoo-Mooncard connector
 =======================
 
-This project is a connector between `Odoo <https://www.odoo.com/>`_, the leading OpenSource ERP solution, and `Mooncard <https://www.mooncard.co/>`_, a new-generation corporate card solution.
+This project is a connector between `Odoo <https://www.odoo.com/>`_, the leading OpenSource ERP solution, and `Mooncard <http://www.mooncard.co/>`_, a new-generation corporate card solution.
 
 Mooncard propose:
 

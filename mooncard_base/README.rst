@@ -6,7 +6,7 @@
 Mooncard Base
 =============
 
-This is the base module of the Odoo-Mooncard connector. `Mooncard <https://www.mooncard.co/>`_ is a new-generation corporate card that propose:
+This is the base module of the Odoo-Mooncard connector. `Mooncard <http://www.mooncard.co/>`_ is a new-generation corporate card that propose:
 
 * instant notification of each card payment on your mobile phone,
 * easy and fast recording of your card expenses from your mobile phone.
