@@ -68,10 +68,13 @@ class MooncardCsvImport(models.TransientModel):
         # Continue with fields required for create
         country_id = False
         if line.get('country_code') and len(line['country_code']) == 3:
-            pcountry = pycountry.countries.get(alpha3=line['country_code'])
+            logger.debug(
+                'search country with code %s with pycountry',
+                line['country_code'])
+            pcountry = pycountry.countries.get(alpha_3=line['country_code'])
             if pcountry:
                 countries = self.env['res.country'].search(
-                    [('code', '=', pcountry.alpha2)])
+                    [('code', '=', pcountry.alpha_2)])
                 if countries:
                     country_id = countries[0].id
         currencies = self.env['res.currency'].search(
