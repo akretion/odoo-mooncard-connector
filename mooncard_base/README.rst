@@ -28,11 +28,7 @@ To install this module, you need some additional Python librairies:
   sudo pip install pycountry
   sudo pip install unicodecsv
 
-or, on Debian/Ubuntu:
-
-.. code::
-
-  sudo apt-get install python-pycountry python-unicodecsv
+Note: you should not use the Debian/Ubuntu package *python-pycountry* because, as of Ubuntu 16.04, the version is too old and has a slightly different API than the latest version of `pycountry on Pypi <https://pypi.python.org/pypi/pycountry/>`_ (and we are using the latest version of the API of pycountry in this module).
 
 Configuration
 =============
