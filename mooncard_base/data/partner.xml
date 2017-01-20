@@ -5,6 +5,7 @@
 
 <record id="mooncard_supplier" model="res.partner">
     <field name="name">Mooncard Misc Suppliers</field>
+    <field name="is_company" eval="1"/>
     <field name="supplier" eval="1"/>
     <field name="customer" eval="0"/>
 </record>

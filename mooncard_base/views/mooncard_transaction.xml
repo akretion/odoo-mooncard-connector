@@ -84,6 +84,9 @@
             <field name="name"
                 filter_domain="['|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('merchant', 'ilike', self)]"/>
             <field name="date"/>
+            <filter name="ready_to_process" string="Ready to process"
+                domain="[('state', '=', 'draft'), ('transaction_type', 'in', ('load', 'presentment')), ('product_id', '!=', False), ('description', '!=', False), ('image_url', '!=', False)]"/>
+            <separator/>
             <filter name="load" string="Load"
                 domain="[('transaction_type', '=', 'load')]"/>
             <filter name="expense" string="Expense"

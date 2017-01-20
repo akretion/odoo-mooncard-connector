@@ -128,6 +128,14 @@ class MooncardCsvImport(models.TransientModel):
         mt_ids = []
         for line in reader:
             i += 1
+            # replace '' by False, so as to make the domains such as
+            # ('image_url', '!=', False) work
+            # and strip regular strings
+            for key, value in line.iteritems():
+                if value:
+                    line[key] = value.strip()
+                else:
+                    line[key] = False
             logger.debug("line=%s", line)
             if not line.get('id'):
                 raise UserError(_(
