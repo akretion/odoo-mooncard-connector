@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+# © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from openerp import api, SUPERUSER_ID
+from odoo import api, SUPERUSER_ID
 
 MAPPING = {
     'FR': {
@@ -46,7 +46,7 @@ MAPPING = {
 def set_accounts_on_products(cr, registry):
     with api.Environment.manage():
         env = api.Environment(cr, SUPERUSER_ID, {})
-        supplier = env.ref('mooncard_base.mooncard_supplier')
+        categ = env.ref('mooncard_base.mooncard_product_categ')
         companies = env['res.company'].search([])
         for company in companies:
             company_country_code = company.country_id.code and\
@@ -56,7 +56,7 @@ def set_accounts_on_products(cr, registry):
             for default_code, val_dict in\
                     MAPPING[company_country_code].iteritems():
                 products = env['product.product'].search([
-                    ('seller_id', '=', supplier.id),
+                    ('categ_id', '=', categ.id),
                     ('default_code', '=', default_code),
                     ])
                 if not products:
@@ -65,15 +65,15 @@ def set_accounts_on_products(cr, registry):
                 if val_dict.get('account'):
                     accounts = env['account.account'].search([
                         ('code', '=like', val_dict['account'] + '%'),
-                        ('type', 'not in', ('view', 'closed')),
+                        ('deprecated', '=', False),
                         ('company_id', '=', company.id)])
                     if accounts:
                         product.with_context(force_company=company.id).\
-                            property_account_expense = accounts[0].id
+                            property_account_expense_id = accounts[0].id
                 if 'tax' in val_dict:
                     if val_dict['tax']:
                         taxes = env['account.tax'].search([
-                            ('type_tax_use', 'in', ('all', 'purchase')),
+                            ('type_tax_use', '=', 'purchase'),
                             ('description', '=', val_dict['tax']),
                             ('company_id', '=', company.id)])
                         if taxes:

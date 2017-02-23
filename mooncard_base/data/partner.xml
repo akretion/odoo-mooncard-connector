@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<openerp>
-<data noupdate="1">
+<odoo noupdate="1">
 
 <record id="mooncard_supplier" model="res.partner">
     <field name="name">Mooncard Misc Suppliers</field>
@@ -10,11 +9,4 @@
     <field name="customer" eval="0"/>
 </record>
 
-<!--
-<record id="base.main_company" model="res.company">
-    <field name="mooncard_partner_id" ref="mooncard_supplier"/>
-</record>
--->
-
-</data>
-</openerp>
+</odoo>

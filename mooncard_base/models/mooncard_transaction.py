@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-# © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+# © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from openerp import models, fields, api, _
-from openerp.exceptions import Warning as UserError
-import openerp.addons.decimal_precision as dp
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class MooncardTransaction(models.Model):
@@ -19,7 +18,7 @@ class MooncardTransaction(models.Model):
             'mooncard.transaction'))
     company_currency_id = fields.Many2one(
         'res.currency', related='company_id.currency_id', readonly=True,
-        string="Company Currency")
+        string="Company Currency", store=True)
     description = fields.Char(
         string='Description', states={'done': [('readonly', True)]})
     unique_import_id = fields.Char(
@@ -35,8 +34,7 @@ class MooncardTransaction(models.Model):
         'product.product', string='Expense Product', ondelete='restrict',
         states={'done': [('readonly', True)]})
     account_analytic_id = fields.Many2one(
-        'account.analytic.account', string='Analytic Account',
-        domain=[('type', '!=', 'view')])
+        'account.analytic.account', string='Analytic Account')
     country_id = fields.Many2one(
         'res.country', string='Country', readonly=True)
     merchant = fields.Char(string='Merchant', readonly=True)
@@ -45,19 +43,20 @@ class MooncardTransaction(models.Model):
         ('presentment', 'Expense'),
         ('authorization', 'Authorization'),
         ], string='Transaction Type', readonly=True)
-    vat_company_currency = fields.Float(
+    vat_company_currency = fields.Monetary(
         string='VAT Amount',
         # not readonly, because accountant may have to change the value
-        digits=dp.get_precision('Account'),
+        currency_field='company_currency_id',
         states={'done': [('readonly', True)]},
         help='VAT Amount in Company Currency')
-    total_company_currency = fields.Float(
+    total_company_currency = fields.Monetary(
         string='Total Amount in Company Currency',
-        digits=dp.get_precision('Account'), readonly=True)
+        currency_field='company_currency_id', readonly=True)
     currency_id = fields.Many2one(
         'res.currency', string='Expense Currency', readonly=True)
-    total_currency = fields.Float(
-        string='Total Amount in Expense Currency', readonly=True)
+    total_currency = fields.Monetary(
+        string='Total Amount in Expense Currency', readonly=True,
+        currency_field='currency_id')
     image_url = fields.Char(string='Image URL', readonly=True)
     # Should I put it in attachment ?
     # Only URL and a click on it would open the image in Web browser ?

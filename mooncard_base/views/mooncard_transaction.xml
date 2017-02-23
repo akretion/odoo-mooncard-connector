@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
 
-<openerp>
-<data>
+<odoo>
 
 <record id="mooncard_transaction_form" model="ir.ui.view">
     <field name="name">Mooncard Transaction Form</field>
@@ -33,9 +32,9 @@
                 <field name="currency_id" invisible="1"/>
                 <field name="account_analytic_id"
                     groups="analytic.group_analytic_accounting"/>
-                <field name="vat_company_currency" widget="monetary" options="{'currency_field': 'company_currency_id'}"/>
-                <field name="total_company_currency" widget="monetary" options="{'currency_field': 'company_currency_id'}"/>
-                <field name="total_currency" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="vat_company_currency"/>
+                <field name="total_company_currency"/>
+                <field name="total_currency"/>
                 <field name="image_url" widget="url"/>
             </group>
         </form>
@@ -46,7 +45,7 @@
     <field name="name">Mooncard Transaction Tree</field>
     <field name="model">mooncard.transaction</field>
     <field name="arch"  type="xml">
-        <tree string="Mooncard Transactions" colors="blue:state=='draft'" editable="bottom">
+        <tree string="Mooncard Transactions" decoration-info="state == 'draft'" editable="bottom">
             <field name="name"/>
             <field name="date"/>
             <field name="transaction_type" string="Type"/>
@@ -58,11 +57,11 @@
             <field name="merchant"/>
             <field name="country_id"/>
             <field name="company_id" groups="base.group_multi_company"/>
-            <field name="vat_company_currency" widget="monetary" options="{'currency_field': 'company_currency_id'}" string="VAT"/>
-            <field name="total_company_currency" widget="monetary" options="{'currency_field': 'company_currency_id'}" sum="Total" string="Amount"/>
-            <field name="company_currency_id"/>
-            <field name="total_currency" widget="monetary" options="{'currency_field': 'currency_id'}" string="Amount in Expense Currency"/>
-            <field name="currency_id"/>
+            <field name="vat_company_currency" string="VAT"/>
+            <field name="total_company_currency" sum="Total" string="Amount"/>
+            <field name="company_currency_id" invisible="1"/>
+            <field name="total_currency" string="Amount in Expense Currency"/>
+            <field name="currency_id" invisible="1"/>
             <field name="image_url" invisible="1"/>
             <button name="open_image_url"
                 type="object" string="Expense Image"
@@ -129,12 +128,23 @@
     </field>
 </record>
 
-<record id="mooncard_transaction_graph" model="ir.ui.view">
-    <field name="name">Mooncard Transaction graph view</field>
+<record id="mooncard_transaction_pivot" model="ir.ui.view">
+    <field name="name">Mooncard Transaction pivot view</field>
     <field name="model">mooncard.transaction</field>
     <field name="arch"  type="xml">
-        <graph string="Mooncard Transactions" type="pivot">
+        <pivot string="Mooncard Transactions">
             <field name="date" type="col" interval="month"/>
+            <field name="product_id" type="row"/>
+            <field name="total_company_currency" type="measure"/>
+        </pivot>
+    </field>
+</record>
+
+<record id="mooncard_transaction_graph" model="ir.ui.view">
+    <field name="name">Mooncard Transaction pivot view</field>
+    <field name="model">mooncard.transaction</field>
+    <field name="arch"  type="xml">
+        <graph string="Mooncard Transactions">
             <field name="product_id" type="row"/>
             <field name="total_company_currency" type="measure"/>
         </graph>
@@ -144,7 +154,7 @@
 <record id="mooncard_transaction_action" model="ir.actions.act_window">
     <field name="name">Mooncard Transactions</field>
     <field name="res_model">mooncard.transaction</field>
-    <field name="view_mode">tree,form,graph,calendar</field>
+    <field name="view_mode">tree,form,graph,pivot,calendar</field>
 </record>
 
 <menuitem id="mooncard_menu" name="Mooncard"
@@ -153,5 +163,4 @@
 <menuitem id="mooncard_transaction_menu" action="mooncard_transaction_action"
     parent="mooncard_menu" sequence="10"/>
 
-</data>
-</openerp>
+</odoo>

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-# © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+# © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from openerp.tests.common import TransactionCase
-from openerp.tools import float_compare
+from odoo.tests.common import TransactionCase
+from odoo.tools import float_compare
 
 
 class TestMooncardInvoice(TransactionCase):
@@ -13,15 +13,11 @@ class TestMooncardInvoice(TransactionCase):
         self.account_model = self.env['account.account']
         self.move_model = self.env['account.move']
         self.journal_model = self.env['account.journal']
-        bank_type = self.env.ref('account.data_account_type_bank')
-        baccounts = self.account_model.search(
-            [('user_type', '=', bank_type.id)])
+        bank_acc_type = self.env.ref('account.data_account_type_liquidity')
         self.moon_bank_account = self.account_model.create({
-            'parent_id': baccounts[0].parent_id.id,
             'code': '512199',
             'name': 'Mooncard prepaid account',
-            'user_type': bank_type.id,
-            'type': 'liquidity',
+            'user_type_id': bank_acc_type.id,
             })
         self.moon_bank_journal = self.journal_model.create({
             'type': 'bank',
@@ -33,15 +29,12 @@ class TestMooncardInvoice(TransactionCase):
         self.card1 = self.env.ref('mooncard_base.card1')
         self.card1.write({
             'journal_id': self.moon_bank_journal.id})
-        accounts = self.account_model.search(
-            [('reconcile', '=', True), ('type', '=', 'other')])
         self.company = self.env.ref('base.main_company')
         self.euro = self.env.ref('base.EUR')
         self.company.write({
-            'transfer_account_id': accounts[0].id,
             'currency_id': self.euro.id,
             })
-        self.prec = self.env['decimal.precision'].precision_get('Account')
+        self.prec = self.company.currency_id.rounding
 
     def test_load_line(self):
         # Set company country to France
@@ -61,18 +54,18 @@ class TestMooncardInvoice(TransactionCase):
             self.assertEqual(inv.state, 'paid')
             if float_compare(
                     expense.total_company_currency, 0,
-                    precision_digits=self.prec) == -1:
+                    precision_rounding=self.prec) == -1:
                 self.assertEqual(inv.type, 'in_invoice')
             else:
                 self.assertEqual(inv.type, 'in_refund')
             self.assertFalse(float_compare(
                 abs(expense.total_company_currency),
                 inv.amount_total,
-                precision_digits=self.prec))
+                precision_rounding=self.prec))
             self.assertFalse(float_compare(
                 abs(expense.vat_company_currency),
                 inv.amount_tax,
-                precision_digits=self.prec))
+                precision_rounding=self.prec))
             self.assertEqual(inv.date_invoice, expense.date[:10])
             pay_move_line = expense.payment_move_line_id
             self.assertTrue(pay_move_line)

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+# © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from openerp import models, fields, api, workflow, _
-from openerp.exceptions import Warning as UserError
-from openerp.tools import float_compare
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
+from odoo.tools import float_compare
 import requests
 import base64
 import logging
@@ -18,12 +18,12 @@ class MooncardTransaction(models.Model):
     _inherit = 'mooncard.transaction'
 
     expense_account_id = fields.Many2one(
-        related='product_id.property_account_expense', readonly=True,
+        related='product_id.property_account_expense_id', readonly=True,
         string='Expense Account of the Product')
     force_expense_account_id = fields.Many2one(
         'account.account', string='Override Expense Account',
         help="Override the expense account configured on the product",
-        domain=[('type', 'not in', ('view', 'closed'))])
+        domain=[('deprecated', '=', False)])
     invoice_id = fields.Many2one(
         'account.invoice', string='Invoice', readonly=True)
     invoice_state = fields.Selection(
@@ -35,8 +35,8 @@ class MooncardTransaction(models.Model):
         'account.move', string="Payment Move",
         related='payment_move_line_id.move_id', readonly=True)
     reconcile_id = fields.Many2one(
-        'account.move.reconcile', string="Reconcile",
-        related='payment_move_line_id.reconcile_id', readonly=True)
+        'account.full.reconcile', string="Reconcile",
+        related='payment_move_line_id.full_reconcile_id', readonly=True)
     load_move_id = fields.Many2one(
         'account.move', string="Load Move", readonly=True)
 
@@ -66,10 +66,9 @@ class MooncardTransaction(models.Model):
     def _prepare_load_move(self):
         self.ensure_one()
         date = self.date[:10]
-        period = self.env['account.period'].find(dt=date)
-        precision = self.env['decimal.precision'].precision_get('Account')
+        precision = self.company_currency_id.rounding
         load_amount = self.total_company_currency
-        if float_compare(load_amount, 0, precision_digits=precision) > 0:
+        if float_compare(load_amount, 0, precision_rounding=precision) > 0:
             credit = 0
             debit = load_amount
         else:
@@ -79,9 +78,8 @@ class MooncardTransaction(models.Model):
         mvals = {
             'journal_id': journal.id,
             'date': date,
-            'period_id': period.id,
             'ref': self.name,
-            'line_id': [
+            'line_ids': [
                 (0, 0, {
                     'account_id': journal.default_debit_account_id.id,
                     'debit': debit,
@@ -126,18 +124,10 @@ class MooncardTransaction(models.Model):
         amlo = self.env['account.move.line']
         date = self.date[:10]
         partner = self.env.ref('mooncard_base.mooncard_supplier')
-        period = self.env['account.period'].find(dt=date)
-        mvals = {
-            'journal_id': journal.id,
-            'date': date,
-            'period_id': period.id,
-            'ref': self.name,
-            }
-        bank_move = self.env['account.move'].create(mvals)
         expense_amount = self.total_company_currency * -1
-        precision = self.env['decimal.precision'].precision_get('Account')
+        precision = self.company_currency_id.rounding
         if float_compare(
-                expense_amount, 0, precision_digits=precision) > 0:
+                expense_amount, 0, precision_rounding=precision) > 0:
             credit = 0
             debit = expense_amount
         else:
@@ -145,24 +135,30 @@ class MooncardTransaction(models.Model):
             debit = 0
         mlvals1 = {
             'name': self.description,
-            'move_id': bank_move.id,
             'partner_id': partner.id,
-            'account_id': partner.property_account_payable.id,
+            'account_id': partner.property_account_payable_id.id,
             'credit': credit,
             'debit': debit,
             }
-        move_line1 = amlo.create(mlvals1)
-        self.payment_move_line_id = move_line1.id
         mlvals2 = {
             'name': self.description,
-            'move_id': bank_move.id,
             'partner_id': partner.id,
             'account_id': journal.default_credit_account_id.id,
             'credit': debit,
             'debit': credit,
             }
-        amlo.create(mlvals2)
+        mvals = {
+            'journal_id': journal.id,
+            'date': date,
+            'ref': self.name,
+            'line_ids': [(0, 0, mlvals1), (0, 0, mlvals2)],
+            }
+        bank_move = self.env['account.move'].create(mvals)
         bank_move.post()
+        self.payment_move_line_id = amlo.search([
+            ('move_id', '=', bank_move.id),
+            ('account_id', '=', partner.property_account_payable_id.id),
+            ])[0].id
 
     @api.model
     def _countries_vat_refund(self):
@@ -171,7 +167,7 @@ class MooncardTransaction(models.Model):
     @api.multi
     def _prepare_invoice_import(self):
         self.ensure_one()
-        precision = self.env['decimal.precision'].precision_get('Account')
+        precision = self.company_currency_id.rounding
         date = self.date[:10]
         partner = self.env.ref('mooncard_base.mooncard_supplier')
         if not self.product_id:
@@ -179,7 +175,7 @@ class MooncardTransaction(models.Model):
                 "Missing Expense Product on Mooncard transaction %s")
                 % self.name)
         vat_compare = float_compare(
-            self.vat_company_currency, 0, precision_digits=precision)
+            self.vat_company_currency, 0, precision_rounding=precision)
         if vat_compare:
             if (
                     self.country_id and
@@ -192,7 +188,7 @@ class MooncardTransaction(models.Model):
                     "to 0.")
                     % (self.name, self.country_id.name))
             total_compare = float_compare(
-                self.total_company_currency, 0, precision_digits=precision)
+                self.total_company_currency, 0, precision_rounding=precision)
             if vat_compare != total_compare:
                 raise UserError(_(
                     "The sign of the VAT amount (%s) should be the same as "
@@ -262,7 +258,7 @@ class MooncardTransaction(models.Model):
         assert not self.invoice_id, 'already linked to an invoice'
         assert self.transaction_type == 'presentment', 'wrong transaction type'
         aiio = self.env['account.invoice.import']
-        precision = self.env['decimal.precision'].precision_get('Account')
+        precision = self.company_currency_id.rounding
         parsed_inv = self._prepare_invoice_import()
         logger.debug('Mooncard invoice import parsed_inv=%s', parsed_inv)
         parsed_inv = aiio.update_clean_parsed_inv(parsed_inv)
@@ -277,11 +273,10 @@ class MooncardTransaction(models.Model):
                 "from '%s' to '%s'.") % (
                     self.expense_account_id.name_get()[0][1],
                     self.force_expense_account_id.name_get()[0][1]))
-        workflow.trg_validate(
-            self._uid, 'account.invoice', invoice.id, 'invoice_open', self._cr)
+        invoice.action_invoice_open()
         assert float_compare(
             invoice.amount_tax, abs(self.vat_company_currency),
-            precision_digits=precision) == 0, 'bug on VAT'
+            precision_rounding=precision) == 0, 'bug on VAT'
         self.invoice_id = invoice.id
 
     @api.one

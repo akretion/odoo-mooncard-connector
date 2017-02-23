@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-# © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+# © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from openerp import models, fields, api, _
-from openerp.exceptions import ValidationError
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class MooncardCard(models.Model):
@@ -27,21 +27,21 @@ class MooncardCard(models.Model):
         default=lambda self: self.env['res.company']._company_default_get(
             'mooncard.card'))
 
-    @api.one
     @api.depends('code', 'name')
     def _compute_display_name_field(self):
-        dname = self.name
-        if self.code:
-            dname = '%s (%s)' % (dname, self.code)
-        self.display_name = dname
+        for card in self:
+            dname = card.name
+            if card.code:
+                dname = '%s (%s)' % (dname, card.code)
+            card.display_name = dname
 
-    @api.one
     @api.constrains('name')
     def name_check(self):
-        if self.name and not self.name.isdigit():
-            raise ValidationError(_(
-                "'%s' is not a valid Mooncard token. "
-                "It should only have digits") % self.name)
+        for card in self:
+            if card.name and not card.name.isdigit():
+                raise ValidationError(_(
+                    "'%s' is not a valid Mooncard token. "
+                    "It should only have digits") % card.name)
 
     _sql_constrains = [(
         'token_uniq',

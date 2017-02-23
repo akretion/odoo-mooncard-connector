@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<openerp>
-<data noupdate="1">
+<odoo noupdate="1">
 
 <record id="mooncard_supplier_invoice_import" model="account.invoice.import.config">
     <field name="name">Mooncard Misc Supplier (do not change)</field>
@@ -12,5 +11,4 @@
     <field name="invoice_import_id" ref="mooncard_supplier_invoice_import"/>
 </record>
 
-</data>
-</openerp>
+</odoo>

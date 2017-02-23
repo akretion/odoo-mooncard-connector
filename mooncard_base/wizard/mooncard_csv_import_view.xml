@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
 
-<openerp>
-<data>
+<odoo>
 
 <record id="mooncard_csv_import_form" model="ir.ui.view">
     <field name="name">mooncard.csv.import.form</field>
@@ -48,5 +47,4 @@
     key2="tree_but_open"/>
 -->
 
-</data>
-</openerp>
+</odoo>
