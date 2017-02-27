@@ -286,9 +286,9 @@ class MooncardTransaction(models.Model):
         assert self.invoice_id.move_id
         assert not self.reconcile_id, 'already has a reconcile mark'
         movelines_to_rec = self.payment_move_line_id
-        for line in self.invoice_id.move_id.line_id:
+        for line in self.invoice_id.move_id.line_ids:
             if line.account_id == self.payment_move_line_id.account_id:
                 movelines_to_rec += line
                 break
-        rec_id = movelines_to_rec.reconcile()
-        self.reconcile_id = rec_id
+        movelines_to_rec.reconcile()
+        self.reconcile_id = self.payment_move_line_id.full_reconcile_id.id
