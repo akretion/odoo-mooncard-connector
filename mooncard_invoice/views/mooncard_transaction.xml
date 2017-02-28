@@ -15,8 +15,8 @@
             <field name="expense_account_id"/>
             <field name="force_expense_account_id"/>
         </field>
-        <group name="main" position="after">
-            <group name="accounting" string="Accounting">
+        <group name="right" position="inside">
+            <group name="accounting" string="Accounting" colspan="2">
                 <field name="invoice_id"
                     attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
                 <field name="invoice_state"

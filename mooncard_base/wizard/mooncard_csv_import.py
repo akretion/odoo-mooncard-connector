@@ -58,7 +58,7 @@ class MooncardCsvImport(models.TransientModel):
             'expense_categ_code': line.get('expense_category_code'),
             'expense_categ_name': line.get('expense_category_name'),
             'product_id': product_id,
-            'vat_company_currency': float(line.get('vat_eur')) * -1,
+            'vat_company_currency': float(line.get('vat_eur')),
             'image_url': line.get('attachment'),
             }
 

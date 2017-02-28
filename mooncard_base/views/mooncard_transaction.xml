@@ -16,26 +16,40 @@
                     string="Process Line" states="draft" class="oe_highlight"/>
                 <field name="state" widget="statusbar"/>
             </header>
+            <div class="oe_title">
+                <h1>
+                    <field name="name"/>
+                </h1>
+            </div>
             <group name="main">
-                <field name="name"/>
-                <field name="date"/>
-                <field name="transaction_type"/>
-                <field name="description"/>
-                <field name="card_id"/>
-                <field name="expense_categ_code" groups="base.group_no_one"/>
-                <field name="expense_categ_name" groups="base.group_no_one"/>
-                <field name="product_id"/>
-                <field name="merchant"/>
-                <field name="country_id"/>
-                <field name="company_id" groups="base.group_multi_company"/>
-                <field name="company_currency_id" invisible="1"/>
-                <field name="currency_id" invisible="1"/>
-                <field name="account_analytic_id"
-                    groups="analytic.group_analytic_accounting"/>
-                <field name="vat_company_currency"/>
-                <field name="total_company_currency"/>
-                <field name="total_currency"/>
-                <field name="image_url" widget="url"/>
+                <group name="left">
+                    <group name="transaction" string="Transaction Info" colspan="2">
+                        <field name="transaction_type"/>
+                        <field name="date"/>
+                        <field name="card_id"/>
+                        <field name="description" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="merchant" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="country_id" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="image_url" widget="url" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                    </group>
+                    <group name="classification" string="Classification" colspan="2" attrs="{'invisible': [('transaction_type', '=', 'load')]}">
+                        <field name="expense_categ_code" groups="base.group_no_one"/>
+                        <field name="expense_categ_name" groups="base.group_no_one"/>
+                        <field name="product_id"/>
+                        <field name="account_analytic_id"
+                            groups="analytic.group_analytic_accounting"/>
+                    </group>
+                </group>
+                <group name="right">
+                    <group string="Amounts" name="amounts" colspan="2">
+                        <field name="company_currency_id" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="vat_company_currency"/>
+                        <field name="total_company_currency"/>
+                        <field name="total_currency"/>
+                    </group>
+                </group>
             </group>
         </form>
     </field>
@@ -45,7 +59,7 @@
     <field name="name">Mooncard Transaction Tree</field>
     <field name="model">mooncard.transaction</field>
     <field name="arch"  type="xml">
-        <tree string="Mooncard Transactions" decoration-info="state == 'draft'" editable="bottom">
+        <tree string="Mooncard Transactions" decoration-info="state == 'draft'">
             <field name="name"/>
             <field name="date"/>
             <field name="transaction_type" string="Type"/>
@@ -65,10 +79,9 @@
             <field name="image_url" invisible="1"/>
             <button name="open_image_url"
                 type="object" string="Expense Image"
-                icon="STOCK_ZOOM_IN"
+                icon="fa-image"
                 attrs="{'invisible': [('image_url', '=', False)]}"/>
-                <!-- attrs has no effect in tree view -->
-            <button type="object" name="process_line" icon="STOCK_MEDIA_PLAY"
+            <button type="object" name="process_line" icon="fa-gear"
                 string="Process Line" states="draft"/>
             <field name="state"/>
         </tree>
