@@ -18,6 +18,7 @@
             </group>
             <group name="import">
                 <field name="mooncard_file"/>
+                <field name="filename" invisible="1"/>
             </group>
             <footer>
                 <button name="mooncard_import" type="object"

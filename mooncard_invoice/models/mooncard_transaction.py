@@ -17,13 +17,21 @@ logger = logging.getLogger(__name__)
 class MooncardTransaction(models.Model):
     _inherit = 'mooncard.transaction'
 
-    expense_account_id = fields.Many2one(
-        related='product_id.property_account_expense_id', readonly=True,
-        string='Expense Account of the Product')
+    partner_id = fields.Many2one(
+        'res.partner', string='Vendor', required=True,
+        domain=[('supplier', '=', True), ('parent_id', '=', False)],
+        states={'done': [('readonly', True)]},
+        default=lambda self:
+            self.env.ref('mooncard_base.mooncard_supplier'),
+        help="By default, all transactions are linked to the generic "
+        "supplier 'Mooncard Misc Suppliers'. You can change the partner "
+        "to the real partner of the transaction if you want, but it may not "
+        "be worth the additionnal work.")
     force_expense_account_id = fields.Many2one(
         'account.account', string='Override Expense Account',
         help="Override the expense account configured on the product",
-        domain=[('deprecated', '=', False)])
+        domain=[('deprecated', '=', False)],
+        states={'done': [('readonly', True)]})
     invoice_id = fields.Many2one(
         'account.invoice', string='Invoice', readonly=True)
     invoice_state = fields.Selection(
@@ -123,7 +131,7 @@ class MooncardTransaction(models.Model):
         journal = self.card_id.journal_id
         amlo = self.env['account.move.line']
         date = self.date[:10]
-        partner = self.env.ref('mooncard_base.mooncard_supplier')
+        partner = self.partner_id.commercial_partner_id
         expense_amount = self.total_company_currency * -1
         precision = self.company_currency_id.rounding
         if float_compare(
@@ -169,7 +177,6 @@ class MooncardTransaction(models.Model):
         self.ensure_one()
         precision = self.company_currency_id.rounding
         date = self.date[:10]
-        partner = self.env.ref('mooncard_base.mooncard_supplier')
         if not self.product_id:
             raise UserError(_(
                 "Missing Expense Product on Mooncard transaction %s")
@@ -234,7 +241,7 @@ class MooncardTransaction(models.Model):
         origin = _('Mooncard %s') % (
             self.card_id.code or self.card_id.name)
         parsed_inv = {
-            'partner': {'recordset': partner},
+            'partner': {'recordset': self.partner_id},
             'date': date,
             'date_due': date,
             'currency': {'recordset': self.company_id.currency_id},

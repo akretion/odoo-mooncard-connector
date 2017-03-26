@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mooncard_account_mapping_read,Read access on mooncard.account.mapping to Invoicing grp,model_mooncard_account_mapping,account.group_account_invoice,1,0,0,0
+access_mooncard_account_mapping_full,Full access on mooncard.account.mapping to Financial manager,model_mooncard_account_mapping,account.group_account_manager,1,1,1,1

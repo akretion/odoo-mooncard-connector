@@ -33,6 +33,9 @@ class MooncardTransaction(models.Model):
     product_id = fields.Many2one(
         'product.product', string='Expense Product', ondelete='restrict',
         states={'done': [('readonly', True)]})
+    expense_account_id = fields.Many2one(
+        related='product_id.property_account_expense_id', readonly=True,
+        string='Expense Account of the Product')
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account')
     country_id = fields.Many2one(

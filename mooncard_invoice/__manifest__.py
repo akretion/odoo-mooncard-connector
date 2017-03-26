@@ -13,6 +13,8 @@
     'depends': ['mooncard_base', 'account_invoice_import'],
     'data': [
         'data/partner.xml',
+        'security/mooncard_security.xml',
+        'security/ir.model.access.csv',
         'views/mooncard_transaction.xml',
         'views/mooncard_card.xml',
     ],

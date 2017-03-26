@@ -18,6 +18,7 @@ class MooncardCsvImport(models.TransientModel):
     _description = 'Import Mooncard Transactions'
 
     mooncard_file = fields.Binary(string='CSV file', required=True)
+    filename = fields.Char(string='Filename')
 
     @api.model
     def convert_datetime_to_utc(self, date_time_str):
@@ -39,19 +40,11 @@ class MooncardCsvImport(models.TransientModel):
         return date_time_dt
 
     @api.model
-    def _prepare_transaction(self, line, action='create', tokens={}):
+    def _prepare_transaction(self, line, speeddict, action='create'):
         product_id = False
         if line.get('expense_category_code'):
-            partner_id = self.env.ref('mooncard_base.mooncard_supplier').id
-            product_sinfos = self.env['product.supplierinfo'].search([
-                ('name', '=', partner_id),
-                ('product_code', '=', line['expense_category_code']),
-                ])
-            if product_sinfos:
-                product_id = product_sinfos[0].product_tmpl_id.\
-                    product_variant_ids\
-                    and product_sinfos[0].product_tmpl_id.\
-                    product_variant_ids[0].id
+            product_id = speeddict['products'].get(
+                line['expense_category_code'])
         vals = {
             'transaction_type': line.get('transaction_type'),
             'description': line.get('title'),
@@ -82,7 +75,7 @@ class MooncardCsvImport(models.TransientModel):
         currency_id = currencies and currencies[0].id or False
         card_id = False
         if line.get('card_token'):
-            card_id = tokens.get(line.get('card_token'))
+            card_id = speeddict['tokens'].get(line['card_token'])
             if not card_id:
                 raise UserError(_(
                     "The CSV file contains the Moon Card '%s'. This "
@@ -102,18 +95,30 @@ class MooncardCsvImport(models.TransientModel):
         })
         return vals
 
+    @api.model
+    def _prepare_speeddict(self):
+        company = self.env.user.company_id
+        token_res = self.env['mooncard.card'].search_read(
+            [('company_id', '=', company.id)], ['name'])
+        speeddict = {'tokens': {}, 'products': {}}
+        for token in token_res:
+            speeddict['tokens'][token['name']] = token['id']
+
+        partner_id = self.env.ref('mooncard_base.mooncard_supplier').id
+        product_sinfos = self.env['product.supplierinfo'].search([
+            ('name', '=', partner_id),
+            '|', ('company_id', '=', False), ('company_id', '=', company.id)])
+        for product_sinfo in product_sinfos:
+            speeddict['products'][product_sinfo.product_code] =\
+                product_sinfo.product_tmpl_id.product_variant_ids[0].id
+        return speeddict
+
     @api.multi
     def mooncard_import(self):
         self.ensure_one()
         mto = self.env['mooncard.transaction']
-        mco = self.env['mooncard.card']
+        speeddict = self._prepare_speeddict()
         logger.info('Importing Mooncard transactions.csv')
-        company = self.env.user.company_id
-        token_res = mco.search_read(
-            [('company_id', '=', company.id)], ['name'])
-        tokens = {}
-        for token in token_res:
-            tokens[token['name']] = token['id']
         fileobj = TemporaryFile('w+')
         fileobj.write(self.mooncard_file.decode('base64'))
         fileobj.seek(0)
@@ -147,11 +152,12 @@ class MooncardCsvImport(models.TransientModel):
                     line['id'], transaction.id, transaction.state)
                 if transaction.state == 'draft':
                     # update existing lines
-                    wvals = self._prepare_transaction(line, action='update')
+                    wvals = self._prepare_transaction(
+                        line, speeddict, action='update')
                     transaction.write(wvals)
                     mt_ids.append(transaction.id)
                 continue
-            vals = self._prepare_transaction(line, tokens=tokens)
+            vals = self._prepare_transaction(line, speeddict)
             transaction = mto.create(vals)
             mt_ids.append(transaction.id)
         fileobj.close()

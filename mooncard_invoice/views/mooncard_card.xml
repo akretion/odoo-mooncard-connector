@@ -15,6 +15,18 @@
         <field name="user_id" position="after">
             <field name="journal_id" context="{'default_type': 'bank'}"/>
         </field>
+        <group name="main" position="after">
+            <group name="mapping" string="Override Default Accounts">
+                <field name="mapping_ids" nolabel="1">
+                    <tree editable="bottom">
+                        <field name="product_id" domain="['|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]"/>
+                        <field name="expense_account_id"/>
+                        <field name="force_expense_account_id" domain="[('company_id', '=', parent.company_id), ('internal_type', '=', 'other')]"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                    </tree>
+                </field>
+            </group>
+        </group>
     </field>
 </record>
 
