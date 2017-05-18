@@ -20,7 +20,7 @@ class MooncardTransaction(models.Model):
     partner_id = fields.Many2one(
         'res.partner', string='Vendor', required=True,
         domain=[('supplier', '=', True), ('parent_id', '=', False)],
-        states={'done': [('readonly', True)]},
+        states={'done': [('readonly', True)]}, ondelete='restrict',
         default=lambda self:
             self.env.ref('mooncard_base.mooncard_supplier'),
         help="By default, all transactions are linked to the generic "
