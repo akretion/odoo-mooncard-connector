@@ -32,6 +32,8 @@ class MooncardTransaction(models.Model):
         help="Override the expense account configured on the product",
         domain=[('deprecated', '=', False)],
         states={'done': [('readonly', True)]})
+    force_invoice_date = fields.Date(
+        string='Force Invoice Date', states={'done': [('readonly', True)]})
     invoice_id = fields.Many2one(
         'account.invoice', string='Invoice', readonly=True)
     invoice_state = fields.Selection(
@@ -57,6 +59,7 @@ class MooncardTransaction(models.Model):
                 logger.warning(
                     'Skipping mooncard transaction %s which is not draft',
                     line.name)
+                continue
             if line.transaction_type == 'presentment':
                 line.generate_bank_journal_move()
                 line.generate_invoice()
@@ -177,6 +180,8 @@ class MooncardTransaction(models.Model):
         self.ensure_one()
         precision = self.company_currency_id.rounding
         date = self.date[:10]
+        if self.force_invoice_date:
+            date = self.force_invoice_date
         if not self.product_id:
             raise UserError(_(
                 "Missing Expense Product on Mooncard transaction %s")

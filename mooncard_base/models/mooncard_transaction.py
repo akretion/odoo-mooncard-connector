@@ -37,7 +37,8 @@ class MooncardTransaction(models.Model):
         related='product_id.property_account_expense_id', readonly=True,
         string='Expense Account of the Product')
     account_analytic_id = fields.Many2one(
-        'account.analytic.account', string='Analytic Account')
+        'account.analytic.account', string='Analytic Account',
+        states={'done': [('readonly', True)]})
     country_id = fields.Many2one(
         'res.country', string='Country', readonly=True)
     merchant = fields.Char(string='Merchant', readonly=True)
