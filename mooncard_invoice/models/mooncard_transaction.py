@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+# © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from openerp import models, fields, api, workflow, _
@@ -24,6 +24,8 @@ class MooncardTransaction(models.Model):
         'account.account', string='Override Expense Account',
         help="Override the expense account configured on the product",
         domain=[('type', 'not in', ('view', 'closed'))])
+    force_invoice_date = fields.Date(
+        string='Force Invoice Date', states={'done': [('readonly', True)]})
     invoice_id = fields.Many2one(
         'account.invoice', string='Invoice', readonly=True)
     invoice_state = fields.Selection(
@@ -49,6 +51,7 @@ class MooncardTransaction(models.Model):
                 logger.warning(
                     'Skipping mooncard transaction %s which is not draft',
                     line.name)
+                continue
             if line.transaction_type == 'presentment':
                 line.generate_bank_journal_move()
                 line.generate_invoice()
@@ -173,6 +176,8 @@ class MooncardTransaction(models.Model):
         self.ensure_one()
         precision = self.env['decimal.precision'].precision_get('Account')
         date = self.date[:10]
+        if self.force_invoice_date:
+            date = self.force_invoice_date
         partner = self.env.ref('mooncard_base.mooncard_supplier')
         if not self.product_id:
             raise UserError(_(

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
 
@@ -12,6 +12,9 @@
     <field name="model">mooncard.transaction</field>
     <field name="inherit_id" ref="mooncard_base.mooncard_transaction_form"/>
     <field name="arch"  type="xml">
+        <field name="date" position="after">
+            <field name="force_invoice_date"/>
+        </field>
         <field name="product_id" position="after">
             <field name="expense_account_id"/>
             <field name="force_expense_account_id"/>

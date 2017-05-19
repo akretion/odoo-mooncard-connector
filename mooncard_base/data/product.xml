@@ -29,7 +29,7 @@
 </record>
 
 <record id="mooncard_product_1010" model="product.product">
-    <field name="name">Admin / Frais financiers</field>
+    <field name="name">Frais financiers</field>
     <field name="default_code">MOON-1010</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -46,7 +46,7 @@
 </record>
 
 <record id="mooncard_product_1020" model="product.product">
-    <field name="name">Admin / Frais légaux</field>
+    <field name="name">Frais légaux</field>
     <field name="default_code">MOON-1020</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -63,7 +63,7 @@
 </record>
 
 <record id="mooncard_product_1030" model="product.product">
-    <field name="name">Admin / Frais postaux</field>
+    <field name="name">Affranchissement</field>
     <field name="default_code">MOON-1030</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -80,7 +80,7 @@
 </record>
 
 <record id="mooncard_product_1040" model="product.product">
-    <field name="name">Admin / Transporteurs</field>
+    <field name="name">Coursiers / Transporteurs (achat)</field>
     <field name="default_code">MOON-1040</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -93,6 +93,23 @@
     <field name="product_tmpl_id" ref="mooncard_product_1040_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1040</field>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_product_1050" model="product.product">
+    <field name="name">Coursiers / Transporteurs (vente)</field>
+    <field name="default_code">MOON-1050</field>
+    <field name="type">service</field>
+    <field name="categ_id" ref="mooncard_product_categ"/>
+    <field name="sale_ok" eval="0"/>
+    <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_supplierinfo_1050" model="product.supplierinfo">
+    <field name="product_tmpl_id" ref="mooncard_product_1050_product_template"/>
+    <field name="name" ref="mooncard_supplier"/>
+    <field name="product_code">1050</field>
     <field name="company_id" eval="False"/>
 </record>
 
@@ -113,6 +130,23 @@
     <field name="company_id" eval="False"/>
 </record>
 
+<record id="mooncard_product_1110" model="product.product">
+    <field name="name">Fournitures d'entretien</field>
+    <field name="default_code">MOON-1110</field>
+    <field name="type">service</field>
+    <field name="categ_id" ref="mooncard_product_categ"/>
+    <field name="sale_ok" eval="0"/>
+    <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_supplierinfo_1110" model="product.supplierinfo">
+    <field name="product_tmpl_id" ref="mooncard_product_1110_product_template"/>
+    <field name="name" ref="mooncard_supplier"/>
+    <field name="product_code">1110</field>
+    <field name="company_id" eval="False"/>
+</record>
+
 <record id="mooncard_product_1200" model="product.product">
     <field name="name">Documents et livres</field>
     <field name="default_code">MOON-1200</field>
@@ -127,6 +161,40 @@
     <field name="product_tmpl_id" ref="mooncard_product_1200_product_template"/>
     <field name="name" ref="mooncard_supplier"/>
     <field name="product_code">1200</field>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_product_1210" model="product.product">
+    <field name="name">Documentation technique</field>
+    <field name="default_code">MOON-1210</field>
+    <field name="type">service</field>
+    <field name="categ_id" ref="mooncard_product_categ"/>
+    <field name="sale_ok" eval="0"/>
+    <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_supplierinfo_1210" model="product.supplierinfo">
+    <field name="product_tmpl_id" ref="mooncard_product_1210_product_template"/>
+    <field name="name" ref="mooncard_supplier"/>
+    <field name="product_code">1210</field>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_product_1220" model="product.product">
+    <field name="name">Catalogues et imprimés</field>
+    <field name="default_code">MOON-1220</field>
+    <field name="type">service</field>
+    <field name="categ_id" ref="mooncard_product_categ"/>
+    <field name="sale_ok" eval="0"/>
+    <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_supplierinfo_1220" model="product.supplierinfo">
+    <field name="product_tmpl_id" ref="mooncard_product_1220_product_template"/>
+    <field name="name" ref="mooncard_supplier"/>
+    <field name="product_code">1220</field>
     <field name="company_id" eval="False"/>
 </record>
 
@@ -165,7 +233,7 @@
 </record>
 
 <record id="mooncard_product_3000" model="product.product">
-    <field name="name">Outillage et matériel (&lt; 500€ HT)</field>
+    <field name="name">Matériel (&lt; 500€ HT)</field>
     <field name="default_code">MOON-3000</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -182,7 +250,7 @@
 </record>
 
 <record id="mooncard_product_3100" model="product.product">
-    <field name="name">Outillage et matériel (&gt; 500€ HT)</field>
+    <field name="name">Matériel (&gt; 500€ HT)</field>
     <field name="default_code">MOON-3100</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -199,7 +267,7 @@
 </record>
 
 <record id="mooncard_product_3500" model="product.product">
-    <field name="name">Télécommunications</field>
+    <field name="name">Téléphone</field>
     <field name="default_code">MOON-3500</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -233,7 +301,7 @@
 </record>
 
 <record id="mooncard_product_6000" model="product.product">
-    <field name="name">Internet (Services)</field>
+    <field name="name">Internet (services, abonnements)</field>
     <field name="default_code">MOON-6000</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -249,76 +317,8 @@
     <field name="company_id" eval="False"/>
 </record>
 
-<record id="mooncard_product_6010" model="product.product">
-    <field name="name">Internet / Publicité</field>
-    <field name="default_code">MOON-6010</field>
-    <field name="type">service</field>
-    <field name="categ_id" ref="mooncard_product_categ"/>
-    <field name="sale_ok" eval="0"/>
-    <field name="list_price" eval="0"/>
-    <field name="company_id" eval="False"/>
-</record>
-
-<record id="mooncard_supplierinfo_6010" model="product.supplierinfo">
-    <field name="product_tmpl_id" ref="mooncard_product_6010_product_template"/>
-    <field name="name" ref="mooncard_supplier"/>
-    <field name="product_code">6010</field>
-    <field name="company_id" eval="False"/>
-</record>
-
-<record id="mooncard_product_6020" model="product.product">
-    <field name="name">Internet / Ressources Humaines</field>
-    <field name="default_code">MOON-6020</field>
-    <field name="type">service</field>
-    <field name="categ_id" ref="mooncard_product_categ"/>
-    <field name="sale_ok" eval="0"/>
-    <field name="list_price" eval="0"/>
-    <field name="company_id" eval="False"/>
-</record>
-
-<record id="mooncard_supplierinfo_6020" model="product.supplierinfo">
-    <field name="product_tmpl_id" ref="mooncard_product_6020_product_template"/>
-    <field name="name" ref="mooncard_supplier"/>
-    <field name="product_code">6020</field>
-    <field name="company_id" eval="False"/>
-</record>
-
-<record id="mooncard_product_6030" model="product.product">
-    <field name="name">Internet / Outils</field>
-    <field name="default_code">MOON-6030</field>
-    <field name="type">service</field>
-    <field name="categ_id" ref="mooncard_product_categ"/>
-    <field name="sale_ok" eval="0"/>
-    <field name="list_price" eval="0"/>
-    <field name="company_id" eval="False"/>
-</record>
-
-<record id="mooncard_supplierinfo_6030" model="product.supplierinfo">
-    <field name="product_tmpl_id" ref="mooncard_product_6030_product_template"/>
-    <field name="name" ref="mooncard_supplier"/>
-    <field name="product_code">6030</field>
-    <field name="company_id" eval="False"/>
-</record>
-
-<record id="mooncard_product_6040" model="product.product">
-    <field name="name">Internet / Ventes</field>
-    <field name="default_code">MOON-6040</field>
-    <field name="type">service</field>
-    <field name="categ_id" ref="mooncard_product_categ"/>
-    <field name="sale_ok" eval="0"/>
-    <field name="list_price" eval="0"/>
-    <field name="company_id" eval="False"/>
-</record>
-
-<record id="mooncard_supplierinfo_6040" model="product.supplierinfo">
-    <field name="product_tmpl_id" ref="mooncard_product_6040_product_template"/>
-    <field name="name" ref="mooncard_supplier"/>
-    <field name="product_code">6040</field>
-    <field name="company_id" eval="False"/>
-</record>
-
 <record id="mooncard_product_6050" model="product.product">
-    <field name="name">Internet / Marketing</field>
+    <field name="name">Internet (publicité, marketing)</field>
     <field name="default_code">MOON-6050</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -368,8 +368,25 @@
     <field name="company_id" eval="False"/>
 </record>
 
+<record id="mooncard_product_7100" model="product.product">
+    <field name="name">Loyer et coworking</field>
+    <field name="default_code">MOON-7100</field>
+    <field name="type">service</field>
+    <field name="categ_id" ref="mooncard_product_categ"/>
+    <field name="sale_ok" eval="0"/>
+    <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_supplierinfo_7100" model="product.supplierinfo">
+    <field name="product_tmpl_id" ref="mooncard_product_7100_product_template"/>
+    <field name="name" ref="mooncard_supplier"/>
+    <field name="product_code">7100</field>
+    <field name="company_id" eval="False"/>
+</record>
+
 <record id="mooncard_product_7200" model="product.product">
-    <field name="name">Repas - boissons (mission)</field>
+    <field name="name">Repas (interne)</field>
     <field name="default_code">MOON-7200</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -385,8 +402,25 @@
     <field name="company_id" eval="False"/>
 </record>
 
+<record id="mooncard_product_7210" model="product.product">
+    <field name="name">Nourriture</field>
+    <field name="default_code">MOON-7210</field>
+    <field name="type">service</field>
+    <field name="categ_id" ref="mooncard_product_categ"/>
+    <field name="sale_ok" eval="0"/>
+    <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_supplierinfo_7210" model="product.supplierinfo">
+    <field name="product_tmpl_id" ref="mooncard_product_7210_product_template"/>
+    <field name="name" ref="mooncard_supplier"/>
+    <field name="product_code">7210</field>
+    <field name="company_id" eval="False"/>
+</record>
+
 <record id="mooncard_product_7300" model="product.product">
-    <field name="name">Repas - boissons (avec client)</field>
+    <field name="name">Repas (invitation client)</field>
     <field name="default_code">MOON-7300</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -420,7 +454,7 @@
 </record>
 
 <record id="mooncard_product_8010" model="product.product">
-    <field name="name">Transport / Location</field>
+    <field name="name">Location véhicule</field>
     <field name="default_code">MOON-8010</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -437,7 +471,7 @@
 </record>
 
 <record id="mooncard_product_8020" model="product.product">
-    <field name="name">Transport / Essence</field>
+    <field name="name">Carburant</field>
     <field name="default_code">MOON-8020</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -454,7 +488,7 @@
 </record>
 
 <record id="mooncard_product_8030" model="product.product">
-    <field name="name">Transport / Parking</field>
+    <field name="name">Parking</field>
     <field name="default_code">MOON-8030</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -471,7 +505,7 @@
 </record>
 
 <record id="mooncard_product_8040" model="product.product">
-    <field name="name">Transport / Péage</field>
+    <field name="name">Péage</field>
     <field name="default_code">MOON-8040</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -488,7 +522,7 @@
 </record>
 
 <record id="mooncard_product_8050" model="product.product">
-    <field name="name">Transport / Taxi</field>
+    <field name="name">Taxi</field>
     <field name="default_code">MOON-8050</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -505,7 +539,7 @@
 </record>
 
 <record id="mooncard_product_8060" model="product.product">
-    <field name="name">Transport / Train et métro</field>
+    <field name="name">Billets train, bus, métro</field>
     <field name="default_code">MOON-8060</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -522,7 +556,7 @@
 </record>
 
 <record id="mooncard_product_8070" model="product.product">
-    <field name="name">Transport / Avions</field>
+    <field name="name">Billets avion</field>
     <field name="default_code">MOON-8070</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -538,10 +572,27 @@
     <field name="company_id" eval="False"/>
 </record>
 
+<record id="mooncard_product_8080" model="product.product">
+    <field name="name">Entretien et réparation véhicule</field>
+    <field name="default_code">MOON-8080</field>
+    <field name="type">service</field>
+    <field name="categ_id" ref="mooncard_product_categ"/>
+    <field name="sale_ok" eval="0"/>
+    <field name="list_price" eval="0"/>
+    <field name="company_id" eval="False"/>
+</record>
+
+<record id="mooncard_supplierinfo_8080" model="product.supplierinfo">
+    <field name="product_tmpl_id" ref="mooncard_product_8080_product_template"/>
+    <field name="name" ref="mooncard_supplier"/>
+    <field name="product_code">8080</field>
+    <field name="company_id" eval="False"/>
+</record>
+
 <!-- You cannot pay this with a Mooncard, but I guess it's for the future
 when mooncard will handle KM compensation -->
 <record id="mooncard_product_8099" model="product.product">
-    <field name="name">Transport / Indemnité KM</field>
+    <field name="name">Indemnités KM</field>
     <field name="default_code">MOON-8099</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>
@@ -558,7 +609,7 @@ when mooncard will handle KM compensation -->
 </record>
 
 <record id="mooncard_product_9000" model="product.product">
-    <field name="name">Autre</field>
+    <field name="name">Divers</field>
     <field name="default_code">MOON-9000</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>

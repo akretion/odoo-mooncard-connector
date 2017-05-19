@@ -26,7 +26,8 @@ class MooncardTransaction(models.Model):
         string='Unique Identifier', readonly=True, copy=False)
     date = fields.Datetime(string='Date', required=True, readonly=True)
     card_id = fields.Many2one(
-        'mooncard.card', string='Moon Card', readonly=True)
+        'mooncard.card', string='Moon Card', readonly=True,
+        ondelete='restrict')
     expense_categ_code = fields.Char(
         string='Expense Category Code', readonly=True)
     expense_categ_name = fields.Char(
@@ -36,7 +37,8 @@ class MooncardTransaction(models.Model):
         states={'done': [('readonly', True)]})
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account',
-        domain=[('type', '!=', 'view')])
+        domain=[('type', '!=', 'view')],
+        states={'done': [('readonly', True)]}, ondelete='restrict')
     country_id = fields.Many2one(
         'res.country', string='Country', readonly=True)
     merchant = fields.Char(string='Merchant', readonly=True)

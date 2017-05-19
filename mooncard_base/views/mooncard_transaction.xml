@@ -46,7 +46,7 @@
     <field name="name">Mooncard Transaction Tree</field>
     <field name="model">mooncard.transaction</field>
     <field name="arch"  type="xml">
-        <tree string="Mooncard Transactions" colors="blue:state=='draft'" editable="bottom">
+        <tree string="Mooncard Transactions" colors="blue:state=='draft'">
             <field name="name"/>
             <field name="date"/>
             <field name="transaction_type" string="Type"/>

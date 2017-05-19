@@ -7,6 +7,10 @@
 <openerp>
 <data noupdate="1">
 
+<record id="base.main_company" model="res.company">
+    <field name="country_id" ref="base.fr"/>
+</record>
+
 <record id="card1" model="mooncard.card">
     <field name="name">684842987</field>
     <field name="code">AdL</field>

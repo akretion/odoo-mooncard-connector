@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+# © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from openerp import api, SUPERUSER_ID
@@ -11,8 +11,12 @@ MAPPING = {
         'MOON-1020': {'account': '6227', 'tax': 'ACH-20.0'},
         'MOON-1030': {'account': '626', 'tax': False},
         'MOON-1040': {'account': '6241', 'tax': 'ACH-20.0'},
+        'MOON-1050': {'account': '6242', 'tax': 'ACH-20.0'},
         'MOON-1100': {'account': '6064', 'tax': 'ACH-20.0'},
+        'MOON-1110': {'account': '6063', 'tax': 'ACH-20.0'},
         'MOON-1200': {'account': '6181', 'tax': 'ACH-5.5'},
+        'MOON-1210': {'account': '6183', 'tax': 'ACH-5.5'},
+        'MOON-1220': {'account': '6236', 'tax': 'ACH-5.5'},
         'MOON-2000': {'account': '6233', 'tax': 'ACH-20.0'},
         'MOON-2500': {'account': '6234', 'tax': 'ACH-20.0'},
         'MOON-3000': {'account': '6063', 'tax': 'ACH-20.0'},
@@ -20,15 +24,13 @@ MAPPING = {
         'MOON-3500': {'account': '626', 'tax': 'ACH-20.0'},
         'MOON-4000': {'account': '604', 'tax': 'ACH-20.0'},
         'MOON-6000': {'account': '626', 'tax': 'ACH-20.0'},
-        'MOON-6010': {'account': '6231', 'tax': 'ACH-20.0'},
-        'MOON-6020': {'account': '6284', 'tax': 'ACH-20.0'},
-        'MOON-6030': {'account': '626', 'tax': 'ACH-20.0'},  # Better account ?
-        'MOON-6040': {},  # Internet ventes; which account ?
-        'MOON-6050': {'account': '6237', 'tax': 'ACH-20.0'},
+        'MOON-6050': {'account': '6231', 'tax': 'ACH-20.0'},
         'MOON-6900': {'account': '6064', 'tax': 'ACH-20.0'},
         'MOON-7000': {'account': '6251', 'tax': False},
+        'MOON-7100': {'account': '6132', 'tax': 'ACH-20.0'},
         'MOON-7200': {'account': '6256', 'tax': 'ACH-10.0'},
-        'MOON-7300': {'account': '6257', 'tax': 'ACH-10.0'},
+        'MOON-7210': {'account': '6257', 'tax': 'ACH-10.0'},
+        'MOON-7300': {'account': '6256', 'tax': 'ACH-10.0'},
         'MOON-8000': {'account': '6251', 'tax': 'ACH-20.0'},
         'MOON-8010': {'account': '6251', 'tax': 'ACH-20.0'},
         'MOON-8020': {'account': '6251', 'tax': 'ACH-20.0'},
@@ -37,6 +39,7 @@ MAPPING = {
         'MOON-8050': {'account': '6251', 'tax': 'ACH-20.0'},
         'MOON-8060': {'account': '6251', 'tax': False},
         'MOON-8070': {'account': '6251', 'tax': False},
+        'MOON-8080': {'account': '6155', 'tax': 'ACH-20.0'},
         'MOON-8099': {'account': '6251', 'tax': False},
         # 'MOON-9000': {},  # Autre
         }
