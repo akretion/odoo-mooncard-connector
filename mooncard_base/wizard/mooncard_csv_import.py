@@ -51,7 +51,8 @@ class MooncardCsvImport(models.TransientModel):
             'expense_categ_code': line.get('expense_category_code'),
             'expense_categ_name': line.get('expense_category_name'),
             'product_id': product_id,
-            'vat_company_currency': float(line.get('vat_eur')),
+            'vat_company_currency': float(
+                line.get('vat_eur').replace(',', '.')),
             'image_url': line.get('attachment'),
             }
 
@@ -89,8 +90,10 @@ class MooncardCsvImport(models.TransientModel):
             'card_id': card_id,
             'country_id': country_id,
             'merchant': line.get('merchant'),
-            'total_company_currency': float(line.get('amount_eur')),
-            'total_currency': float(line.get('amount_currency')),
+            'total_company_currency': float(
+                line.get('amount_eur').replace(',', '.')),
+            'total_currency': float(
+                line.get('amount_currency').replace(',', '.')),
             'currency_id': currency_id,
         })
         return vals
@@ -123,7 +126,7 @@ class MooncardCsvImport(models.TransientModel):
         fileobj.write(self.mooncard_file.decode('base64'))
         fileobj.seek(0)
         reader = unicodecsv.DictReader(
-            fileobj, delimiter=',',
+            fileobj, delimiter=';',
             quoting=unicodecsv.QUOTE_MINIMAL, encoding='utf8')
         i = 0
         exiting_transactions = {}
