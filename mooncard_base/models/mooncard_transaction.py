@@ -35,7 +35,7 @@ class MooncardTransaction(models.Model):
         'product.product', string='Expense Product', ondelete='restrict',
         states={'done': [('readonly', True)]})
     expense_account_id = fields.Many2one(
-        related='product_id.property_account_expense_id', readonly=True,
+        'account.account', compute='compute_expense_account_id', readonly=True,
         string='Expense Account of the Product')
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account',
@@ -74,6 +74,20 @@ class MooncardTransaction(models.Model):
         'unique_import_id',
         'unique(unique_import_id)',
         'A mooncard transaction can be imported only once!')]
+
+    @api.depends(
+        'product_id.product_tmpl_id.property_account_expense_id',
+        'product_id.product_tmpl_id.categ_id.'
+        'property_account_expense_categ_id')
+    def compute_expense_account_id(self):
+        for trans in self:
+            account_id = False
+            if trans.product_id:
+                account = trans.product_id.product_tmpl_id.\
+                    _get_product_accounts()['expense']
+                if account:
+                    account_id = account.id
+            trans.expense_account_id = account_id
 
     @api.model
     def create(self, vals):
