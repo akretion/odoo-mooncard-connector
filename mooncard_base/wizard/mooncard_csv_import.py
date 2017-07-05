@@ -42,6 +42,18 @@ class MooncardCsvImport(models.TransientModel):
     @api.model
     def _prepare_transaction(self, line, speeddict, action='create'):
         product_id = False
+        # convert to float
+        for float_field in ['vat_eur', 'amount_eur', 'amount_currency']:
+            if line.get(float_field):
+                try:
+                    line[float_field] = float(line[float_field].replace(
+                        ',', '.').replace(' ', '').replace(u'\u00A0', ''))
+                except:
+                    raise UserError(_(
+                        "Cannot convert float field '%s' with value '%s'.")
+                        % (float_field, line.get(float_field)))
+            else:
+                line[float_field] = 0.0
         if line.get('expense_category_code'):
             product_id = speeddict['products'].get(
                 line['expense_category_code'])
@@ -51,8 +63,7 @@ class MooncardCsvImport(models.TransientModel):
             'expense_categ_code': line.get('expense_category_code'),
             'expense_categ_name': line.get('expense_category_name'),
             'product_id': product_id,
-            'vat_company_currency': float(
-                line.get('vat_eur').replace(',', '.')),
+            'vat_company_currency': line['vat_eur'],
             'image_url': line.get('attachment'),
             }
 
@@ -90,10 +101,8 @@ class MooncardCsvImport(models.TransientModel):
             'card_id': card_id,
             'country_id': country_id,
             'merchant': line.get('merchant'),
-            'total_company_currency': float(
-                line.get('amount_eur').replace(',', '.')),
-            'total_currency': float(
-                line.get('amount_currency').replace(',', '.')),
+            'total_company_currency': line['amount_eur'],
+            'total_currency': line['amount_currency'],
             'currency_id': currency_id,
         })
         return vals
