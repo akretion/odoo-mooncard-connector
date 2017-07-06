@@ -17,7 +17,8 @@ class MooncardCsvImport(models.TransientModel):
     _name = 'mooncard.csv.import'
     _description = 'Import Mooncard Transactions'
 
-    mooncard_file = fields.Binary(string='CSV file', required=True)
+    mooncard_file = fields.Binary(
+        string='Bank statement file', required=True)
     filename = fields.Char(string='Filename')
 
     @api.model
@@ -41,30 +42,44 @@ class MooncardCsvImport(models.TransientModel):
 
     @api.model
     def _prepare_transaction(self, line, speeddict, action='create'):
-        product_id = False
+        product_id = account_analytic_id = expense_categ_code = False
         # convert to float
         for float_field in ['vat_eur', 'amount_eur', 'amount_currency']:
             if line.get(float_field):
                 try:
-                    line[float_field] = float(line[float_field].replace(
-                        ',', '.').replace(' ', '').replace(u'\u00A0', ''))
+                    line[float_field] = float(line[float_field])
                 except:
                     raise UserError(_(
                         "Cannot convert float field '%s' with value '%s'.")
                         % (float_field, line.get(float_field)))
             else:
                 line[float_field] = 0.0
-        if line.get('expense_category_code'):
-            product_id = speeddict['products'].get(
-                line['expense_category_code'])
+        if line.get('expense_category_gid'):
+            expense_categ_code = line['expense_category_gid'].split('/')[-1]
+            product_id = speeddict['products'].get(expense_categ_code)
+        if line.get('analytic_code_1'):
+            account_analytic_id = speeddict['analytic'].get(
+                line['analytic_code_1'].lower())
+        if line.get('transaction_type') not in ['P', 'L']:
+            raise UserError(_(
+                "Wrong transaction type '%s'. The only possible values are "
+                "'P' (presentment) or 'L' (load).")
+                % line.get('transaction_type'))
+        ttype2odoo = {
+            'P': 'presentment',
+            'L': 'load',
+            }
+        transaction_type = ttype2odoo[line['transaction_type']]
         vals = {
-            'transaction_type': line.get('transaction_type'),
+            'transaction_type': transaction_type,
             'description': line.get('title'),
-            'expense_categ_code': line.get('expense_category_code'),
+            'expense_categ_code': expense_categ_code,
             'expense_categ_name': line.get('expense_category_name'),
             'product_id': product_id,
+            'account_analytic_id': account_analytic_id,
             'vat_company_currency': line['vat_eur'],
             'image_url': line.get('attachment'),
+            'receipt_number': line.get('receipt_code'),
             }
 
         if action == 'update':
@@ -112,7 +127,7 @@ class MooncardCsvImport(models.TransientModel):
         company = self.env.user.company_id
         token_res = self.env['mooncard.card'].search_read(
             [('company_id', '=', company.id)], ['name'])
-        speeddict = {'tokens': {}, 'products': {}}
+        speeddict = {'tokens': {}, 'products': {}, 'analytic': {}}
         for token in token_res:
             speeddict['tokens'][token['name']] = token['id']
 
@@ -123,6 +138,11 @@ class MooncardCsvImport(models.TransientModel):
         for product_sinfo in product_sinfos:
             speeddict['products'][product_sinfo.product_code] =\
                 product_sinfo.product_tmpl_id.product_variant_ids[0].id
+        analytic_res = self.env['account.analytic.account'].search_read(
+            [('company_id', '=', company.id), ('code', '!=', False)], ['code'])
+        for analytic in analytic_res:
+            analytic_code = analytic['code'].strip().lower()
+            speeddict['analytic'][analytic_code] = analytic['id']
         return speeddict
 
     @api.multi
@@ -135,7 +155,7 @@ class MooncardCsvImport(models.TransientModel):
         fileobj.write(self.mooncard_file.decode('base64'))
         fileobj.seek(0)
         reader = unicodecsv.DictReader(
-            fileobj, delimiter=';',
+            fileobj, delimiter=',',
             quoting=unicodecsv.QUOTE_MINIMAL, encoding='utf8')
         i = 0
         exiting_transactions = {}
@@ -157,7 +177,12 @@ class MooncardCsvImport(models.TransientModel):
             if not line.get('id'):
                 raise UserError(_(
                     "Missing ID in CSV file line %d.") % i)
-            if line['id'] in exiting_transactions:
+            # line['transaction_id'] used for the transition
+            # from transactions.csv to Mooncard bank statements
+            if (
+                    line['id'] in exiting_transactions or
+                    (line['transaction_id'] and
+                     line['transaction_id'] in exiting_transactions)):
                 transaction = exiting_transactions[line['id']]
                 logger.debug(
                     'Existing line with unique ID %s (odoo ID %s, state %s)',

@@ -222,29 +222,11 @@ class MooncardTransaction(models.Model):
             raise UserError(_(
                 "Missing label on Mooncard transaction %s")
                 % self.name)
-        url = self.image_url
-        if not url:
-            raise UserError(_(
-                "Missing image URL on Mooncard transaction %s")
-                % self.name)
+        origin = self.name
+        if self.receipt_number:
+            origin = u'%s (%s)' % (origin, self.receipt_number)
         amount_untaxed = self.total_company_currency * -1\
             - self.vat_company_currency * -1
-        try:
-            rimage = requests.get(url)
-        except Exception, e:
-            raise UserError(_(
-                "Failed to download the image of the receipt. "
-                "Error message: %s.") % e)
-        if rimage.status_code != 200:
-            raise UserError(_(
-                "Could not download the image of Mooncard transaction %s "
-                "from URL %s (HTTP error code %s).")
-                % (self.name, url, rimage.status_code))
-        image_b64 = base64.encodestring(rimage.content)
-        file_extension = os.path.splitext(urlparse(url).path)[1]
-        filename = 'Receipt-%s%s' % (self.name, file_extension)
-        origin = _('Mooncard %s') % (
-            self.card_id.code or self.card_id.name)
         parsed_inv = {
             'partner': {'recordset': self.partner_id},
             'date': date,
@@ -260,9 +242,31 @@ class MooncardTransaction(models.Model):
                 'qty': 1,
                 'uom': {'recordset': self.env.ref('product.product_uom_unit')},
                 }],
-            'attachments': {filename: image_b64},
             'origin': origin,
             }
+        url = self.image_url
+        if not url and not self.receipt_lost:
+            raise UserError(_(
+                "Missing image URL on Mooncard transaction %s. If you lost "
+                "that receipt, you can mark this mooncard transaction "
+                "as 'Receipt Lost'.")
+                % self.name)
+        if url:
+            try:
+                rimage = requests.get(url)
+            except Exception, e:
+                raise UserError(_(
+                    "Failed to download the image of the receipt. "
+                    "Error message: %s.") % e)
+            if rimage.status_code != 200:
+                raise UserError(_(
+                    "Could not download the image of Mooncard transaction %s "
+                    "from URL %s (HTTP error code %s).")
+                    % (self.name, url, rimage.status_code))
+            image_b64 = base64.encodestring(rimage.content)
+            file_extension = os.path.splitext(urlparse(url).path)[1]
+            filename = 'Receipt-%s%s' % (self.name, file_extension)
+            parsed_inv['attachments'] = {filename: image_b64}
         return parsed_inv
 
     @api.one

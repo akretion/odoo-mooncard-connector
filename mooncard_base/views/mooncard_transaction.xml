@@ -26,11 +26,13 @@
                     <group name="transaction" string="Transaction Info" colspan="2">
                         <field name="transaction_type"/>
                         <field name="date"/>
+                        <field name="receipt_number"/>
                         <field name="card_id"/>
                         <field name="description" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="merchant" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="country_id" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="image_url" widget="url" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="receipt_lost" attrs="{'invisible': [('image_url', '!=', False)]}"/>
                         <field name="company_id" groups="base.group_multi_company"/>
                     </group>
                     <group name="classification" string="Classification" colspan="2" attrs="{'invisible': [('transaction_type', '=', 'load')]}">
@@ -62,8 +64,9 @@
     <field name="arch"  type="xml">
         <tree string="Mooncard Transactions" decoration-info="state == 'draft'">
             <field name="name"/>
-            <field name="date"/>
             <field name="transaction_type" string="Type"/>
+            <field name="date"/>
+            <field name="receipt_number"/>
             <field name="description"/>
             <field name="card_id"/>
             <field name="product_id"/>
@@ -94,11 +97,11 @@
     <field name="model">mooncard.transaction</field>
     <field name="arch"  type="xml">
         <search string="Search Mooncard Transactions">
-            <field name="name"
-                filter_domain="['|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('merchant', 'ilike', self)]"/>
+            <field name="name" string="Number, description or merchant"
+                filter_domain="['|', '|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('merchant', 'ilike', self), ('receipt_number', 'ilike', self)]"/>
             <field name="date"/>
             <filter name="ready_to_process" string="Ready to process"
-                domain="[('state', '=', 'draft'), ('transaction_type', 'in', ('load', 'presentment')), ('product_id', '!=', False), ('description', '!=', False), ('image_url', '!=', False)]"/>
+                domain="[('state', '=', 'draft'), ('transaction_type', 'in', ('load', 'presentment')), ('product_id', '!=', False), ('description', '!=', False), '|', ('image_url', '!=', False), ('receipt_lost', '=', True)]"/>
             <separator/>
             <filter name="load" string="Load"
                 domain="[('transaction_type', '=', 'load')]"/>
@@ -112,17 +115,19 @@
             <group string="Group By" name="groupby">
                 <filter name="date_groupby" string="Date"
                     context="{'group_by': 'date:week'}"/>
+                <filter name="product_groupby" string="Expense Product"
+                    context="{'group_by': 'product_id'}"/>
+                <filter name="account_analytic" string="Analytic Account"
+                    context="{'group_by': 'account_analytic_id'}"/>
+                <filter name="mooncard_card_groupby"
+                    string="Moon Card" context="{'group_by': 'card_id'}"/>
+                <filter name="transaction_type_groupby"
+                    string="Transaction Type"
+                    context="{'group_by': 'transaction_type'}"/>
                 <filter name="country_groupby" string="Country"
                     context="{'group_by': 'country_id'}"/>
                 <filter name="currency_groupby" string="Currency"
                     context="{'group_by': 'currency_id'}"/>
-                <filter name="product_groupby" string="Expense Product"
-                    context="{'group_by': 'product_id'}"/>
-                <filter name="transaction_type_groupby"
-                    string="Transaction Type"
-                    context="{'group_by': 'transaction_type'}"/>
-                <filter name="mooncard_card_groupby"
-                    string="Moon Card" context="{'group_by': 'card_id'}"/>
             </group>
         </search>
     </field>

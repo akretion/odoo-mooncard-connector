@@ -46,7 +46,8 @@ class MooncardTransaction(models.Model):
     transaction_type = fields.Selection([
         ('load', 'Load'),
         ('presentment', 'Expense'),
-        ('authorization', 'Authorization'),
+        ('authorization', 'Authorization'),  # not needed as we now
+                                             # use bank statements
         ], string='Transaction Type', readonly=True)
     vat_company_currency = fields.Monetary(
         string='VAT Amount',
@@ -63,12 +64,13 @@ class MooncardTransaction(models.Model):
         string='Total Amount in Expense Currency', readonly=True,
         currency_field='currency_id')
     image_url = fields.Char(string='Image URL', readonly=True)
-    # Should I put it in attachment ?
-    # Only URL and a click on it would open the image in Web browser ?
+    receipt_lost = fields.Boolean(
+        string='Receipt Lost', states={'done': [('readonly', True)]})
     state = fields.Selection([
         ('draft', 'Draft'),
         ('done', 'Done'),
         ], string='State', default='draft', readonly=True)
+    receipt_number = fields.Char(string='Receipt Number', readonly=True)
 
     _sql_constraints = [(
         'unique_import_id',

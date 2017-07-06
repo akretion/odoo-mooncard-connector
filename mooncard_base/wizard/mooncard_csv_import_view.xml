@@ -13,7 +13,7 @@
         <form string="Mooncard Invoice Import Wizard">
             <group name="help-import">
               <div>
-                <p>Upload the transactions CSV file downloaded from <a href="https://app.mooncard.co/">Mooncard</a></p>
+                <p>Upload the Odoo bank statement file downloaded from <a href="https://app.mooncard.co/">Mooncard</a>. You shouldn't use the transactions.csv file from the <i>Expense</i> section any more.</p>
               </div>
             </group>
             <group name="import">
