@@ -179,14 +179,20 @@ class MooncardCsvImport(models.TransientModel):
                     "Missing ID in CSV file line %d.") % i)
             # line['transaction_id'] used for the transition
             # from transactions.csv to Mooncard bank statements
-            if (
-                    line['id'] in exiting_transactions or
-                    (line['transaction_id'] and
-                     line['transaction_id'] in exiting_transactions)):
-                transaction = exiting_transactions[line['id']]
+            existing_import_id = False
+            if line['id'] in exiting_transactions:
+                existing_import_id = line['id']
+            # only for the transition to CSV bank statements on July 2017
+            # To be removed
+            elif (
+                    line['transaction_id'] and
+                    line['transaction_id'] in exiting_transactions):
+                existing_import_id = line['transaction_id']
+            if existing_import_id:
+                transaction = exiting_transactions[existing_import_id]
                 logger.debug(
                     'Existing line with unique ID %s (odoo ID %s, state %s)',
-                    line['id'], transaction.id, transaction.state)
+                    existing_import_id, transaction.id, transaction.state)
                 if transaction.state == 'draft':
                     # update existing lines
                     wvals = self._prepare_transaction(
