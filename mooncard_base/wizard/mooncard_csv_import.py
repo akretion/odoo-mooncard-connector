@@ -5,12 +5,20 @@
 from openerp import models, fields, api, _
 from openerp.exceptions import Warning as UserError
 from datetime import datetime, timedelta
-import unicodecsv
 from tempfile import TemporaryFile
 import logging
-import pycountry
 
 logger = logging.getLogger(__name__)
+
+try:
+    import unicodecsv
+except (ImportError, IOError) as err:
+    logger.debug(err)
+
+try:
+    import pycountry
+except (ImportError, IOError) as err:
+    logger.debug(err)
 
 
 class MooncardCsvImport(models.TransientModel):
