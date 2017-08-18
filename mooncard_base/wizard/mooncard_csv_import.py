@@ -47,7 +47,9 @@ class MooncardCsvImport(models.TransientModel):
         return date_time_dt
 
     @api.model
-    def _prepare_transaction(self, line, action='create', tokens={}):
+    def _prepare_transaction(self, line, action='create', tokens=None):
+        if tokens is None:
+            tokens = {}
         product_id = False
         if line.get('expense_category_code'):
             partner_id = self.env.ref('mooncard_base.mooncard_supplier').id
