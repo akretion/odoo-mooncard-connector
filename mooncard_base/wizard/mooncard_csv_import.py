@@ -5,12 +5,20 @@
 from openerp import models, fields, api, _
 from openerp.exceptions import Warning as UserError
 from datetime import datetime, timedelta
-import unicodecsv
 from tempfile import TemporaryFile
 import logging
-import pycountry
 
 logger = logging.getLogger(__name__)
+
+try:
+    import unicodecsv
+except (ImportError, IOError) as err:
+    logger.debug(err)
+
+try:
+    import pycountry
+except (ImportError, IOError) as err:
+    logger.debug(err)
 
 
 class MooncardCsvImport(models.TransientModel):
@@ -39,7 +47,9 @@ class MooncardCsvImport(models.TransientModel):
         return date_time_dt
 
     @api.model
-    def _prepare_transaction(self, line, action='create', tokens={}):
+    def _prepare_transaction(self, line, action='create', tokens=None):
+        if tokens is None:
+            tokens = {}
         product_id = False
         if line.get('expense_category_code'):
             partner_id = self.env.ref('mooncard_base.mooncard_supplier').id
