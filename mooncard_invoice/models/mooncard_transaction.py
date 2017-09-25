@@ -172,9 +172,12 @@ class MooncardTransaction(models.Model):
     def _prepare_invoice_import(self):
         self.ensure_one()
         precision = self.env['decimal.precision'].precision_get('Account')
-        date = self.date[:10]
         if self.force_invoice_date:
             date = self.force_invoice_date
+        elif self.payment_date:
+            date = self.payment_date[:10]
+        else:
+            date = self.date[:10]
         partner = self.env.ref('mooncard_base.mooncard_supplier')
         if not self.product_id:
             raise UserError(_(

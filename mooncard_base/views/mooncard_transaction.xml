@@ -27,6 +27,7 @@
                     <group name="transaction" string="Transaction Info" colspan="2">
                         <field name="transaction_type"/>
                         <field name="date"/>
+                        <field name="payment_date" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="receipt_number"/>
                         <field name="card_id"/>
                         <field name="description" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>

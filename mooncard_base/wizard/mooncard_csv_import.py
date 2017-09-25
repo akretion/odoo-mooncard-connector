@@ -117,10 +117,17 @@ class MooncardCsvImport(models.TransientModel):
                     "card is not registered in Odoo, cf menu "
                     "Accounting > Configuration > Miscellaneous > "
                     "Moon Cards)") % line.get('card_token'))
+        payment_date = False
+        if (
+                transaction_type == 'presentment' and
+                line.get('date_authorization')):
+            payment_date = self.convert_datetime_to_utc(
+                line['date_authorization'])
 
         vals.update({
             'unique_import_id': line.get('id'),
             'date': self.convert_datetime_to_utc(line['date_transaction']),
+            'payment_date': payment_date,
             'card_id': card_id,
             'country_id': country_id,
             'merchant': line.get('merchant'),

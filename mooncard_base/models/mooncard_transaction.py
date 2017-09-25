@@ -24,7 +24,11 @@ class MooncardTransaction(models.Model):
         string='Description', states={'done': [('readonly', True)]})
     unique_import_id = fields.Char(
         string='Unique Identifier', readonly=True, copy=False)
-    date = fields.Datetime(string='Date', required=True, readonly=True)
+    date = fields.Datetime(
+        string='Date', required=True, readonly=True,
+        help="This is the date of the bank transaction. It may be a few "
+        "days after the payment date.")
+    payment_date = fields.Datetime(string='Payment Date', readonly=True)
     card_id = fields.Many2one(
         'mooncard.card', string='Moon Card', readonly=True,
         ondelete='restrict')
