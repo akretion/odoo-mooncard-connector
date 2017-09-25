@@ -30,7 +30,7 @@ MAPPING = {
         'MOON-7100': {'account': '6132', 'tax': 'ACH-20.0'},
         'MOON-7200': {'account': '6256', 'tax': 'ACH-10.0'},
         'MOON-7210': {'account': '6257', 'tax': 'ACH-10.0'},
-        'MOON-7300': {'account': '6256', 'tax': 'ACH-10.0'},
+        'MOON-7300': {'account': '6257', 'tax': 'ACH-10.0'},
         'MOON-8000': {'account': '6251', 'tax': 'ACH-20.0'},
         'MOON-8010': {'account': '6251', 'tax': 'ACH-20.0'},
         'MOON-8020': {'account': '6251', 'tax': 'ACH-20.0'},

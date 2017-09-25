@@ -18,7 +18,7 @@ class MooncardCsvImport(models.TransientModel):
     _description = 'Import Mooncard Transactions'
 
     mooncard_file = fields.Binary(
-        string='Bank statement file', required=True)
+        string='Bank Statement File', required=True)
     filename = fields.Char(string='Filename')
 
     @api.model
@@ -60,15 +60,15 @@ class MooncardCsvImport(models.TransientModel):
         if line.get('analytic_code_1'):
             account_analytic_id = speeddict['analytic'].get(
                 line['analytic_code_1'].lower())
-        if line.get('transaction_type') not in ['P', 'L']:
-            raise UserError(_(
-                "Wrong transaction type '%s'. The only possible values are "
-                "'P' (presentment) or 'L' (load).")
-                % line.get('transaction_type'))
         ttype2odoo = {
             'P': 'presentment',
             'L': 'load',
             }
+        if line.get('transaction_type') not in ttype2odoo:
+            raise UserError(_(
+                "Wrong transaction type '%s'. The only possible values are "
+                "'P' (presentment) or 'L' (load).")
+                % line.get('transaction_type'))
         transaction_type = ttype2odoo[line['transaction_type']]
         vals = {
             'transaction_type': transaction_type,

@@ -277,12 +277,12 @@ class MooncardTransaction(models.Model):
         precision = self.company_currency_id.rounding
         parsed_inv = self._prepare_invoice_import()
         logger.debug('Mooncard invoice import parsed_inv=%s', parsed_inv)
-        parsed_inv = aiio.update_clean_parsed_inv(parsed_inv)
+        parsed_inv = aiio.pre_process_parsed_inv(parsed_inv)
         import_config = {
             'invoice_line_method': 'nline_auto_product',
             'account_analytic': self.account_analytic_id or False,
             }
-        invoice = aiio._create_invoice(parsed_inv, import_config=import_config)
+        invoice = aiio.create_invoice(parsed_inv, import_config=import_config)
         invoice.message_post(_(
             "Invoice created from Mooncard transaction %s.") % self.name)
         if self.force_expense_account_id:

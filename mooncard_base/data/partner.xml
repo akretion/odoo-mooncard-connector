@@ -7,6 +7,8 @@
     <field name="is_company" eval="1"/>
     <field name="supplier" eval="1"/>
     <field name="customer" eval="0"/>
+    <field name="country_id" ref="base.fr"/> <!-- Several OCA modules set country_id as re
+    quired, so let's put one here -->
 </record>
 
 </odoo>

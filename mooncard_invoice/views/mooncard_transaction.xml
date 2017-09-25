@@ -37,15 +37,4 @@
     </field>
 </record>
 
-<record id="mooncard_transaction_tree" model="ir.ui.view">
-    <field name="name">Invoice Mooncard Transaction Tree</field>
-    <field name="model">mooncard.transaction</field>
-    <field name="inherit_id" ref="mooncard_base.mooncard_transaction_tree"/>
-    <field name="arch"  type="xml">
-        <button name="process_line" position="before">
-            <field name="invoice_id"/>
-        </button>
-    </field>
-</record>
-
 </odoo>
