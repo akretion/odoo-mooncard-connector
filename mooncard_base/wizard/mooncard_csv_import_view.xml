@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2016 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
 
@@ -14,11 +14,12 @@
         <form string="Mooncard Invoice Import Wizard">
             <group name="help-import">
               <div>
-                <p>Upload the transactions CSV file downloaded from <a href="https://app.mooncard.co/">Mooncard</a></p>
+                <p>Upload the Odoo bank statement file downloaded from <a href="https://app.mooncard.co/">Mooncard</a>. You shouldn't use the transactions.csv file from the <i>Expense</i> section any more.</p>
               </div>
             </group>
             <group name="import">
                 <field name="mooncard_file"/>
+                <field name="filename" invisible="1"/>
             </group>
             <footer>
                 <button name="mooncard_import" type="object"

@@ -9,38 +9,38 @@ from openerp.exceptions import ValidationError
 class MooncardCard(models.Model):
     _name = 'mooncard.card'
     _description = 'Moon Card'
-    _rec_name = 'display_name'
 
     code = fields.Char(string='Short Name')
     user_id = fields.Many2one(
         'res.users', string='User',
         help="Link to user ; only for information purpose.")
     name = fields.Char(
-        string='Token Number', required=True, size=9, copy=False,
+        string='Card/Account Number', required=True, size=9, copy=False,
         help="Enter the 9 digits number written at the bottom of the "
-        "front side of your Moon Card")
-    display_name = fields.Char(
-        compute='_compute_display_name_field', readonly=True, store=True)
+        "front side of your Moon Card. You also need to create an entry "
+        "for your multi-card account, cf the Accounts menu entry in "
+        "the Mooncard web interface.")
     active = fields.Boolean(string='Active', default=True)
     company_id = fields.Many2one(
         'res.company', string='Company', required=True,
         default=lambda self: self.env['res.company']._company_default_get(
             'mooncard.card'))
 
-    @api.one
-    @api.depends('code', 'name')
-    def _compute_display_name_field(self):
-        dname = self.name
-        if self.code:
-            dname = '%s (%s)' % (dname, self.code)
-        self.display_name = dname
+    def name_get(self):
+        res = []
+        for card in self:
+            dname = card.name
+            if card.code:
+                dname = '%s (%s)' % (dname, card.code)
+            res.append((card.id, dname))
+        return res
 
     @api.one
     @api.constrains('name')
     def name_check(self):
         if self.name and not self.name.isdigit():
             raise ValidationError(_(
-                "'%s' is not a valid Mooncard token. "
+                "'%s' is not a valid Mooncard card/account number. "
                 "It should only have digits") % self.name)
 
     _sql_constrains = [(

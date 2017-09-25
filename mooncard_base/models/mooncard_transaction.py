@@ -35,6 +35,9 @@ class MooncardTransaction(models.Model):
     product_id = fields.Many2one(
         'product.product', string='Expense Product', ondelete='restrict',
         states={'done': [('readonly', True)]})
+    expense_account_id = fields.Many2one(
+        'account.account', compute='compute_expense_account_id', readonly=True,
+        string='Expense Account of the Product')
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account',
         domain=[('type', '!=', 'view')],
@@ -45,7 +48,8 @@ class MooncardTransaction(models.Model):
     transaction_type = fields.Selection([
         ('load', 'Load'),
         ('presentment', 'Expense'),
-        ('authorization', 'Authorization'),
+        ('authorization', 'Authorization'),  # not needed as we now
+                                             # use bank statements
         ], string='Transaction Type', readonly=True)
     vat_company_currency = fields.Float(
         string='VAT Amount',
@@ -61,17 +65,33 @@ class MooncardTransaction(models.Model):
     total_currency = fields.Float(
         string='Total Amount in Expense Currency', readonly=True)
     image_url = fields.Char(string='Image URL', readonly=True)
-    # Should I put it in attachment ?
-    # Only URL and a click on it would open the image in Web browser ?
+    receipt_lost = fields.Boolean(
+        string='Receipt Lost', states={'done': [('readonly', True)]})
     state = fields.Selection([
         ('draft', 'Draft'),
         ('done', 'Done'),
         ], string='State', default='draft', readonly=True)
+    receipt_number = fields.Char(string='Receipt Number', readonly=True)
 
     _sql_constraints = [(
         'unique_import_id',
         'unique(unique_import_id)',
         'A mooncard transaction can be imported only once!')]
+
+    @api.multi
+    @api.depends(
+        'product_id.product_tmpl_id.property_account_expense',
+        'product_id.product_tmpl_id.categ_id.'
+        'property_account_expense_categ')
+    def compute_expense_account_id(self):
+        for trans in self:
+            account_id = False
+            if trans.product_id:
+                account_id = trans.product_id.property_account_expense.id
+                if not account_id:
+                    account_id = trans.product_id.categ_id.\
+                        property_account_expense_categ.id
+            trans.expense_account_id = account_id
 
     @api.model
     def create(self, vals):

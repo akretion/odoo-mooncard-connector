@@ -12,6 +12,8 @@
     'website': 'http://www.akretion.com',
     'depends': ['mooncard_base', 'account_invoice_import'],
     'data': [
+        'security/mooncard_security.xml',
+        'security/ir.model.access.csv',
         'data/partner.xml',
         'views/mooncard_transaction.xml',
         'views/mooncard_card.xml',

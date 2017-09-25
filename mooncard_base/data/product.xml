@@ -386,7 +386,7 @@
 </record>
 
 <record id="mooncard_product_7200" model="product.product">
-    <field name="name">Repas (interne)</field>
+    <field name="name">Repas (mission)</field>
     <field name="default_code">MOON-7200</field>
     <field name="type">service</field>
     <field name="categ_id" ref="mooncard_product_categ"/>

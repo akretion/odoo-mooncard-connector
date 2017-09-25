@@ -15,8 +15,7 @@
         <field name="date" position="after">
             <field name="force_invoice_date"/>
         </field>
-        <field name="product_id" position="after">
-            <field name="expense_account_id"/>
+        <field name="expense_account_id" position="after">
             <field name="force_expense_account_id"/>
         </field>
         <group name="main" position="after">
@@ -33,17 +32,6 @@
                     attrs="{'invisible': [('transaction_type', '!=', 'load')]}"/>
             </group>
         </group>
-    </field>
-</record>
-
-<record id="mooncard_transaction_tree" model="ir.ui.view">
-    <field name="name">Invoice Mooncard Transaction Tree</field>
-    <field name="model">mooncard.transaction</field>
-    <field name="inherit_id" ref="mooncard_base.mooncard_transaction_tree"/>
-    <field name="arch"  type="xml">
-        <button name="process_line" position="before">
-            <field name="invoice_id"/>
-        </button>
     </field>
 </record>
 

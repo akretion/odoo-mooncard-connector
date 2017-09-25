@@ -8,13 +8,8 @@
     <field name="is_company" eval="1"/>
     <field name="supplier" eval="1"/>
     <field name="customer" eval="0"/>
+    <field name="country_id" ref="base.fr"/> <!-- Several OCA modules set country_id as required, so let's put one here -->
 </record>
-
-<!--
-<record id="base.main_company" model="res.company">
-    <field name="mooncard_partner_id" ref="mooncard_supplier"/>
-</record>
--->
 
 </data>
 </openerp>
