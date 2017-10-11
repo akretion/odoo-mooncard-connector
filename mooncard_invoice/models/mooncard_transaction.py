@@ -179,9 +179,12 @@ class MooncardTransaction(models.Model):
     def _prepare_invoice_import(self):
         self.ensure_one()
         precision = self.company_currency_id.rounding
-        date = self.date[:10]
         if self.force_invoice_date:
             date = self.force_invoice_date
+        elif self.payment_date:
+            date = self.payment_date[:10]
+        else:
+            date = self.date[:10]
         if not self.product_id:
             raise UserError(_(
                 "Missing Expense Product on Mooncard transaction %s")
