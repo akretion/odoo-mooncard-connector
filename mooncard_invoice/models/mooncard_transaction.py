@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -8,7 +7,7 @@ from odoo.tools import float_compare
 import requests
 import base64
 import logging
-from urlparse import urlparse
+from urllib.parse import urlparse
 import os
 
 logger = logging.getLogger(__name__)
@@ -96,20 +95,21 @@ class MooncardTransaction(models.Model):
                     'debit': debit,
                     'credit': credit,
                     'name': _('Load Mooncard prepaid-account'),
-                    }),
+                }),
                 (0, 0, {
                     'account_id':
                     self.company_id.transfer_account_id.id,
                     'debit': credit,
                     'credit': debit,
                     'name': _('Load Mooncard prepaid-account'),
-                    }),
-                ],
-            }
+                }),
+            ],
+        }
         return mvals
 
-    @api.one
+    @api.multi
     def generate_load_move(self):
+        self.ensure_one()
         assert not self.load_move_id, 'already has a load move !'
         if not self.company_id.transfer_account_id:
             raise UserError(_(
@@ -124,8 +124,9 @@ class MooncardTransaction(models.Model):
         self.load_move_id = move.id
         return True
 
-    @api.one
+    @api.multi
     def generate_bank_journal_move(self):
+        self.ensure_one()
         assert not self.payment_move_line_id, 'Payment line already created'
         if not self.card_id.journal_id:
             raise UserError(_(
@@ -150,26 +151,26 @@ class MooncardTransaction(models.Model):
             'account_id': partner.property_account_payable_id.id,
             'credit': credit,
             'debit': debit,
-            }
+        }
         mlvals2 = {
             'name': self.description,
             'partner_id': partner.id,
             'account_id': journal.default_credit_account_id.id,
             'credit': debit,
             'debit': credit,
-            }
+        }
         mvals = {
             'journal_id': journal.id,
             'date': date,
             'ref': self.name,
             'line_ids': [(0, 0, mlvals1), (0, 0, mlvals2)],
-            }
+        }
         bank_move = self.env['account.move'].create(mvals)
         bank_move.post()
         self.payment_move_line_id = amlo.search([
             ('move_id', '=', bank_move.id),
             ('account_id', '=', partner.property_account_payable_id.id),
-            ])[0].id
+        ])[0].id
 
     @api.model
     def _countries_vat_refund(self):
@@ -227,7 +228,7 @@ class MooncardTransaction(models.Model):
                 % self.name)
         origin = self.name
         if self.receipt_number:
-            origin = u'%s (%s)' % (origin, self.receipt_number)
+            origin = '%s (%s)' % (origin, self.receipt_number)
         amount_untaxed = self.total_company_currency * -1\
             - self.vat_company_currency * -1
         parsed_inv = {
@@ -244,9 +245,9 @@ class MooncardTransaction(models.Model):
                 'name': self.description,
                 'qty': 1,
                 'uom': {'recordset': self.env.ref('product.product_uom_unit')},
-                }],
+            }],
             'origin': origin,
-            }
+        }
         url = self.image_url
         if not url and not self.receipt_lost:
             raise UserError(_(
@@ -257,7 +258,7 @@ class MooncardTransaction(models.Model):
         if url:
             try:
                 rimage = requests.get(url)
-            except Exception, e:
+            except Exception as e:
                 raise UserError(_(
                     "Failed to download the image of the receipt. "
                     "Error message: %s.") % e)
@@ -272,8 +273,9 @@ class MooncardTransaction(models.Model):
             parsed_inv['attachments'] = {filename: image_b64}
         return parsed_inv
 
-    @api.one
+    @api.multi
     def generate_invoice(self):
+        self.ensure_one()
         assert not self.invoice_id, 'already linked to an invoice'
         assert self.transaction_type == 'presentment', 'wrong transaction type'
         aiio = self.env['account.invoice.import']
@@ -284,7 +286,7 @@ class MooncardTransaction(models.Model):
         import_config = {
             'invoice_line_method': 'nline_auto_product',
             'account_analytic': self.account_analytic_id or False,
-            }
+        }
         invoice = aiio.create_invoice(parsed_inv, import_config=import_config)
         invoice.message_post(_(
             "Invoice created from Mooncard transaction %s.") % self.name)
@@ -302,8 +304,9 @@ class MooncardTransaction(models.Model):
             precision_rounding=precision) == 0, 'bug on VAT'
         self.invoice_id = invoice.id
 
-    @api.one
+    @api.multi
     def reconcile(self):
+        self.ensure_one()
         assert self.payment_move_line_id
         assert self.invoice_id
         assert self.invoice_id.move_id
