@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -6,12 +5,19 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from odoo.tools import float_compare
 from datetime import datetime, timedelta
-import unicodecsv
 from tempfile import TemporaryFile
 import logging
-import pycountry
 
 logger = logging.getLogger(__name__)
+
+try:
+    import unicodecsv
+except ImportError:
+    logger.debug('Cannot `import unicodecsv`.')
+try:
+    import pycountry
+except ImportError:
+    logger.debug('Cannot `import pycountry`.')
 
 
 class MooncardCsvImport(models.TransientModel):
@@ -53,7 +59,7 @@ class MooncardCsvImport(models.TransientModel):
             if line.get(float_field):
                 try:
                     line[float_field] = float(line[float_field])
-                except:
+                except Exception as e:
                     raise UserError(_(
                         "Cannot convert float field '%s' with value '%s'.")
                         % (float_field, line.get(float_field)))
@@ -78,7 +84,7 @@ class MooncardCsvImport(models.TransientModel):
         ttype2odoo = {
             'P': 'presentment',
             'L': 'load',
-            }
+        }
         if line.get('transaction_type') not in ttype2odoo:
             raise UserError(_(
                 "Wrong transaction type '%s'. The only possible values are "
@@ -98,7 +104,7 @@ class MooncardCsvImport(models.TransientModel):
             'fr_vat_2_1_amount': line['vat_21_id'],
             'image_url': line.get('attachment'),
             'receipt_number': line.get('receipt_code'),
-            }
+        }
 
         if action == 'update':
             return vals
@@ -198,7 +204,7 @@ class MooncardCsvImport(models.TransientModel):
             # replace '' by False, so as to make the domains such as
             # ('image_url', '!=', False) work
             # and strip regular strings
-            for key, value in line.iteritems():
+            for key, value in line.items():
                 if value:
                     line[key] = value.strip()
                 else:
@@ -242,5 +248,5 @@ class MooncardCsvImport(models.TransientModel):
             'domain': "[('id', 'in', %s)]" % mt_ids,
             'views': False,
             'nodestroy': False,
-            })
+        })
         return action

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
@@ -13,27 +12,29 @@ class TestMooncardInvoice(TransactionCase):
         self.account_model = self.env['account.account']
         self.move_model = self.env['account.move']
         self.journal_model = self.env['account.journal']
+        self.euro = self.env.ref('base.EUR')
         bank_acc_type = self.env.ref('account.data_account_type_liquidity')
         self.moon_bank_account = self.account_model.create({
             'code': '512199',
             'name': 'Mooncard prepaid account',
             'user_type_id': bank_acc_type.id,
-            })
+            'currency_id': self.euro.id,
+        })
         self.moon_bank_journal = self.journal_model.create({
             'type': 'bank',
             'name': 'MoonCard Test',
             'code': 'MOON',
+            'currency_id': self.euro.id,
             'default_debit_account_id': self.moon_bank_account.id,
             'default_credit_account_id': self.moon_bank_account.id,
-            })
+        })
         self.card1 = self.env.ref('mooncard_base.card1')
         self.card1.write({
             'journal_id': self.moon_bank_journal.id})
         self.company = self.env.ref('base.main_company')
-        self.euro = self.env.ref('base.EUR')
-        self.company.write({
-            'currency_id': self.euro.id,
-            })
+        # self.company.write({
+        #     'currency_id': self.euro.id,
+        # })
         self.prec = self.company.currency_id.rounding
 
     def test_load_line(self):

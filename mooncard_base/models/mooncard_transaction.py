@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -56,7 +55,7 @@ class MooncardTransaction(models.Model):
         ('presentment', 'Expense'),
         ('authorization', 'Authorization'),  # not needed as we now
                                              # use bank statements
-        ], string='Transaction Type', readonly=True)
+    ], string='Transaction Type', readonly=True)
     vat_company_currency = fields.Monetary(
         string='VAT Amount',
         # not readonly, because accountant may have to change the value
@@ -93,7 +92,7 @@ class MooncardTransaction(models.Model):
     state = fields.Selection([
         ('draft', 'Draft'),
         ('done', 'Done'),
-        ], string='State', default='draft', readonly=True)
+    ], string='State', default='draft', readonly=True)
     receipt_number = fields.Char(string='Receipt Number', readonly=True)
 
     _sql_constraints = [(
@@ -117,7 +116,7 @@ class MooncardTransaction(models.Model):
             'type': 'ir.actions.act_url',
             'url': self.image_url,
             'target': 'new',
-            }
+        }
         return action
 
     @api.multi

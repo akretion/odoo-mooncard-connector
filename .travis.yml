@@ -6,7 +6,7 @@ cache:
     - $HOME/.cache/pip
 
 python:
-  - "2.7"
+  - "3.5"
 
 addons:
   apt:
@@ -19,9 +19,9 @@ addons:
 
 env:
   global:
-  - VERSION="10.0" TESTS="0" LINT_CHECK="0" TRANSIFEX="0"
+  - VERSION="11.0" TESTS="0" LINT_CHECK="0" TRANSIFEX="0"
   - TRANSIFEX_USER='transbot@odoo-community.org'
-  - secure: TBV3BAz/Bx1rAP/diCeySS3yFo8qOk0lmy33CXmd/YKcMbKCuN6Y/a72dCvLtJkLrM2Aalo+AhafEp8JJoKf6UJLNHn09hRHL5KjKfY4I32cb60LxlGwYMAOePduBfoYWMsEv95x54caHqNd94uP8/Ot0zXRDjp0V9INHnmQIzY= 
+  - secure: TBV3BAz/Bx1rAP/diCeySS3yFo8qOk0lmy33CXmd/YKcMbKCuN6Y/a72dCvLtJkLrM2Aalo+AhafEp8JJoKf6UJLNHn09hRHL5KjKfY4I32cb60LxlGwYMAOePduBfoYWMsEv95x54caHqNd94uP8/Ot0zXRDjp0V9INHnmQIzY=
 
   matrix:
   - LINT_CHECK="1"
@@ -30,19 +30,15 @@ env:
   - TESTS="1" ODOO_REPO="odoo/odoo"
   - TESTS="1" ODOO_REPO="OCA/OCB"
 
-virtualenv:
-  system_site_packages: true
-
 install:
   - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - travis_install_nightly
   - pip install PyPDF2
   - pip install unicodecsv pycountry
-  - travis_install_nightly
 
 script:
   - travis_run_tests
 
 after_success:
   - travis_after_tests_success
-

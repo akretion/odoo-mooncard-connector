@@ -1,7 +1,7 @@
 # list the OCA project dependencies, one per line
 # add a github url if you need a forked version
-account_invoice_import https://github.com/OCA/edi
-base_business_document_import https://github.com/OCA/edi
-base_vat_sanitized https://github.com/OCA/partner-contact
-account_tax_unece https://github.com/OCA/community-data-files
-product_uom_unece https://github.com/OCA/community-data-files
+account_invoice_import https://github.com/njeudy/edi 11-mig-account_invoice_import
+edi
+partner-contact
+community-data-files
+server-tools
