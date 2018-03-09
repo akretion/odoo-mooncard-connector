@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -42,8 +41,8 @@ MAPPING = {
         'MOON-8080': {'account': '6155', 'tax': 'ACH-20.0'},
         'MOON-8099': {'account': '6251', 'tax': False},
         # 'MOON-9000': {},  # Autre
-        }
     }
+}
 
 
 def set_accounts_on_products(cr, registry):
@@ -57,11 +56,11 @@ def set_accounts_on_products(cr, registry):
             if company_country_code not in MAPPING:
                 continue
             for default_code, val_dict in\
-                    MAPPING[company_country_code].iteritems():
+                    MAPPING[company_country_code].items():
                 products = env['product.product'].search([
                     ('categ_id', '=', categ.id),
                     ('default_code', '=', default_code),
-                    ])
+                ])
                 if not products:
                     continue
                 product = products[0]

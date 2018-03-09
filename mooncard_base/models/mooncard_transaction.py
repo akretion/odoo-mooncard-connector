@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -39,8 +38,8 @@ class MooncardTransaction(models.Model):
         'product.product', string='Expense Product', ondelete='restrict',
         states={'done': [('readonly', True)]})
     expense_account_id = fields.Many2one(
-        'account.account', compute='compute_expense_account_id', readonly=True,
-        string='Expense Account of the Product')
+        'account.account', compute='_compute_expense_account_id',
+        readonly=True, string='Expense Account of the Product')
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account',
         states={'done': [('readonly', True)]}, ondelete='restrict')
@@ -52,7 +51,7 @@ class MooncardTransaction(models.Model):
         ('presentment', 'Expense'),
         ('authorization', 'Authorization'),  # not needed as we now
                                              # use bank statements
-        ], string='Transaction Type', readonly=True)
+    ], string='Transaction Type', readonly=True)
     vat_company_currency = fields.Monetary(
         string='VAT Amount',
         # not readonly, because accountant may have to change the value
@@ -73,7 +72,7 @@ class MooncardTransaction(models.Model):
     state = fields.Selection([
         ('draft', 'Draft'),
         ('done', 'Done'),
-        ], string='State', default='draft', readonly=True)
+    ], string='State', default='draft', readonly=True)
     receipt_number = fields.Char(string='Receipt Number', readonly=True)
 
     _sql_constraints = [(
@@ -85,7 +84,7 @@ class MooncardTransaction(models.Model):
         'product_id.product_tmpl_id.property_account_expense_id',
         'product_id.product_tmpl_id.categ_id.'
         'property_account_expense_categ_id')
-    def compute_expense_account_id(self):
+    def _compute_expense_account_id(self):
         for trans in self:
             account_id = False
             if trans.product_id:
@@ -111,7 +110,7 @@ class MooncardTransaction(models.Model):
             'type': 'ir.actions.act_url',
             'url': self.image_url,
             'target': 'new',
-            }
+        }
         return action
 
     @api.multi
