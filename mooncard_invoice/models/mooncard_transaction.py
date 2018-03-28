@@ -75,11 +75,11 @@ class MooncardTransaction(models.Model):
                     'Skipping mooncard transaction %s which is not draft',
                     line.name)
                 continue
-            if not line.description:
-                raise UserError(_(
-                    "The description field is empty on "
-                    "mooncard transaction %s.") % line.name)
             if line.transaction_type == 'presentment':
+                if not line.description:
+                    raise UserError(_(
+                        "The description field is empty on "
+                        "mooncard transaction %s.") % line.name)
                 line.generate_bank_journal_move()
                 if not line.payment_move_only:
                     line.generate_invoice()
