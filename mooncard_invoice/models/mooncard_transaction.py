@@ -42,7 +42,8 @@ class MooncardTransaction(models.Model):
         "generate a supplier invoice/refund. This option is useful when you "
         "make a payment in advance and you haven't received the invoice yet.")
     invoice_id = fields.Many2one(
-        'account.invoice', string='Invoice', readonly=True)
+        'account.invoice', string='Invoice',
+        states={'done': [('readonly', True)]})
     invoice_state = fields.Selection(
         related='invoice_id.state', readonly=True,
         string="Invoice State")
@@ -59,6 +60,11 @@ class MooncardTransaction(models.Model):
     # Note for future versions : was it really a good idea to have 2 fields
     # payment_move_id and load_move_id -> 1 field bank_move_id ?
 
+    @api.onchange('invoice_id')
+    def invoice_id_change(self):
+        if self.invoice_id:
+            self.partner_id = self.invoice_id.commercial_partner_id
+
     @api.multi
     def process_line(self):
         # TODO: in the future, we may have to support the case where
@@ -69,6 +75,10 @@ class MooncardTransaction(models.Model):
                     'Skipping mooncard transaction %s which is not draft',
                     line.name)
                 continue
+            if not line.description:
+                raise UserError(_(
+                    "The description field is empty on "
+                    "mooncard transaction %s.") % line.name)
             if line.transaction_type == 'presentment':
                 line.generate_bank_journal_move()
                 if not line.payment_move_only:
@@ -284,7 +294,47 @@ class MooncardTransaction(models.Model):
 
     @api.one
     def generate_invoice(self):
-        assert not self.invoice_id, 'already linked to an invoice'
+        if self.invoice_id:
+            # should not happen because domain blocks that
+            if self.invoice_id.currency_id != self.company_currency_id:
+                raise UserError(_(
+                    "For the moment, we don't support linking to an invoice "
+                    "in another currency that the company currency."))
+            # should not happen because domain blocks that
+            if self.invoice_id.state != 'open':
+                raise UserError(_(
+                    "The mooncard transaction %s is linked to invoice %s "
+                    "which is not in open state.")
+                    % (self.name, self.invoice_id.number))
+            # should not happen because domain blocks that
+            if self.invoice_id.type not in ('in_invoice', 'in_refund'):
+                raise UserError(_(
+                    "The mooncard transaction %s is linked to invoice %s "
+                    "which is not a supplier invoice/refund!")
+                    % (self.name, self.invoice_id.number))
+            # handled by onchange
+            if self.partner_id != self.invoice_id.commercial_partner_id:
+                raise UserError(_(
+                    "The mooncard transaction %s is linked to partner '%s' "
+                    "whereas the related invoice %s is linked to "
+                    "partner '%s'.") % (
+                    self.name, self.partner_id.display_name,
+                    self.invoice_id.commercial_partner_id.display_name))
+            # TODO handle partial payments ?
+            if float_compare(
+                    self.invoice_id.amount_total_signed,
+                    self.total_company_currency * -1,
+                    precision_rounding=self.company_currency_id.rounding):
+                raise UserError(_(
+                    "The mooncard transaction %s is linked to the "
+                    "invoice/refund %s whose total amount is %s %s, "
+                    "but the amount of the transaction is %s %s.") % (
+                    self.name, self.invoice_id.number,
+                    self.invoice_id.amount_total_signed,
+                    self.invoice_id.currency_id.name,
+                    self.total_company_currency,
+                    self.company_currency_id.name))
+            return
         assert self.transaction_type == 'presentment', 'wrong transaction type'
         aiio = self.env['account.invoice.import']
         precision = self.company_currency_id.rounding

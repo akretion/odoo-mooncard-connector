@@ -25,7 +25,8 @@
                 <field name="payment_move_only"
                     attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
                 <field name="invoice_id"
-                    attrs="{'invisible': ['|', ('transaction_type', '!=', 'presentment'), ('payment_move_only', '=', True)]}"/>
+                    attrs="{'invisible': ['|', ('transaction_type', '!=', 'presentment'), ('payment_move_only', '=', True)]}"
+                    domain="[('state', '=', 'open'), ('currency_id', '=', company_currency_id), ('type', 'in', ('in_invoice', 'in_refund'))]"/>
                 <field name="invoice_state"
                     attrs="{'invisible': ['|', ('transaction_type', '!=', 'presentment'), ('payment_move_only', '=', True)]}"/>
                 <field name="payment_move_id"
