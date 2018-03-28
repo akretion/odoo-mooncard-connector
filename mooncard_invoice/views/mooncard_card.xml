@@ -13,7 +13,7 @@
     <field name="inherit_id" ref="mooncard_base.mooncard_card_form"/>
     <field name="arch"  type="xml">
         <field name="user_id" position="after">
-            <field name="journal_id" context="{'default_type': 'bank'}"/>
+            <field name="journal_id" context="{'default_type': 'bank', 'default_name': 'Mooncard', 'default_code': 'MOON'}"/>
         </field>
         <group name="main" position="after">
             <group name="mapping" string="Override Default Accounts">

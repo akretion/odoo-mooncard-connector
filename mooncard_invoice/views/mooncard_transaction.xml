@@ -22,14 +22,16 @@
         </field>
         <group name="right" position="inside">
             <group name="accounting" string="Accounting" colspan="2">
+                <field name="payment_move_only"
+                    attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
                 <field name="invoice_id"
-                    attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
+                    attrs="{'invisible': ['|', ('transaction_type', '!=', 'presentment'), ('payment_move_only', '=', True)]}"/>
                 <field name="invoice_state"
-                    attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
+                    attrs="{'invisible': ['|', ('transaction_type', '!=', 'presentment'), ('payment_move_only', '=', True)]}"/>
                 <field name="payment_move_id"
                     attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
                 <field name="reconcile_id"
-                    attrs="{'invisible': [('transaction_type', '!=', 'presentment')]}"/>
+                    attrs="{'invisible': ['|', ('transaction_type', '!=', 'presentment'), ('payment_move_only', '=', True)]}"/>
                 <field name="load_move_id"
                     attrs="{'invisible': [('transaction_type', '!=', 'load')]}"/>
             </group>

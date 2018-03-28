@@ -34,6 +34,13 @@ class MooncardTransaction(models.Model):
         states={'done': [('readonly', True)]})
     force_invoice_date = fields.Date(
         string='Force Invoice Date', states={'done': [('readonly', True)]})
+    payment_move_only = fields.Boolean(
+        string="Generate Payment Move Only",
+        states={'done': [('readonly', True)]},
+        help="When you process a transaction on which this option is enabled, "
+        "Odoo will only generate the move in the bank journal, it will not "
+        "generate a supplier invoice/refund. This option is useful when you "
+        "make a payment in advance and you haven't received the invoice yet.")
     invoice_id = fields.Many2one(
         'account.invoice', string='Invoice', readonly=True)
     invoice_state = fields.Selection(
@@ -49,6 +56,8 @@ class MooncardTransaction(models.Model):
         related='payment_move_line_id.full_reconcile_id', readonly=True)
     load_move_id = fields.Many2one(
         'account.move', string="Load Move", readonly=True)
+    # Note for future versions : was it really a good idea to have 2 fields
+    # payment_move_id and load_move_id -> 1 field bank_move_id ?
 
     @api.multi
     def process_line(self):
@@ -62,8 +71,9 @@ class MooncardTransaction(models.Model):
                 continue
             if line.transaction_type == 'presentment':
                 line.generate_bank_journal_move()
-                line.generate_invoice()
-                line.reconcile()
+                if not line.payment_move_only:
+                    line.generate_invoice()
+                    line.reconcile()
                 line.state = 'done'
             elif line.transaction_type == 'load':
                 line.generate_load_move()
