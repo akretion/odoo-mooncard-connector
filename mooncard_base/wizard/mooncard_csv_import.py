@@ -94,9 +94,8 @@ class MooncardCsvImport(models.TransientModel):
             pcountry = pycountry.countries.get(alpha_3=line['country_code'])
             if pcountry and pcountry.alpha_2:
                 country_id = speeddict['countries'].get(pcountry.alpha_2)
-        currencies = self.env['res.currency'].search(
-            [('name', '=', line.get('original_currency'))])
-        currency_id = currencies and currencies[0].id or False
+        currency_id = speeddict['currencies'].get(
+            line.get('original_currency'))
         card_id = False
         if line.get('card_token'):
             card_id = speeddict['tokens'].get(line['card_token'])
@@ -131,7 +130,7 @@ class MooncardCsvImport(models.TransientModel):
         company = self.env.user.company_id
         speeddict = {
             'tokens': {}, 'products': {}, 'analytic': {},
-            'countries': {}}
+            'countries': {}, 'currencies': {}}
 
         token_res = self.env['mooncard.card'].search_read(
             [('company_id', '=', company.id)], ['name'])
@@ -152,8 +151,15 @@ class MooncardCsvImport(models.TransientModel):
             analytic_code = analytic['code'].strip().lower()
             speeddict['analytic'][analytic_code] = analytic['id']
 
-        for country in self.env['res.country'].search([('code', '!=', False)]):
-            speeddict['countries'][country.code.strip()] = country.id
+        countries = self.env['res.country'].search_read(
+            [('code', '!=', False)], ['code'])
+        for country in countries:
+            speeddict['countries'][country['code'].strip()] = country['id']
+
+        currencies = self.env['res.currency'].search_read(
+            ['|', ('active', '=', True), ('active', '=', False)], ['name'])
+        for curr in currencies:
+            speeddict['currencies'][curr['name']] = curr['id']
         return speeddict
 
     @api.multi
