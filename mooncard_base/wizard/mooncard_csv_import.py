@@ -92,11 +92,8 @@ class MooncardCsvImport(models.TransientModel):
                 'search country with code %s with pycountry',
                 line['country_code'])
             pcountry = pycountry.countries.get(alpha_3=line['country_code'])
-            if pcountry:
-                countries = self.env['res.country'].search(
-                    [('code', '=', pcountry.alpha_2)])
-                if countries:
-                    country_id = countries[0].id
+            if pcountry and pcountry.alpha_2:
+                country_id = speeddict['countries'].get(pcountry.alpha_2)
         currencies = self.env['res.currency'].search(
             [('name', '=', line.get('original_currency'))])
         currency_id = currencies and currencies[0].id or False
@@ -132,9 +129,12 @@ class MooncardCsvImport(models.TransientModel):
     @api.model
     def _prepare_speeddict(self):
         company = self.env.user.company_id
+        speeddict = {
+            'tokens': {}, 'products': {}, 'analytic': {},
+            'countries': {}}
+
         token_res = self.env['mooncard.card'].search_read(
             [('company_id', '=', company.id)], ['name'])
-        speeddict = {'tokens': {}, 'products': {}, 'analytic': {}}
         for token in token_res:
             speeddict['tokens'][token['name']] = token['id']
 
@@ -145,11 +145,15 @@ class MooncardCsvImport(models.TransientModel):
         for product_sinfo in product_sinfos:
             speeddict['products'][product_sinfo.product_code] =\
                 product_sinfo.product_tmpl_id.product_variant_ids[0].id
+
         analytic_res = self.env['account.analytic.account'].search_read(
             [('company_id', '=', company.id), ('code', '!=', False)], ['code'])
         for analytic in analytic_res:
             analytic_code = analytic['code'].strip().lower()
             speeddict['analytic'][analytic_code] = analytic['id']
+
+        for country in self.env['res.country'].search([('code', '!=', False)]):
+            speeddict['countries'][country.code.strip()] = country.id
         return speeddict
 
     @api.multi
