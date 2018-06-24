@@ -4,7 +4,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from odoo.tools import float_compare
+from odoo.tools import float_compare, float_is_zero
 import requests
 import base64
 import logging
@@ -27,11 +27,6 @@ class MooncardTransaction(models.Model):
         "supplier 'Mooncard Misc Suppliers'. You can change the partner "
         "to the real partner of the transaction if you want, but it may not "
         "be worth the additionnal work.")
-    force_expense_account_id = fields.Many2one(
-        'account.account', string='Override Expense Account',
-        help="Override the expense account configured on the product",
-        domain=[('deprecated', '=', False)],
-        states={'done': [('readonly', True)]})
     force_invoice_date = fields.Date(
         string='Force Invoice Date', states={'done': [('readonly', True)]})
     payment_move_only = fields.Boolean(
@@ -205,12 +200,9 @@ class MooncardTransaction(models.Model):
             date = self.payment_date[:10]
         else:
             date = self.date[:10]
-        if not self.product_id:
-            raise UserError(_(
-                "Missing Expense Product on Mooncard transaction %s")
-                % self.name)
         vat_compare = float_compare(
             self.vat_company_currency, 0, precision_rounding=precision)
+        taxes = []
         if vat_compare:
             if (
                     self.country_id and
@@ -229,18 +221,27 @@ class MooncardTransaction(models.Model):
                     "The sign of the VAT amount (%s) should be the same as "
                     "the sign of the total amount (%s).")
                     % (self.vat_company_currency, self.total_company_currency))
-            product_taxes = self.product_id.supplier_taxes_id
-            if not product_taxes:
-                raise UserError(_(
-                    "Missing supplier taxes on product '%s', or, if it's on "
-                    "purpose because there is no VAT on this kind of expense, "
-                    "the VAT amount of this transaction should be 0.")
-                    % self.product_id.name_get()[0][1])
-            if any([tax.price_include for tax in product_taxes]):
-                raise UserError(_(
-                    "Supplier taxes on product '%s' must all have the option "
-                    "'Tax Included in Price' disabled.")
-                    % self.product_id.name_get()[0][1])
+            # get rate
+            if not float_is_zero(
+                    self.fr_vat_20_amount, precision_rounding=precision):
+                rate = 20.0
+            elif not float_is_zero(
+                    self.fr_vat_10_amount, precision_rounding=precision):
+                rate = 10.0
+            elif not float_is_zero(
+                    self.fr_vat_5_5_amount, precision_rounding=precision):
+                rate = 5.5
+            elif not float_is_zero(
+                    self.fr_vat_2_1_amount, precision_rounding=precision):
+                rate = 2.1
+            else:
+                raise UserError(_("Houston, we have a problem!"))
+            taxes.append({
+                'amount_type': 'percent',
+                'amount': rate,
+                'unece_type_code': 'VAT',
+                'unece_categ_code': 'S',
+                })
         if not self.description:
             raise UserError(_(
                 "Missing label on Mooncard transaction %s")
@@ -259,7 +260,7 @@ class MooncardTransaction(models.Model):
             'amount_untaxed': amount_untaxed,
             'invoice_number': self.name,
             'lines': [{
-                'product': {'recordset': self.product_id},
+                'taxes': taxes,
                 'price_unit': amount_untaxed,
                 'name': self.description,
                 'qty': 1,
@@ -341,21 +342,17 @@ class MooncardTransaction(models.Model):
         parsed_inv = self._prepare_invoice_import()
         logger.debug('Mooncard invoice import parsed_inv=%s', parsed_inv)
         parsed_inv = aiio.pre_process_parsed_inv(parsed_inv)
+        if not self.expense_account_id:
+            raise UserError(_(
+                "Missing expense account on transaction %s") % self.name)
         import_config = {
-            'invoice_line_method': 'nline_auto_product',
+            'invoice_line_method': 'nline_no_product',
+            'account': self.expense_account_id,
             'account_analytic': self.account_analytic_id or False,
             }
         invoice = aiio.create_invoice(parsed_inv, import_config=import_config)
         invoice.message_post(_(
             "Invoice created from Mooncard transaction %s.") % self.name)
-        if self.force_expense_account_id:
-            invoice.invoice_line_ids[0].account_id =\
-                self.force_expense_account_id.id
-            invoice.message_post(_(
-                "Expense account forced on the Mooncard transaction "
-                "from '%s' to '%s'.") % (
-                    self.expense_account_id.name_get()[0][1],
-                    self.force_expense_account_id.name_get()[0][1]))
         invoice.action_invoice_open()
         assert float_compare(
             invoice.amount_tax, abs(self.vat_company_currency),

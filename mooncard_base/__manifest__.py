@@ -4,7 +4,7 @@
 
 {
     'name': 'Mooncard Base',
-    'version': '10.0.1.0.0',
+    'version': '10.0.2.0.0',
     'category': 'Accounting',
     'license': 'AGPL-3',
     'summary': 'Mooncard base module',
@@ -14,7 +14,6 @@
     'external_dependencies': {'python': ['unicodecsv', 'pycountry']},
     'data': [
         'data/partner.xml',
-        'data/product.xml',
         'data/sequence.xml',
         'views/mooncard_transaction.xml',
         'views/mooncard_card.xml',
@@ -24,6 +23,5 @@
         'security/mooncard_security.xml',
     ],
     'demo': ['demo/demo.xml'],
-    'post_init_hook': 'set_accounts_on_products',
     'installable': True,
 }

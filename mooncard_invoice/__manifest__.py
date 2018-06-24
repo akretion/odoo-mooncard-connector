@@ -4,7 +4,7 @@
 
 {
     'name': 'Mooncard Invoice',
-    'version': '10.0.1.0.0',
+    'version': '10.0.2.0.0',
     'category': 'Accounting & Finance',
     'license': 'AGPL-3',
     'summary': 'Create supplier invoices from mooncard transactions',

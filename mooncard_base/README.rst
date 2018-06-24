@@ -33,19 +33,16 @@ Note: you should not use the Debian/Ubuntu package *python-pycountry* because, a
 Configuration
 =============
 
-The module will create a new Product Category *Mooncard Expenses* with about 30 new products, one for each Mooncard expense category. For each of these new products, you should check:
-
-* the *Expense Account*,
-* the *Supplier Taxes*: the VAT purchase taxes used on Mooncard products must have the option *Tax included in price* disabled.
-
 The Mooncard products have been configured with a generic supplier *Mooncard Misc Suppliers* and a special *Supplier Product Code*: don't change those parameters!
 
 In the menu *Accounting > Configuration > Miscellaneous > Moon Cards*, you must create your Moon Cards, one for each of your Mooncards.
 
+In the Mooncard Web interface `app.mooncard.co <https://app.mooncard.co/>`_, go to *Paramètres > Natures de dépense* and update the column *Compte de charge* so that it matches exactly the account codes that you have in Odoo.
+
 Usage
 =====
 
-Go to the menu *Accounting > Mooncard > Mooncard Import* and upload the CSV file that you downloaded from your `Mooncard account <https://app.mooncard.co/>`_:
+Go to the menu *Accounting > Mooncard > Mooncard Import* and upload the CSV file that you downloaded from your `Mooncard account <https://app.mooncard.co/>`_ under *Comptes > Relevés et soldes > Exporter > Odoo*:
 
 * Odoo will create the new Mooncard transactions,
 * Odoo will update the existing Mooncard transactions that are still in draft.

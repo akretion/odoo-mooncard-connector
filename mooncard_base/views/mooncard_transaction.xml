@@ -37,8 +37,7 @@
                         <field name="company_id" groups="base.group_multi_company"/>
                     </group>
                     <group name="classification" string="Classification" colspan="2" attrs="{'invisible': [('transaction_type', '=', 'load')]}">
-                        <field name="expense_categ_code" groups="base.group_no_one"/>
-                        <field name="expense_categ_name" groups="base.group_no_one"/>
+                        <field name="expense_categ_name"/>
                         <field name="product_id"/>
                         <field name="expense_account_id"/>
                         <field name="account_analytic_id"
@@ -50,6 +49,10 @@
                         <field name="company_currency_id" invisible="1"/>
                         <field name="currency_id" invisible="1"/>
                         <field name="vat_company_currency"/>
+                        <field name="fr_vat_20_amount"/>
+                        <field name="fr_vat_10_amount"/>
+                        <field name="fr_vat_5_5_amount"/>
+                        <field name="fr_vat_2_1_amount"/>
                         <field name="total_company_currency"/>
                         <field name="total_currency"/>
                     </group>
@@ -70,7 +73,7 @@
             <field name="receipt_number"/>
             <field name="description"/>
             <field name="card_id"/>
-            <field name="product_id"/>
+            <field name="expense_account_id"/>
             <field name="account_analytic_id"
                 groups="analytic.group_analytic_accounting"/>
             <field name="merchant"/>
@@ -102,7 +105,7 @@
                 filter_domain="['|', '|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('merchant', 'ilike', self), ('receipt_number', 'ilike', self)]"/>
             <field name="date"/>
             <filter name="ready_to_process" string="Ready to process"
-                domain="[('state', '=', 'draft'), ('transaction_type', 'in', ('load', 'presentment')), ('product_id', '!=', False), ('description', '!=', False), '|', ('image_url', '!=', False), ('receipt_lost', '=', True)]"/>
+                domain="[('state', '=', 'draft'), ('transaction_type', 'in', ('load', 'presentment')), ('expense_account_id', '!=', False), ('description', '!=', False), '|', ('image_url', '!=', False), ('receipt_lost', '=', True)]"/>
             <separator/>
             <filter name="load" string="Load"
                 domain="[('transaction_type', '=', 'load')]"/>
@@ -116,8 +119,8 @@
             <group string="Group By" name="groupby">
                 <filter name="date_groupby" string="Date"
                     context="{'group_by': 'date:week'}"/>
-                <filter name="product_groupby" string="Expense Product"
-                    context="{'group_by': 'product_id'}"/>
+                <filter name="account_groupby" string="Expense Account"
+                    context="{'group_by': 'expense_account_id'}"/>
                 <filter name="account_analytic" string="Analytic Account"
                     context="{'group_by': 'account_analytic_id'}"/>
                 <filter name="mooncard_card_groupby"
@@ -138,7 +141,7 @@
     <field name="name">Mooncard Transaction calendar view</field>
     <field name="model">mooncard.transaction</field>
     <field name="arch" type="xml">
-        <calendar string="Mooncard Transactions" color="product_id" date_start="date">
+        <calendar string="Mooncard Transactions" color="expense_account_id" date_start="date">
             <field name="name"/>
             <field name="merchant"/>
             <field name="country_id"/>
@@ -154,7 +157,7 @@
     <field name="arch"  type="xml">
         <pivot string="Mooncard Transactions">
             <field name="date" type="col" interval="month"/>
-            <field name="product_id" type="row"/>
+            <field name="expense_account_id" type="row"/>
             <field name="total_company_currency" type="measure"/>
         </pivot>
     </field>
@@ -165,7 +168,7 @@
     <field name="model">mooncard.transaction</field>
     <field name="arch"  type="xml">
         <graph string="Mooncard Transactions">
-            <field name="product_id" type="row"/>
+            <field name="expense_account_id" type="row"/>
             <field name="total_company_currency" type="measure"/>
         </graph>
     </field>

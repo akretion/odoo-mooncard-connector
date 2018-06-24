@@ -14,9 +14,6 @@
         <field name="payment_date" position="after">
             <field name="force_invoice_date"/>
         </field>
-        <field name="expense_account_id" position="after">
-            <field name="force_expense_account_id"/>
-        </field>
         <field name="merchant" position="after">
             <field name="partner_id"/>
         </field>

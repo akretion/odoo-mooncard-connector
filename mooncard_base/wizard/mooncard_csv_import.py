@@ -4,6 +4,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from odoo.tools import float_compare
 from datetime import datetime, timedelta
 import unicodecsv
 from tempfile import TemporaryFile
@@ -42,9 +43,12 @@ class MooncardCsvImport(models.TransientModel):
 
     @api.model
     def _prepare_transaction(self, line, speeddict, action='create'):
-        product_id = account_analytic_id = expense_categ_code = False
+        account_analytic_id = account_id = False
         # convert to float
-        for float_field in ['vat_eur', 'amount_eur', 'amount_currency']:
+        float_fields = [
+            'vat_eur', 'amount_eur', 'amount_currency',
+            'vat_20_id', 'vat_10_id', 'vat_55_id', 'vat_21_id']
+        for float_field in float_fields:
             if line.get(float_field):
                 try:
                     line[float_field] = float(line[float_field])
@@ -54,9 +58,19 @@ class MooncardCsvImport(models.TransientModel):
                         % (float_field, line.get(float_field)))
             else:
                 line[float_field] = 0.0
-        if line.get('expense_category_gid'):
-            expense_categ_code = line['expense_category_gid'].split('/')[-1]
-            product_id = speeddict['products'].get(expense_categ_code)
+        total_vat_rates = line['vat_20_id'] + line['vat_10_id'] +\
+            line['vat_55_id'] + line['vat_21_id']
+        if float_compare(line['vat_eur'], total_vat_rates, precision_digits=2):
+            raise UserError(_(
+                "Error in the Mooncard CSV file: for transaction ID '%s' "
+                "the column 'vat_eur' (%.2f) doesn't have the same value "
+                "as the sum of the 4 columns per VAT rate (%.2f)")
+                % (line['id'], line['vat_eur'], total_vat_rates))
+        if line.get('charge_account'):
+            account_id = speeddict['accounts'].get(line['charge_account'])
+            if not account_id:
+                raise UserError(_(
+                    "Account '%s' not found in Odoo") % line['charge_account'])
         if line.get('analytic_code_1'):
             account_analytic_id = speeddict['analytic'].get(
                 line['analytic_code_1'].lower())
@@ -73,11 +87,14 @@ class MooncardCsvImport(models.TransientModel):
         vals = {
             'transaction_type': transaction_type,
             'description': line.get('title'),
-            'expense_categ_code': expense_categ_code,
             'expense_categ_name': line.get('expense_category_name'),
-            'product_id': product_id,
+            'expense_account_id': account_id,
             'account_analytic_id': account_analytic_id,
             'vat_company_currency': line['vat_eur'],
+            'fr_vat_20_amount': line['vat_20_id'],
+            'fr_vat_10_amount': line['vat_10_id'],
+            'fr_vat_5_5_amount': line['vat_55_id'],
+            'fr_vat_2_1_amount': line['vat_21_id'],
             'image_url': line.get('attachment'),
             'receipt_number': line.get('receipt_code'),
             }
@@ -129,7 +146,7 @@ class MooncardCsvImport(models.TransientModel):
     def _prepare_speeddict(self):
         company = self.env.user.company_id
         speeddict = {
-            'tokens': {}, 'products': {}, 'analytic': {},
+            'tokens': {}, 'accounts': {}, 'analytic': {},
             'countries': {}, 'currencies': {}}
 
         token_res = self.env['mooncard.card'].search_read(
@@ -137,13 +154,10 @@ class MooncardCsvImport(models.TransientModel):
         for token in token_res:
             speeddict['tokens'][token['name']] = token['id']
 
-        partner_id = self.env.ref('mooncard_base.mooncard_supplier').id
-        product_sinfos = self.env['product.supplierinfo'].search([
-            ('name', '=', partner_id),
-            '|', ('company_id', '=', False), ('company_id', '=', company.id)])
-        for product_sinfo in product_sinfos:
-            speeddict['products'][product_sinfo.product_code] =\
-                product_sinfo.product_tmpl_id.product_variant_ids[0].id
+        accounts = self.env['account.account'].search_read(
+            [('company_id', '=', company.id), ('deprecated', '=', False)])
+        for account in accounts:
+            speeddict['accounts'][account['code'].strip()] = account['id']
 
         analytic_res = self.env['account.analytic.account'].search_read(
             [('company_id', '=', company.id), ('code', '!=', False)], ['code'])

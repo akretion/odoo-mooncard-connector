@@ -31,16 +31,15 @@ class MooncardTransaction(models.Model):
     card_id = fields.Many2one(
         'mooncard.card', string='Moon Card', readonly=True,
         ondelete='restrict')
-    expense_categ_code = fields.Char(
-        string='Expense Category Code', readonly=True)
     expense_categ_name = fields.Char(
         string='Expense Category Name', readonly=True)
     product_id = fields.Many2one(
-        'product.product', string='Expense Product', ondelete='restrict',
+        'product.product', string='[OLD] Expense Product', ondelete='restrict',
         states={'done': [('readonly', True)]})
     expense_account_id = fields.Many2one(
-        'account.account', compute='compute_expense_account_id', readonly=True,
-        string='Expense Account of the Product')
+        'account.account', states={'done': [('readonly', True)]},
+        domain=[('deprecated', '=', False)],
+        string='Expense Account')
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account',
         states={'done': [('readonly', True)]}, ondelete='restrict')
@@ -59,6 +58,22 @@ class MooncardTransaction(models.Model):
         currency_field='company_currency_id',
         states={'done': [('readonly', True)]},
         help='VAT Amount in Company Currency')
+    fr_vat_20_amount = fields.Monetary(
+        string='VAT Amount 20.0 %', currency_field='company_currency_id',
+        states={'done': [('readonly', True)]},
+        help='20.0 % French VAT Amount in Company Currency')
+    fr_vat_10_amount = fields.Monetary(
+        string='VAT Amount 10.0 %', currency_field='company_currency_id',
+        states={'done': [('readonly', True)]},
+        help='10.0 % French VAT Amount in Company Currency')
+    fr_vat_5_5_amount = fields.Monetary(
+        string='VAT Amount 5.5 %', currency_field='company_currency_id',
+        states={'done': [('readonly', True)]},
+        help='5.5 % French VAT Amount in Company Currency')
+    fr_vat_2_1_amount = fields.Monetary(
+        string='VAT Amount 2.1 %', currency_field='company_currency_id',
+        states={'done': [('readonly', True)]},
+        help='2.1 % French VAT Amount in Company Currency')
     total_company_currency = fields.Monetary(
         string='Total Amount in Company Currency',
         currency_field='company_currency_id', readonly=True)
@@ -80,20 +95,6 @@ class MooncardTransaction(models.Model):
         'unique_import_id',
         'unique(unique_import_id)',
         'A mooncard transaction can be imported only once!')]
-
-    @api.depends(
-        'product_id.product_tmpl_id.property_account_expense_id',
-        'product_id.product_tmpl_id.categ_id.'
-        'property_account_expense_categ_id')
-    def compute_expense_account_id(self):
-        for trans in self:
-            account_id = False
-            if trans.product_id:
-                account = trans.product_id.product_tmpl_id.\
-                    _get_product_accounts()['expense']
-                if account:
-                    account_id = account.id
-            trans.expense_account_id = account_id
 
     @api.model
     def create(self, vals):
