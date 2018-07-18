@@ -43,6 +43,7 @@ class MooncardCsvImport(models.TransientModel):
 
     @api.model
     def _prepare_transaction(self, line, speeddict, action='create'):
+        bdio = self.env['business.document.import']
         account_analytic_id = account_id = False
         # convert to float
         float_fields = [
@@ -67,10 +68,10 @@ class MooncardCsvImport(models.TransientModel):
                 "as the sum of the 4 columns per VAT rate (%.2f)")
                 % (line['id'], line['vat_eur'], total_vat_rates))
         if line.get('charge_account'):
-            account_id = speeddict['accounts'].get(line['charge_account'])
-            if not account_id:
-                raise UserError(_(
-                    "Account '%s' not found in Odoo") % line['charge_account'])
+            account = bdio._match_account(
+                {'code': line['charge_account']}, [],
+                speed_dict=speeddict['accounts'])
+            account_id = account.id
         if line.get('analytic_code_1'):
             account_analytic_id = speeddict['analytic'].get(
                 line['analytic_code_1'].lower())
@@ -145,6 +146,7 @@ class MooncardCsvImport(models.TransientModel):
     @api.model
     def _prepare_speeddict(self):
         company = self.env.user.company_id
+        bdio = self.env['business.document.import']
         speeddict = {
             'tokens': {}, 'accounts': {}, 'analytic': {},
             'countries': {}, 'currencies': {}}
@@ -154,10 +156,7 @@ class MooncardCsvImport(models.TransientModel):
         for token in token_res:
             speeddict['tokens'][token['name']] = token['id']
 
-        accounts = self.env['account.account'].search_read(
-            [('company_id', '=', company.id), ('deprecated', '=', False)])
-        for account in accounts:
-            speeddict['accounts'][account['code'].strip()] = account['id']
+        speeddict['accounts'] = bdio._prepare_account_speed_dict()
 
         analytic_res = self.env['account.analytic.account'].search_read(
             [('company_id', '=', company.id), ('code', '!=', False)], ['code'])

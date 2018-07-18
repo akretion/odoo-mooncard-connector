@@ -10,7 +10,7 @@
     'summary': 'Mooncard base module',
     'author': 'Akretion',
     'website': 'http://www.akretion.com',
-    'depends': ['account'],
+    'depends': ['base_business_document_import'],
     'external_dependencies': {'python': ['unicodecsv', 'pycountry']},
     'data': [
         'data/partner.xml',
