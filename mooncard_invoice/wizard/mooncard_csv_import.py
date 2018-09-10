@@ -16,7 +16,8 @@ class MooncardCsvImport(models.TransientModel):
             [('company_id', '=', self.env.user.company_id.id)])
         for map_entry in map_res:
             speeddict['mapping'][
-                (map_entry['card_id'][0], map_entry['product_id'][0])] =\
+                (map_entry['card_id'][0],
+                 map_entry['expense_account_id'][0])] =\
                 map_entry['force_expense_account_id'][0]
         return speeddict
 
@@ -27,7 +28,7 @@ class MooncardCsvImport(models.TransientModel):
         # Used in created and update
         if line.get('card_token'):
             card_id = speeddict['tokens'].get(line['card_token'])
-            if (card_id, vals.get('product_id')) in speeddict['mapping']:
-                vals['force_expense_account_id'] =\
-                    speeddict['mapping'][(card_id, vals.get('product_id'))]
+            tuple_match = (card_id, vals.get('expense_account_id'))
+            if tuple_match in speeddict['mapping']:
+                vals['expense_account_id'] = speeddict['mapping'][tuple_match]
         return vals

@@ -4,7 +4,7 @@
 
 from openerp import models, fields, api, workflow, _
 from openerp.exceptions import Warning as UserError
-from openerp.tools import float_compare
+from openerp.tools import float_compare, float_is_zero
 import requests
 import base64
 import logging
@@ -17,14 +17,18 @@ logger = logging.getLogger(__name__)
 class MooncardTransaction(models.Model):
     _inherit = 'mooncard.transaction'
 
-    force_expense_account_id = fields.Many2one(
-        'account.account', string='Override Expense Account',
-        help="Override the expense account configured on the product",
-        domain=[('type', 'not in', ('view', 'closed', 'consolidation'))])
     force_invoice_date = fields.Date(
         string='Force Invoice Date', states={'done': [('readonly', True)]})
+    payment_move_only = fields.Boolean(
+        string="Generate Payment Move Only",
+        states={'done': [('readonly', True)]},
+        help="When you process a transaction on which this option is enabled, "
+        "Odoo will only generate the move in the bank journal, it will not "
+        "generate a supplier invoice/refund. This option is useful when you "
+        "make a payment in advance and you haven't received the invoice yet.")
     invoice_id = fields.Many2one(
-        'account.invoice', string='Invoice', readonly=True)
+        'account.invoice', string='Invoice',
+        states={'done': [('readonly', True)]})
     invoice_state = fields.Selection(
         related='invoice_id.state', readonly=True,
         string="Invoice State")
@@ -39,6 +43,11 @@ class MooncardTransaction(models.Model):
     load_move_id = fields.Many2one(
         'account.move', string="Load Move", readonly=True)
 
+    @api.onchange('invoice_id')
+    def invoice_id_change(self):
+        if self.invoice_id:
+            self.partner_id = self.invoice_id.commercial_partner_id
+
     @api.multi
     def process_line(self):
         # TODO: in the future, we may have to support the case where
@@ -50,9 +59,14 @@ class MooncardTransaction(models.Model):
                     line.name)
                 continue
             if line.transaction_type == 'presentment':
+                if not line.description:
+                    raise UserError(_(
+                        "The description field is empty on "
+                        "mooncard transaction %s.") % line.name)
                 line.generate_bank_journal_move()
-                line.generate_invoice()
-                line.reconcile()
+                if not line.payment_move_only:
+                    line.generate_invoice()
+                    line.reconcile()
                 line.state = 'done'
             elif line.transaction_type == 'load':
                 line.generate_load_move()
@@ -179,12 +193,9 @@ class MooncardTransaction(models.Model):
         else:
             date = self.date[:10]
         partner = self.env.ref('mooncard_base.mooncard_supplier')
-        if not self.product_id:
-            raise UserError(_(
-                "Missing Expense Product on Mooncard transaction %s")
-                % self.name)
         vat_compare = float_compare(
             self.vat_company_currency, 0, precision_digits=precision)
+        taxes = []
         if vat_compare:
             if (
                     self.country_id and
@@ -203,18 +214,27 @@ class MooncardTransaction(models.Model):
                     "The sign of the VAT amount (%s) should be the same as "
                     "the sign of the total amount (%s).")
                     % (self.vat_company_currency, self.total_company_currency))
-            product_taxes = self.product_id.supplier_taxes_id
-            if not product_taxes:
-                raise UserError(_(
-                    "Missing supplier taxes on product '%s', or, if it's on "
-                    "purpose because there is no VAT on this kind of expense, "
-                    "the VAT amount of this transaction should be 0.")
-                    % self.product_id.name_get()[0][1])
-            if any([tax.price_include for tax in product_taxes]):
-                raise UserError(_(
-                    "Supplier taxes on product '%s' must all have the option "
-                    "'Tax Included in Price' disabled.")
-                    % self.product_id.name_get()[0][1])
+            # get rate
+            if not float_is_zero(
+                    self.fr_vat_20_amount, precision_digits=precision):
+                rate = 20.0
+            elif not float_is_zero(
+                    self.fr_vat_10_amount, precision_digits=precision):
+                rate = 10.0
+            elif not float_is_zero(
+                    self.fr_vat_5_5_amount, precision_digits=precision):
+                rate = 5.5
+            elif not float_is_zero(
+                    self.fr_vat_2_1_amount, precision_digits=precision):
+                rate = 2.1
+            else:
+                raise UserError(_("Houston, we have a problem!"))
+            taxes.append({
+                'type': 'percent',
+                'amount': rate,
+                'unece_type_code': 'VAT',
+                'unece_categ_code': 'S',
+                })
         if not self.description:
             raise UserError(_(
                 "Missing label on Mooncard transaction %s")
@@ -233,7 +253,7 @@ class MooncardTransaction(models.Model):
             'amount_untaxed': amount_untaxed,
             'invoice_number': self.name,
             'lines': [{
-                'product': {'recordset': self.product_id},
+                'taxes': taxes,
                 'price_unit': amount_untaxed,
                 'name': self.description,
                 'qty': 1,
@@ -268,24 +288,64 @@ class MooncardTransaction(models.Model):
 
     @api.one
     def generate_invoice(self):
-        assert not self.invoice_id, 'already linked to an invoice'
+        if self.invoice_id:
+            # should not happen because domain blocks that
+            if self.invoice_id.currency_id != self.company_currency_id:
+                raise UserError(_(
+                    "For the moment, we don't support linking to an invoice "
+                    "in another currency than the company currency."))
+            # should not happen because domain blocks that
+            if self.invoice_id.state != 'open':
+                raise UserError(_(
+                    "The mooncard transaction %s is linked to invoice %s "
+                    "which is not in open state.")
+                    % (self.name, self.invoice_id.number))
+            # should not happen because domain blocks that
+            if self.invoice_id.type not in ('in_invoice', 'in_refund'):
+                raise UserError(_(
+                    "The mooncard transaction %s is linked to invoice %s "
+                    "which is not a supplier invoice/refund!")
+                    % (self.name, self.invoice_id.number))
+            # handled by onchange
+            if self.partner_id != self.invoice_id.commercial_partner_id:
+                raise UserError(_(
+                    "The mooncard transaction %s is linked to partner '%s' "
+                    "whereas the related invoice %s is linked to "
+                    "partner '%s'.") % (
+                    self.name, self.partner_id.display_name,
+                    self.invoice_id.commercial_partner_id.display_name))
+            # TODO handle partial payments ?
+            if float_compare(
+                    self.invoice_id.amount_total_signed,
+                    self.total_company_currency * -1,
+                    precision_rounding=self.company_currency_id.rounding):
+                raise UserError(_(
+                    "The mooncard transaction %s is linked to the "
+                    "invoice/refund %s whose total amount is %s %s, "
+                    "but the amount of the transaction is %s %s.") % (
+                    self.name, self.invoice_id.number,
+                    self.invoice_id.amount_total_signed,
+                    self.invoice_id.currency_id.name,
+                    self.total_company_currency,
+                    self.company_currency_id.name))
+            return
         assert self.transaction_type == 'presentment', 'wrong transaction type'
         aiio = self.env['account.invoice.import']
         precision = self.env['decimal.precision'].precision_get('Account')
         parsed_inv = self._prepare_invoice_import()
         logger.debug('Mooncard invoice import parsed_inv=%s', parsed_inv)
         parsed_inv = aiio.update_clean_parsed_inv(parsed_inv)
-        invoice = aiio._create_invoice(parsed_inv)
+        if not self.expense_account_id:
+            raise UserError(_(
+                "Missing expense account on transaction %s") % self.name)
+        import_config = {
+            'invoice_line_method': 'nline_no_product',
+            'account': self.expense_account_id,
+            'account_analytic': self.account_analytic_id or False,
+            }
+        invoice = aiio._create_invoice(parsed_inv, import_config=import_config)
         invoice.message_post(_(
             "Invoice created from Mooncard transaction %s.") % self.name)
-        if self.force_expense_account_id:
-            invoice.invoice_line[0].account_id =\
-                self.force_expense_account_id.id
-            invoice.message_post(_(
-                "Expense account forced on the Mooncard transaction "
-                "from '%s' to '%s'.") % (
-                    self.expense_account_id.name_get()[0][1],
-                    self.force_expense_account_id.name_get()[0][1]))
         workflow.trg_validate(
             self._uid, 'account.invoice', invoice.id, 'invoice_open', self._cr)
         assert float_compare(

@@ -4,6 +4,7 @@
 
 from openerp import models, fields, api, _
 from openerp.exceptions import Warning as UserError
+from openerp.tools import float_compare
 from datetime import datetime, timedelta
 from tempfile import TemporaryFile
 import logging
@@ -50,9 +51,13 @@ class MooncardCsvImport(models.TransientModel):
 
     @api.model
     def _prepare_transaction(self, line, speeddict, action='create'):
-        product_id = account_analytic_id = expense_categ_code = False
+        bdio = self.env['business.document.import']
+        account_analytic_id = account_id = False
         # convert to float
-        for float_field in ['vat_eur', 'amount_eur', 'amount_currency']:
+        float_fields = [
+            'vat_eur', 'amount_eur', 'amount_currency',
+            'vat_20_id', 'vat_10_id', 'vat_55_id', 'vat_21_id']
+        for float_field in float_fields:
             if line.get(float_field):
                 try:
                     line[float_field] = float(line[float_field])
@@ -62,9 +67,19 @@ class MooncardCsvImport(models.TransientModel):
                         % (float_field, line.get(float_field)))
             else:
                 line[float_field] = 0.0
-        if line.get('expense_category_gid'):
-            expense_categ_code = line['expense_category_gid'].split('/')[-1]
-            product_id = speeddict['products'].get(expense_categ_code)
+        total_vat_rates = line['vat_20_id'] + line['vat_10_id'] +\
+            line['vat_55_id'] + line['vat_21_id']
+        if float_compare(line['vat_eur'], total_vat_rates, precision_digits=2):
+            raise UserError(_(
+                "Error in the Mooncard CSV file: for transaction ID '%s' "
+                "the column 'vat_eur' (%.2f) doesn't have the same value "
+                "as the sum of the 4 columns per VAT rate (%.2f)")
+                % (line['id'], line['vat_eur'], total_vat_rates))
+        if line.get('charge_account'):
+            account = bdio._match_account(
+                {'code': line['charge_account']}, [],
+                speed_dict=speeddict['accounts'])
+            account_id = account.id
         if line.get('analytic_code_1'):
             account_analytic_id = speeddict['analytic'].get(
                 line['analytic_code_1'].lower())
@@ -81,11 +96,14 @@ class MooncardCsvImport(models.TransientModel):
         vals = {
             'transaction_type': transaction_type,
             'description': line.get('title'),
-            'expense_categ_code': expense_categ_code,
             'expense_categ_name': line.get('expense_category_name'),
-            'product_id': product_id,
+            'expense_account_id': account_id,
             'account_analytic_id': account_analytic_id,
             'vat_company_currency': line['vat_eur'],
+            'fr_vat_20_amount': line['vat_20_id'],
+            'fr_vat_10_amount': line['vat_10_id'],
+            'fr_vat_5_5_amount': line['vat_55_id'],
+            'fr_vat_2_1_amount': line['vat_21_id'],
             'image_url': line.get('attachment'),
             'receipt_number': line.get('receipt_code'),
             }
@@ -101,13 +119,9 @@ class MooncardCsvImport(models.TransientModel):
                 line['country_code'])
             pcountry = pycountry.countries.get(alpha_3=line['country_code'])
             if pcountry:
-                countries = self.env['res.country'].search(
-                    [('code', '=', pcountry.alpha_2)])
-                if countries:
-                    country_id = countries[0].id
-        currencies = self.env['res.currency'].search(
-            [('name', '=', line.get('original_currency'))])
-        currency_id = currencies and currencies[0].id or False
+                country_id = speeddict['countries'].get(pcountry.alpha_2)
+        currency_id = speeddict['currencies'].get(
+            line.get('original_currency'))
         card_id = False
         if line.get('card_token'):
             card_id = speeddict['tokens'].get(line['card_token'])
@@ -130,7 +144,7 @@ class MooncardCsvImport(models.TransientModel):
             'payment_date': payment_date,
             'card_id': card_id,
             'country_id': country_id,
-            'merchant': line.get('merchant'),
+            'merchant': line.get('supplier'),
             'total_company_currency': line['amount_eur'],
             'total_currency': line['amount_currency'],
             'currency_id': currency_id,
@@ -140,24 +154,32 @@ class MooncardCsvImport(models.TransientModel):
     @api.model
     def _prepare_speeddict(self):
         company = self.env.user.company_id
+        bdio = self.env['business.document.import']
+        speeddict = {
+            'tokens': {}, 'accounts': {}, 'analytic': {},
+            'countries': {}, 'currencies': {}}
         token_res = self.env['mooncard.card'].search_read(
             [('company_id', '=', company.id)], ['name'])
-        speeddict = {'tokens': {}, 'products': {}, 'analytic': {}}
         for token in token_res:
             speeddict['tokens'][token['name']] = token['id']
 
-        partner_id = self.env.ref('mooncard_base.mooncard_supplier').id
-        product_sinfos = self.env['product.supplierinfo'].search([
-            ('name', '=', partner_id),
-            '|', ('company_id', '=', False), ('company_id', '=', company.id)])
-        for product_sinfo in product_sinfos:
-            speeddict['products'][product_sinfo.product_code] =\
-                product_sinfo.product_tmpl_id.product_variant_ids[0].id
+        speeddict['accounts'] = bdio._prepare_account_speed_dict()
+
         analytic_res = self.env['account.analytic.account'].search_read(
             [('company_id', '=', company.id), ('code', '!=', False)], ['code'])
         for analytic in analytic_res:
             analytic_code = analytic['code'].strip().lower()
             speeddict['analytic'][analytic_code] = analytic['id']
+
+        countries = self.env['res.country'].search_read(
+            [('code', '!=', False)], ['code'])
+        for country in countries:
+            speeddict['countries'][country['code'].strip()] = country['id']
+
+        currencies = self.env['res.currency'].search_read(
+            ['|', ('active', '=', True), ('active', '=', False)], ['name'])
+        for curr in currencies:
+            speeddict['currencies'][curr['name']] = curr['id']
         return speeddict
 
     @api.multi

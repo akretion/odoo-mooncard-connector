@@ -4,7 +4,7 @@
 
 {
     'name': 'Mooncard Invoice',
-    'version': '8.0.1.0.0',
+    'version': '8.0.2.0.0',
     'category': 'Accounting & Finance',
     'license': 'AGPL-3',
     'summary': 'Create supplier invoices from mooncard transactions',
@@ -14,7 +14,6 @@
     'data': [
         'security/mooncard_security.xml',
         'security/ir.model.access.csv',
-        'data/partner.xml',
         'views/mooncard_transaction.xml',
         'views/mooncard_card.xml',
         'views/account_config_settings.xml',
