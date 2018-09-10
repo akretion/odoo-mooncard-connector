@@ -136,7 +136,7 @@ class MooncardCsvImport(models.TransientModel):
             'payment_date': payment_date,
             'card_id': card_id,
             'country_id': country_id,
-            'merchant': line.get('merchant'),
+            'merchant': line.get('supplier'),
             'total_company_currency': line['amount_eur'],
             'total_currency': line['amount_currency'],
             'currency_id': currency_id,

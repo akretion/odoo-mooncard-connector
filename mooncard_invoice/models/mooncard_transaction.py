@@ -300,7 +300,7 @@ class MooncardTransaction(models.Model):
             if self.invoice_id.currency_id != self.company_currency_id:
                 raise UserError(_(
                     "For the moment, we don't support linking to an invoice "
-                    "in another currency that the company currency."))
+                    "in another currency than the company currency."))
             # should not happen because domain blocks that
             if self.invoice_id.state != 'open':
                 raise UserError(_(
