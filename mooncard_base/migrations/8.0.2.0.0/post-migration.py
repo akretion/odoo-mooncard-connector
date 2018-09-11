@@ -27,7 +27,3 @@ def migrate(cr, version):
                     cr.execute('''
                     UPDATE mooncard_transaction SET expense_account_id=%s
                     WHERE id=%s''', (account.id, trans.id))
-        moon_partner = env.ref('mooncard_base.mooncard_supplier')
-        if moon_partner.invoice_import_id:
-            moon_partner.invoice_import_id.invoice_line_method =\
-                'nline_no_product'
