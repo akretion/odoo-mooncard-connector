@@ -98,7 +98,7 @@ class MooncardTransaction(models.Model):
             credit = 0
             debit = load_amount
         else:
-            credit = load_amount
+            credit = load_amount * -1
             debit = 0
         journal = self.card_id.journal_id
         mvals = {
@@ -157,7 +157,7 @@ class MooncardTransaction(models.Model):
             credit = 0
             debit = expense_amount
         else:
-            credit = expense_amount
+            credit = expense_amount * -1
             debit = 0
         mlvals1 = {
             'name': self.description,
@@ -202,6 +202,8 @@ class MooncardTransaction(models.Model):
             date = self.date[:10]
         vat_compare = float_compare(
             self.vat_company_currency, 0, precision_rounding=precision)
+        total_compare = float_compare(
+            self.total_company_currency, 0, precision_rounding=precision)
         taxes = []
         if vat_compare:
             if (
@@ -214,8 +216,6 @@ class MooncardTransaction(models.Model):
                     "the VAT amount of that transaction should be updated "
                     "to 0.")
                     % (self.name, self.country_id.name))
-            total_compare = float_compare(
-                self.total_company_currency, 0, precision_rounding=precision)
             if vat_compare != total_compare:
                 raise UserError(_(
                     "The sign of the VAT amount (%s) should be the same as "
@@ -251,6 +251,11 @@ class MooncardTransaction(models.Model):
             origin = u'%s (%s)' % (origin, self.receipt_number)
         amount_untaxed = self.total_company_currency * -1\
             - self.vat_company_currency * -1
+        price_unit = amount_untaxed
+        qty = 1
+        if total_compare > 0:  # refund
+            qty *= -1
+            price_unit *= -1
         parsed_inv = {
             'partner': {'recordset': self.partner_id},
             'date': date,
@@ -261,9 +266,9 @@ class MooncardTransaction(models.Model):
             'invoice_number': self.name,
             'lines': [{
                 'taxes': taxes,
-                'price_unit': amount_untaxed,
+                'price_unit': price_unit,
                 'name': self.description,
-                'qty': 1,
+                'qty': qty,
                 'uom': {'recordset': self.env.ref('product.product_uom_unit')},
                 }],
             'origin': origin,
