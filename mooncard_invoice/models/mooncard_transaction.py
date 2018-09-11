@@ -155,7 +155,7 @@ class MooncardTransaction(models.Model):
             credit = 0
             debit = expense_amount
         else:
-            credit = expense_amount
+            credit = expense_amount * -1
             debit = 0
         mlvals1 = {
             'name': self.description,

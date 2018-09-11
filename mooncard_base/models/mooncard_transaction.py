@@ -39,7 +39,7 @@ class MooncardTransaction(models.Model):
         states={'done': [('readonly', True)]})
     expense_account_id = fields.Many2one(
         'account.account', states={'done': [('readonly', True)]},
-        domain=[('deprecated', '=', False)],
+        domain=[('type', 'not in', ('view', 'closed', 'consolidation'))],
         string='Expense Account')
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account',

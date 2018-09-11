@@ -22,7 +22,8 @@ class MooncardAccountMapping(models.Model):
     company_id = fields.Many2one(
         related='card_id.company_id', readonly=True, store=True)
     expense_account_id = fields.Many2one(
-        'account.account', domain=[('deprecated', '=', False)],
+        'account.account',
+        domain=[('type', 'not in', ('view', 'closed', 'consolidation'))],
         string='Expense Account', required=True)
     force_expense_account_id = fields.Many2one(
         'account.account', 'Override Expense Account', ondelete='restrict',
