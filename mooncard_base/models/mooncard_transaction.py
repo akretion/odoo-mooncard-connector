@@ -25,9 +25,14 @@ class MooncardTransaction(models.Model):
         string='Unique Identifier', readonly=True, copy=False)
     date = fields.Datetime(
         string='Date', required=True, readonly=True,
-        help="This is the date of the bank transaction. It may be a few "
-        "days after the payment date.")
-    payment_date = fields.Datetime(string='Payment Date', readonly=True)
+        help="This is the date of the bank transaction written on the "
+        "bank statement. It may be a few days after the payment date. "
+        "It is used for the payment move.")
+    payment_date = fields.Datetime(
+        string='Payment Date', readonly=True,
+        help="This is the real date of the payment. It may be a few days "
+        "before the date of the bank transaction written on the bank "
+        "statement. It is used for the supplier invoice.")
     card_id = fields.Many2one(
         'mooncard.card', string='Moon Card', readonly=True,
         ondelete='restrict')
