@@ -189,7 +189,7 @@ class MooncardCsvImport(models.TransientModel):
         mto = self.env['mooncard.transaction']
         speeddict = self._prepare_speeddict()
         logger.info('Importing Mooncard transactions.csv')
-        fileobj = TemporaryFile('w+')
+        fileobj = TemporaryFile('wb+')
         fileobj.write(base64.b64decode(self.mooncard_file))
         fileobj.seek(0)
         reader = unicodecsv.DictReader(
