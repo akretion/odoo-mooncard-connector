@@ -1,6 +1,8 @@
 # © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import base64
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from odoo.tools import float_compare
@@ -188,7 +190,7 @@ class MooncardCsvImport(models.TransientModel):
         speeddict = self._prepare_speeddict()
         logger.info('Importing Mooncard transactions.csv')
         fileobj = TemporaryFile('w+')
-        fileobj.write(self.mooncard_file.decode('base64'))
+        fileobj.write(base64.b64decode(self.mooncard_file))
         fileobj.seek(0)
         reader = unicodecsv.DictReader(
             fileobj, delimiter=',',

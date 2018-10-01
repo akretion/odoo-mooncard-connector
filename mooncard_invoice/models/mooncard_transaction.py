@@ -293,7 +293,7 @@ class MooncardTransaction(models.Model):
                     "Could not download the image of Mooncard transaction %s "
                     "from URL %s (HTTP error code %s).")
                     % (self.name, url, rimage.status_code))
-            image_b64 = base64.encodestring(rimage.content)
+            image_b64 = base64.b64encode(rimage.content)
             file_extension = os.path.splitext(urlparse(url).path)[1]
             filename = 'Receipt-%s%s' % (self.name, file_extension)
             parsed_inv['attachments'] = {filename: image_b64}
