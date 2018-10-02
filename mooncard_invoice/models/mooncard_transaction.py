@@ -257,7 +257,7 @@ class MooncardTransaction(models.Model):
         if url:
             try:
                 rimage = requests.get(url)
-            except Exception, e:
+            except Exception as e:
                 raise UserError(_(
                     "Failed to download the image of the receipt. "
                     "Error message: %s.") % e)
