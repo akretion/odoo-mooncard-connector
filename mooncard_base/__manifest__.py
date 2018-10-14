@@ -15,7 +15,9 @@
     'data': [
         'data/partner.xml',
         'data/sequence.xml',
+        'data/decimal_precision.xml',
         'views/mooncard_transaction.xml',
+        'views/mooncard_mileage.xml',
         'views/mooncard_card.xml',
         'wizard/mooncard_csv_import_view.xml',
         'wizard/mooncard_process_lines_view.xml',

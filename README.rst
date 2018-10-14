@@ -11,7 +11,8 @@ This project is a connector between `Odoo <https://www.odoo.com/>`_, the leading
 Mooncard propose:
 
 * instant notification of each card payment on your smartphone,
-* easy and fast recording of your card expenses from your smartphone.
+* easy and fast recording of your card expenses from your smartphone,
+* management of your mileage expenses.
 
 The diagram below illustrate the full process from the payment with Mooncard to the accounting entries in Odoo:
 
@@ -66,9 +67,7 @@ Competing enterprise expense management solutions also take advantage of the sma
 How the Odoo-Mooncard connector works
 =====================================
 
-Upon installation of the Odoo modules for Mooncard, one product is created for each kind of expense as per the Mooncard expense nomenclature (which has 33 expense categories). As any Odoo product, each product is attached to an expense account and an optional VAT tax.
-
-The Mooncard connector will download the card transactions in Odoo; each transaction will be mapped to the corresponding Odoo product.
+The accountant will download the Mooncard bank statement (CSV file) and upload it in Odoo.
 
 Then, in Odoo, the accountant can:
 

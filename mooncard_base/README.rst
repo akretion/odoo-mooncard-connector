@@ -47,6 +47,8 @@ Go to the menu *Accounting > Mooncard > Mooncard Import* and upload the CSV file
 * Odoo will create the new Mooncard transactions,
 * Odoo will update the existing Mooncard transactions that are still in draft.
 
+For mileage expenses, use the same Odoo menu and upload the CSV file that you downloaded from your `Mooncard account <https://app.mooncard.co/>`_ under *Dépenses > Frais kilométriques > Exporter*.
+
 Roadmap
 =======
 

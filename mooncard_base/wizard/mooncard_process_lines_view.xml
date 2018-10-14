@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  Copyright 2016-2018 Akretion France
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
 
@@ -13,12 +14,12 @@
         <form string="Mooncard Process Lines Wizard">
             <group name="help">
               <div>
-                <p>This wizard will process the selected mooncard transactions.</p>
+                <p>This wizard will process the selected lines.</p>
               </div>
             </group>
             <footer>
                 <button name="process_lines" type="object"
-                    class="oe_highlight" string="Process"/>
+                    class="btn-primary" string="Process"/>
                 <button special="cancel" string="Cancel" class="oe_link"/>
             </footer>
         </form>
@@ -41,5 +42,16 @@
     target="new"
     multi="True"
     key2="client_action_multi"/>
+
+<act_window
+    id="mooncard_mileage_lines_action_multi"
+    name="Process Lines"
+    res_model="mooncard.process.lines"
+    src_model="mooncard.mileage"
+    view_mode="form"
+    target="new"
+    multi="True"
+    key2="client_action_multi"/>
+
 
 </odoo>

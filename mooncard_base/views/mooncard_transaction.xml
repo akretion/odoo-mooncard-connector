@@ -164,7 +164,7 @@
 </record>
 
 <record id="mooncard_transaction_graph" model="ir.ui.view">
-    <field name="name">Mooncard Transaction pivot view</field>
+    <field name="name">Mooncard Transaction graph view</field>
     <field name="model">mooncard.transaction</field>
     <field name="arch"  type="xml">
         <graph string="Mooncard Transactions">

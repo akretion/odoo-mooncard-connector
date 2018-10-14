@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2018 Akretion France
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<odoo>
+
+
+<record id="mooncard_mileage_form" model="ir.ui.view">
+    <field name="name">mooncard_invoice Mooncard Mileage Form</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_mileage_form"/>
+    <field name="arch"  type="xml">
+        <group name="amounts" position="after">
+            <group name="invoice" string="Accounting">
+                 <field name="invoice_id"/>
+                 <field name="invoice_state"/>
+            </group>
+        </group>
+    </field>
+</record>
+
+<record id="mooncard_mileage_tree" model="ir.ui.view">
+    <field name="name">mooncard_invoice Mooncard Mileage Tree</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_mileage_tree"/>
+    <field name="arch"  type="xml">
+        <field name="state" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </field>
+        <field name="state" position="after">
+            <field name="invoice_id"/>
+        </field>
+    </field>
+</record>
+
+<record id="mooncard_mileage_search" model="ir.ui.view">
+    <field name="name">mooncard_invoice Mooncard Mileage search view</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="inherit_id" ref="mooncard_base.mooncard_mileage_search"/>
+    <field name="arch"  type="xml">
+        <filter name="account_analytic_groupby" position="after">
+            <filter name="invoice_groupby" string="Vendor Bills"
+                    context="{'group_by': 'invoice_id'}"/>
+        </filter>
+    </field>
+</record>
+
+
+</odoo>

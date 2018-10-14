@@ -1,5 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_mooncard_transaction_invoice_grp,Read/write/create access on mooncard.transaction to Invoice grp,model_mooncard_transaction,account.group_account_invoice,1,1,1,0
 access_mooncard_transaction_full,Full access on mooncard.transaction to Finance Manager,model_mooncard_transaction,account.group_account_manager,1,1,1,1
+access_mooncard_mileage_invoice_grp,Read/write/create access on mooncard.mileage to Invoice grp,model_mooncard_mileage,account.group_account_invoice,1,1,1,0
+access_mooncard_mileage_full,Full access on mooncard.mileage to Finance Manager,model_mooncard_mileage,account.group_account_manager,1,1,1,1
 access_mooncard_card_full,Full access on mooncard.card to Finance Manager,model_mooncard_card,account.group_account_manager,1,1,1,1
 access_mooncard_card_read,Read access on mooncard.card to Employee,model_mooncard_card,base.group_user,1,0,0,0

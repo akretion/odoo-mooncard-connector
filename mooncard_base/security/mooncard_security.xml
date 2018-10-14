@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  Copyright 2016-2018 Akretion France
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
 
@@ -16,6 +17,12 @@
 <record id="mooncard_transaction_rule" model="ir.rule">
     <field name="name">Mooncard Transaction multi-company</field>
     <field name="model_id" ref="model_mooncard_transaction"/>
+    <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'child_of', [user.company_id.id])]</field>
+</record>
+
+<record id="mooncard_mileage_rule" model="ir.rule">
+    <field name="name">Mooncard Mileage multi-company</field>
+    <field name="model_id" ref="model_mooncard_mileage"/>
     <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'child_of', [user.company_id.id])]</field>
 </record>
 

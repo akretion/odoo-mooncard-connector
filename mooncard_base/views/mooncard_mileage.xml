@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2016-2018 Akretion France
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<odoo>
+
+<record id="mooncard_mileage_form" model="ir.ui.view">
+    <field name="name">Mooncard Mileage Form</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="arch"  type="xml">
+        <form string="Mooncard Mileage">
+            <header>
+                <button name="process_line" type="object"
+                    string="Process Line" states="draft" class="btn-primary"/>
+                <field name="state" widget="statusbar"/>
+            </header>
+            <div class="oe_title">
+                <h1>
+                    <field name="name"/>
+                </h1>
+            </div>
+            <group name="main">
+                <group name="left">
+                    <group name="transaction" string="Transaction Info" colspan="2">
+                        <field name="partner_id"/>
+                        <field name="date"/>
+                        <field name="description"/>
+                        <field name="trip_type" widget="radio"/>
+                        <field name="departure"/>
+                        <field name="arrival"/>
+                        <field name="car_name"/>
+                        <field name="car_plate"/>
+                        <field name="car_fiscal_power"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                    </group>
+                    <group name="classification" string="Classification" colspan="2">
+                        <field name="expense_account_id"/>
+                        <field name="account_analytic_id"
+                            groups="analytic.group_analytic_accounting"/>
+                    </group>
+                </group>
+                <group name="right">
+                    <group string="Amounts" name="amounts" colspan="2">
+                        <field name="company_currency_id" invisible="1"/>
+                        <field name="km"/>
+                        <field name="price_unit"/>
+                        <field name="amount"/>
+                    </group>
+                </group>
+            </group>
+        </form>
+    </field>
+</record>
+
+<record id="mooncard_mileage_tree" model="ir.ui.view">
+    <field name="name">Mooncard Mileage Tree</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="arch"  type="xml">
+        <tree string="Mooncard Mileage" decoration-info="state == 'draft'">
+            <field name="name"/>
+            <field name="partner_id"/>
+            <field name="date"/>
+            <field name="description"/>
+            <field name="trip_type"/>
+            <field name="departure"/>
+            <field name="arrival"/>
+            <field name="car_name"/>
+            <field name="km" sum="1"/>
+            <field name="amount" sum="1"/>
+            <field name="account_analytic_id"
+                groups="analytic.group_analytic_accounting"/>
+            <field name="company_id" groups="base.group_multi_company"/>
+            <field name="company_currency_id" invisible="1"/>
+            <field name="state"/>
+        </tree>
+    </field>
+</record>
+
+<record id="mooncard_mileage_search" model="ir.ui.view">
+    <field name="name">Mooncard Mileage search view</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="arch"  type="xml">
+        <search string="Search Mooncard Mileage">
+            <field name="name" string="Number, description, departure or arrival"
+                filter_domain="['|', '|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('arrival', 'ilike', self), ('departure', 'ilike', self)]"/>
+            <field name="partner_id"/>
+            <field name="date"/>
+            <separator/>
+            <filter name="draft" string="Draft"
+                domain="[('state', '=', 'draft')]"/>
+            <filter name="done" string="Done"
+                domain="[('state', '=', 'done')]"/>
+            <group string="Group By" name="groupby">
+                <filter name="partner_groupby" string="Partner"
+                    context="{'group_by': 'partner_id'}"/>
+                <filter name="date_groupby" string="Date"
+                    context="{'group_by': 'date:week'}"/>
+                <filter name="account_groupby" string="Expense Account"
+                    context="{'group_by': 'expense_account_id'}"/>
+                <filter name="account_analytic_groupby" string="Analytic Account"
+                    context="{'group_by': 'account_analytic_id'}"/>
+            </group>
+        </search>
+    </field>
+</record>
+
+<record id="mooncard_mileage_calendar" model="ir.ui.view">
+    <field name="name">Mooncard Mileage calendar view</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="arch" type="xml">
+        <calendar string="Mooncard Mileage" color="expense_account_id" date_start="date">
+            <field name="name"/>
+            <field name="description"/>
+            <field name="km"/>
+            <field name="amount"/>
+        </calendar>
+    </field>
+</record>
+
+<record id="mooncard_mileage_pivot" model="ir.ui.view">
+    <field name="name">Mooncard Mileage pivot view</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="arch"  type="xml">
+        <pivot string="Mooncard Mileage">
+            <field name="date" type="col" interval="month"/>
+            <field name="partner_id" type="row"/>
+            <field name="km" type="measure"/>
+            <field name="amount" type="measure"/>
+        </pivot>
+    </field>
+</record>
+
+<record id="mooncard_mileage_graph" model="ir.ui.view">
+    <field name="name">Mooncard Mileage graph view</field>
+    <field name="model">mooncard.mileage</field>
+    <field name="arch"  type="xml">
+        <graph string="Mooncard Mileage">
+            <field name="date" type="row"/>
+            <field name="amount" type="measure"/>
+        </graph>
+    </field>
+</record>
+
+<record id="mooncard_mileage_action" model="ir.actions.act_window">
+    <field name="name">Mooncard Mileage</field>
+    <field name="res_model">mooncard.mileage</field>
+    <field name="view_mode">tree,form,graph,pivot,calendar</field>
+</record>
+
+<menuitem id="mooncard_mileage_menu" action="mooncard_mileage_action"
+    parent="mooncard_menu" sequence="20"/>
+
+</odoo>

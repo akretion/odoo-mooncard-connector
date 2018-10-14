@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  Copyright 2016-2018 Akretion France
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
 
@@ -13,17 +14,22 @@
         <form string="Mooncard Invoice Import Wizard">
             <group name="help-import">
               <div>
-                <p>Upload the Odoo bank statement file downloaded from <a href="https://app.mooncard.co/">Mooncard</a>. You shouldn't use the transactions.csv file from the <i>Expense</i> section any more.</p>
+                 <p>This import wizard accepts two types of files downloaded from <a href="https://app.mooncard.co/">Mooncard</a>:
+                    <ul>
+                        <li>Odoo bank statement files, that will generate Mooncard Transactions,</li>
+                        <li>Mileage files, that will generate Mooncard Mileage.</li>
+                    </ul>
+                </p>
               </div>
             </group>
             <group name="import">
-                <field name="mooncard_file"/>
+                <field name="mooncard_file" filename="filename" />
                 <field name="filename" invisible="1"/>
             </group>
             <footer>
                 <button name="mooncard_import" type="object"
-                    class="oe_highlight" string="Import"/>
-                <button special="cancel" string="Cancel" class="oe_link"/>
+                    class="btn-primary" string="Import"/>
+                <button special="cancel" string="Cancel" class="btn-default"/>
             </footer>
         </form>
     </field>
@@ -39,13 +45,5 @@
 <menuitem id="mooncard_csv_import_menu" action="mooncard_csv_import_action"
     parent="mooncard_menu" sequence="20"/>
 
-<!--
-<act_window
-    id="mooncard_csv_import_action"
-    name="Import Mooncard CSV"
-    res_model="mooncard.csv.import"
-    src_model="mooncard.transaction"
-    key2="tree_but_open"/>
--->
 
 </odoo>

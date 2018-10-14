@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  © 2016-2017 Akretion (Alexis de Lattre <alexis.delattre@akretion.com>)
+  Copyright 2016-2018 Akretion France
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
 
 <odoo noupdate="1">
 
+
 <record id="mooncard_transaction_seq" model="ir.sequence">
     <field name="name">Mooncard Transaction</field>
     <field name="code">mooncard.transaction</field>
-    <field name="prefix">MOON-</field>
+    <field name="prefix">MOON</field>
     <field name="padding">4</field>
     <field name="number_next">1</field>
     <field name="company_id" eval="False"/>
 </record>
+
+<record id="mooncard_mileage_seq" model="ir.sequence">
+    <field name="name">Mooncard Mileage</field>
+    <field name="code">mooncard.mileage</field>
+    <field name="prefix">KM</field>
+    <field name="padding">4</field>
+    <field name="number_next">1</field>
+    <field name="company_id" eval="False"/>
+</record>
+
 
 </odoo>

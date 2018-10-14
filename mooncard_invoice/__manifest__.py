@@ -15,6 +15,7 @@
         'security/mooncard_security.xml',
         'security/ir.model.access.csv',
         'views/mooncard_transaction.xml',
+        'views/mooncard_mileage.xml',
         'views/mooncard_card.xml',
     ],
     'images': [

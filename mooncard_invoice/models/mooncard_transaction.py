@@ -60,7 +60,6 @@ class MooncardTransaction(models.Model):
         if self.invoice_id:
             self.partner_id = self.invoice_id.commercial_partner_id
 
-    @api.multi
     def process_line(self):
         # TODO: in the future, we may have to support the case where
         # both mooncard_invoice and mooncard_expense are installed
@@ -87,8 +86,8 @@ class MooncardTransaction(models.Model):
                 raise UserError(_(
                     'Cannot process mooncard transaction %s because it is '
                     'still in authorization state at the bank.') % line.name)
+        return True
 
-    @api.multi
     def _prepare_load_move(self):
         self.ensure_one()
         date = self.date[:10]
@@ -190,7 +189,6 @@ class MooncardTransaction(models.Model):
     def _countries_vat_refund(self):
         return self.env.user.company_id.country_id
 
-    @api.multi
     def _prepare_invoice_import(self):
         self.ensure_one()
         precision = self.company_currency_id.rounding

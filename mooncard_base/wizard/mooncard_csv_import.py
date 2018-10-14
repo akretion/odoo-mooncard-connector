@@ -18,8 +18,7 @@ class MooncardCsvImport(models.TransientModel):
     _name = 'mooncard.csv.import'
     _description = 'Import Mooncard Transactions'
 
-    mooncard_file = fields.Binary(
-        string='Bank Statement File', required=True)
+    mooncard_file = fields.Binary(string='CSV File', required=True)
     filename = fields.Char(string='Filename')
 
     @api.model
@@ -53,7 +52,7 @@ class MooncardCsvImport(models.TransientModel):
             if line.get(float_field):
                 try:
                     line[float_field] = float(line[float_field])
-                except:
+                except Exception:
                     raise UserError(_(
                         "Cannot convert float field '%s' with value '%s'.")
                         % (float_field, line.get(float_field)))
@@ -175,7 +174,139 @@ class MooncardCsvImport(models.TransientModel):
             speeddict['currencies'][curr['name']] = curr['id']
         return speeddict
 
-    @api.multi
+    @api.model
+    def _prepare_mileage(self, line, speeddict, action='create'):
+        bdio = self.env['business.document.import']
+        account_analytic_id = False
+        # convert to float/int
+        line['price_unit'] = float(line[u'Barême kilométrique'])
+        line['km'] = int(line[u'Distance (km)'])
+        account_analytic_id = account_id = trip_type = False
+        if line.get('Codes analytiques'):
+            account_analytic_id = speeddict['analytic'].get(
+                line['Codes analytiques'].lower())
+        if line.get('Compte de charge'):
+            account = bdio._match_account(
+                {'code': line['Compte de charge']}, [],
+                speed_dict=speeddict['accounts'])
+            account_id = account.id
+        typedict = {
+            'Aller Simple': 'oneway',
+            'Aller / Retour': 'roundtrip',
+            }
+        if line.get('Type de trajet') and line['Type de trajet'] in typedict:
+            trip_type = typedict[line['Type de trajet']]
+
+        vals = {
+            'km': line['km'],
+            'price_unit': line['price_unit'],
+            'date': line['Date'],
+            'description': line['Description'],
+            'car_name': line[u'Véhicule'],
+            'car_plate': line.get(u"Immatriculation"),
+            'car_fiscal_power': line.get(u'Puissance fiscale'),
+            'departure': line.get(u'Départ'),
+            'arrival': line.get(u'Arrivée'),
+            'trip_type': trip_type,
+            'account_analytic_id': account_analytic_id,
+            'expense_account_id': account_id,
+            }
+
+        if action == 'update':
+            return vals
+
+        # Continue with fields required for create
+        email = line.get('Email')
+        if not email:
+            raise UserError(_('Missing email'))
+        email = email.strip().lower()
+        if email not in speeddict['partner']:
+            raise UserError(_(
+                "No partner with email '%s' found") % email)
+        partner_id = speeddict['partner'][email]
+        vals.update({
+            'unique_import_id': line.get('Identifiant unique'),
+            'partner_id': partner_id,
+        })
+        return vals
+
+    @api.model
+    def _prepare_mileage_speeddict(self):
+        bdio = self.env['business.document.import']
+        company = self.env.user.company_id
+        speeddict = {'partner': {}, 'analytic': {}, 'accounts': {}}
+
+        partner_res = self.env['res.partner'].search_read(
+            [('email', '!=', False)], ['email'])
+        for partner in partner_res:
+            email = partner['email'].strip().lower()
+            speeddict['partner'][email] = partner['id']
+
+        analytic_res = self.env['account.analytic.account'].search_read(
+            [('company_id', '=', company.id), ('code', '!=', False)], ['code'])
+        for analytic in analytic_res:
+            analytic_code = analytic['code'].strip().lower()
+            speeddict['analytic'][analytic_code] = analytic['id']
+        speeddict['accounts'] = bdio._prepare_account_speed_dict()
+        return speeddict
+
+    def mooncard_import_mileage(self, fileobj):
+        mmo = self.env['mooncard.mileage']
+        speeddict = self._prepare_mileage_speeddict()
+        fileobj.seek(0)
+        reader = unicodecsv.DictReader(
+            fileobj, delimiter=';',
+            quoting=unicodecsv.QUOTE_MINIMAL, encoding='latin1')
+        i = 0
+        exiting_mileage = {}
+        existings = mmo.search([])
+        for l in existings:
+            exiting_mileage[l.unique_import_id] = l
+        mm_ids = []
+        for line in reader:
+            i += 1
+            # replace '' by False, so as to make the domains such as
+            # ('image_url', '!=', False) work
+            # and strip regular strings
+            for key, value in line.iteritems():
+                if value:
+                    line[key] = value.strip()
+                else:
+                    line[key] = False
+            logger.debug("line=%s", line)
+            if not line.get('Identifiant unique'):
+                raise UserError(_(
+                    "Missing ID in CSV file line %d.") % i)
+            existing_import_id = False
+            if line['Identifiant unique'] in exiting_mileage:
+                existing_import_id = line['Identifiant unique']
+
+                mileage = exiting_mileage[existing_import_id]
+                logger.debug(
+                    'Existing line with unique ID %s (odoo ID %s, state %s)',
+                    existing_import_id, mileage.id, mileage.state)
+                if mileage.state == 'draft':
+                    # update existing lines
+                    wvals = self._prepare_mileage(
+                        line, speeddict, action='update')
+                    mileage.write(wvals)
+                    mm_ids.append(mileage.id)
+                continue
+            vals = self._prepare_mileage(line, speeddict)
+            mileage = mmo.create(vals)
+            mm_ids.append(mileage.id)
+        fileobj.close()
+        if not mm_ids:
+            raise UserError(_("No Mooncard mileage created nor updated."))
+        action = self.env['ir.actions.act_window'].for_xml_id(
+            'mooncard_base', 'mooncard_mileage_action')
+        action.update({
+            'domain': "[('id', 'in', %s)]" % mm_ids,
+            'views': False,
+            'nodestroy': False,
+            })
+        return action
+
     def mooncard_import(self):
         self.ensure_one()
         mto = self.env['mooncard.transaction']
@@ -183,6 +314,10 @@ class MooncardCsvImport(models.TransientModel):
         logger.info('Importing Mooncard transactions.csv')
         fileobj = TemporaryFile('w+')
         fileobj.write(self.mooncard_file.decode('base64'))
+        fileobj.seek(0)
+        file_content = fileobj.read()
+        if file_content.startswith('Identifiant unique;Collaborateur;Email'):
+            return self.mooncard_import_mileage(fileobj)
         fileobj.seek(0)
         reader = unicodecsv.DictReader(
             fileobj, delimiter=',',
