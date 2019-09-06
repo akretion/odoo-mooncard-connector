@@ -61,11 +61,12 @@ class MooncardCsvImport(models.TransientModel):
         total_vat_rates = line['vat_20_id'] + line['vat_10_id'] +\
             line['vat_55_id'] + line['vat_21_id']
         if float_compare(line['vat_eur'], total_vat_rates, precision_digits=2):
-            raise UserError(_(
-                "Error in the Mooncard CSV file: for transaction ID '%s' "
+            logger.warning(
+                "In the Mooncard CSV file: for transaction ID '%s' "
                 "the column 'vat_eur' (%.2f) doesn't have the same value "
-                "as the sum of the 4 columns per VAT rate (%.2f)")
-                % (line['id'], line['vat_eur'], total_vat_rates))
+                "as the sum of the 4 columns per VAT rate (%.2f). Check "
+                "that it is foreign VAT.",
+                line['id'], line['vat_eur'], total_vat_rates)
         if line.get('charge_account'):
             account = bdio._match_account(
                 {'code': line['charge_account']}, [],
@@ -131,11 +132,11 @@ class MooncardCsvImport(models.TransientModel):
 
         vals.update({
             'unique_import_id': line.get('id'),
-            'date': self.convert_datetime_to_utc(line['date_transaction']),
+            'date': line['date_transaction'] and line['date_transaction'][:10],
             'payment_date': payment_date,
             'card_id': card_id,
             'country_id': country_id,
-            'merchant': line.get('supplier'),
+            'merchant': line.get('supplier') and line['supplier'].strip(),
             'total_company_currency': line['amount_eur'],
             'total_currency': line['amount_currency'],
             'currency_id': currency_id,

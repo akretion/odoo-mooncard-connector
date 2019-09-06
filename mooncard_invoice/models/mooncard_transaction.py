@@ -29,8 +29,8 @@ class MooncardTransaction(models.Model):
         "be worth the additionnal work.")
     force_invoice_date = fields.Date(
         string='Force Invoice Date', states={'done': [('readonly', True)]})
-    payment_move_only = fields.Boolean(
-        string="Generate Payment Move Only",
+    bank_move_only = fields.Boolean(
+        string="Generate Bank Move Only", oldname='payment_move_only',
         states={'done': [('readonly', True)]},
         help="When you process a transaction on which this option is enabled, "
         "Odoo will only generate the move in the bank journal, it will not "
@@ -42,23 +42,34 @@ class MooncardTransaction(models.Model):
     invoice_state = fields.Selection(
         related='invoice_id.state', readonly=True,
         string="Invoice State")
-    payment_move_line_id = fields.Many2one(
-        'account.move.line', string='Payment Move Line', readonly=True)
-    payment_move_id = fields.Many2one(
-        'account.move', string="Payment Move",
+    payment_move_line_id = fields.Many2one(  # remove field in v12
+        'account.move.line', string='[OLD] Payment Move Line', readonly=True)
+    payment_move_id = fields.Many2one(  # remove field in v12
+        'account.move', string="[OLD] Payment Move",
         related='payment_move_line_id.move_id', readonly=True)
     reconcile_id = fields.Many2one(
         'account.full.reconcile', string="Reconcile",
         related='payment_move_line_id.full_reconcile_id', readonly=True)
-    load_move_id = fields.Many2one(
-        'account.move', string="Load Move", readonly=True)
-    # Note for future versions : was it really a good idea to have 2 fields
-    # payment_move_id and load_move_id -> 1 field bank_move_id ?
+    load_move_id = fields.Many2one(  # remove field in v12
+        'account.move', string="[OLD] Load Move", readonly=True)
+    bank_counterpart_account_id = fields.Many2one(
+        'account.account', domain=[('deprecated', '=', False)],
+        states={'done': [('readonly', True)]}, required=True,
+        string="Counter-part of Bank Move")
+    bank_move_id = fields.Many2one(
+        # replaces load_move_id and payment_move_id
+        'account.move', string="Bank Move", readonly=True)
 
     @api.onchange('invoice_id')
     def invoice_id_change(self):
         if self.invoice_id:
             self.partner_id = self.invoice_id.commercial_partner_id
+
+    @api.onchange('partner_id')
+    def partner_id_change(self):
+        if self.transaction_type == 'presentment' and self.partner_id:
+            self.bank_counterpart_account_id =\
+                self.partner_id.property_account_payable_id.id
 
     def process_line(self):
         # TODO: in the future, we may have to support the case where
@@ -69,121 +80,84 @@ class MooncardTransaction(models.Model):
                     'Skipping mooncard transaction %s which is not draft',
                     line.name)
                 continue
-            if line.transaction_type == 'presentment':
-                if not line.description:
-                    raise UserError(_(
-                        "The description field is empty on "
-                        "mooncard transaction %s.") % line.name)
-                line.generate_bank_journal_move()
-                if not line.payment_move_only:
-                    line.generate_invoice()
-                    line.reconcile()
-                line.state = 'done'
-            elif line.transaction_type == 'load':
-                line.generate_load_move()
-                line.state = 'done'
-            elif line.transaction_type == 'authorization':
+            if line.transaction_type == 'authorization':
                 raise UserError(_(
                     'Cannot process mooncard transaction %s because it is '
                     'still in authorization state at the bank.') % line.name)
+            vals = {'state': 'done'}
+            bank_move = line.generate_bank_journal_move()
+            vals['bank_move_id'] = bank_move.id
+            if line.transaction_type == 'presentment':
+                if not line.bank_move_only:
+                    if line.invoice_id:
+                        self.check_existing_invoice()
+                        invoice = line.invoice_id
+                    else:
+                        invoice = line.generate_invoice()
+                        vals['invoice_id'] = invoice.id
+                    rec = line.reconcile(bank_move, invoice)
+                    vals['reconcile_id'] = rec.id
+            line.write(vals)
         return True
 
-    def _prepare_load_move(self):
+    def _prepare_bank_journal_move(self):
         self.ensure_one()
-        date = self.date[:10]
         precision = self.company_currency_id.rounding
-        load_amount = self.total_company_currency
-        if float_compare(load_amount, 0, precision_rounding=precision) > 0:
+        amount = self.total_company_currency
+        if float_compare(amount, 0, precision_rounding=precision) > 0:
             credit = 0
-            debit = load_amount
+            debit = amount
         else:
-            credit = load_amount * -1
+            credit = amount * -1
             debit = 0
+        if not self.card_id.journal_id:
+            raise UserError(_(
+                "Bank Journal not configured on Moon Card '%s'")
+                % self.card_id.name)
         journal = self.card_id.journal_id
+        if not self.bank_counterpart_account_id:
+            raise UserError(_(
+                "Counter-part of Bank Move is empty "
+                "on mooncard transaction %s.") % self.name)
+        if self.transaction_type == 'presentment':
+            if not self.description:
+                raise UserError(_(
+                    "The description field is empty on "
+                    "mooncard transaction %s.") % self.name)
+            name = self.description
+            partner_id = self.partner_id.id
+        elif self.transaction_type == 'load':
+            name = _('Load Mooncard prepaid-account')
+            partner_id = False
         mvals = {
             'journal_id': journal.id,
-            'date': date,
+            'date': self.date,
             'ref': self.name,
             'line_ids': [
                 (0, 0, {
                     'account_id': journal.default_debit_account_id.id,
                     'debit': debit,
                     'credit': credit,
-                    'name': _('Load Mooncard prepaid-account'),
+                    'name': name,
+                    'partner_id': partner_id,
                     }),
                 (0, 0, {
-                    'account_id':
-                    self.company_id.transfer_account_id.id,
+                    'account_id': self.bank_counterpart_account_id.id,
                     'debit': credit,
                     'credit': debit,
-                    'name': _('Load Mooncard prepaid-account'),
+                    'name': name,
+                    'partner_id': partner_id,
                     }),
                 ],
             }
         return mvals
 
-    @api.one
-    def generate_load_move(self):
-        assert not self.load_move_id, 'already has a load move !'
-        if not self.company_id.transfer_account_id:
-            raise UserError(_(
-                "Missing 'Internal Bank Transfer Account' on company %s.")
-                % self.company_id.name)
-        if not self.card_id.journal_id:
-            raise UserError(_(
-                "Bank Journal not configured on Moon Card '%s'")
-                % self.card_id.name)
-        move = self.env['account.move'].create(self._prepare_load_move())
-        move.post()
-        self.load_move_id = move.id
-        return True
-
-    @api.one
     def generate_bank_journal_move(self):
-        assert not self.payment_move_line_id, 'Payment line already created'
-        if not self.card_id.journal_id:
-            raise UserError(_(
-                "Bank Journal not configured on Moon Card '%s'")
-                % self.card_id.name)
-        journal = self.card_id.journal_id
-        amlo = self.env['account.move.line']
-        date = self.date[:10]
-        partner = self.partner_id.commercial_partner_id
-        expense_amount = self.total_company_currency * -1
-        precision = self.company_currency_id.rounding
-        if float_compare(
-                expense_amount, 0, precision_rounding=precision) > 0:
-            credit = 0
-            debit = expense_amount
-        else:
-            credit = expense_amount * -1
-            debit = 0
-        mlvals1 = {
-            'name': self.description,
-            'partner_id': partner.id,
-            'account_id': partner.property_account_payable_id.id,
-            'credit': credit,
-            'debit': debit,
-            }
-        mlvals2 = {
-            'name': self.description,
-            'partner_id': partner.id,
-            'account_id': journal.default_credit_account_id.id,
-            'credit': debit,
-            'debit': credit,
-            }
-        mvals = {
-            'journal_id': journal.id,
-            'date': date,
-            'ref': self.name,
-            'line_ids': [(0, 0, mlvals1), (0, 0, mlvals2)],
-            }
-        bank_move = self.env['account.move'].create(mvals)
+        self.ensure_one()
+        vals = self._prepare_bank_journal_move()
+        bank_move = self.env['account.move'].create(vals)
         bank_move.post()
-        self.payment_move_line_id = amlo.search([
-            ('move_id', '=', bank_move.id),
-            ('account_id', '=', partner.property_account_payable_id.id),
-            ])[0].id
+        return bank_move
 
     @api.model
     def _countries_vat_refund(self):
@@ -197,7 +171,7 @@ class MooncardTransaction(models.Model):
         elif self.payment_date:
             date = self.payment_date[:10]
         else:
-            date = self.date[:10]
+            date = self.date
         vat_compare = float_compare(
             self.vat_company_currency, 0, precision_rounding=precision)
         total_compare = float_compare(
@@ -296,49 +270,50 @@ class MooncardTransaction(models.Model):
             parsed_inv['attachments'] = {filename: image_b64}
         return parsed_inv
 
-    @api.one
+    def check_existing_invoice(self):
+        assert self.invoice_id
+        # should not happen because domain blocks that
+        if self.invoice_id.currency_id != self.company_currency_id:
+            raise UserError(_(
+                "For the moment, we don't support linking to an invoice "
+                "in another currency than the company currency."))
+        # should not happen because domain blocks that
+        if self.invoice_id.state != 'open':
+            raise UserError(_(
+                "The mooncard transaction %s is linked to invoice %s "
+                "which is not in open state.")
+                % (self.name, self.invoice_id.number))
+        # should not happen because domain blocks that
+        if self.invoice_id.type not in ('in_invoice', 'in_refund'):
+            raise UserError(_(
+                "The mooncard transaction %s is linked to invoice %s "
+                "which is not a supplier invoice/refund!")
+                % (self.name, self.invoice_id.number))
+        # handled by onchange
+        if self.partner_id != self.invoice_id.commercial_partner_id:
+            raise UserError(_(
+                "The mooncard transaction %s is linked to partner '%s' "
+                "whereas the related invoice %s is linked to "
+                "partner '%s'.") % (
+                self.name, self.partner_id.display_name,
+                self.invoice_id.commercial_partner_id.display_name))
+        # TODO handle partial payments ?
+        if float_compare(
+                self.invoice_id.amount_total_signed,
+                self.total_company_currency * -1,
+                precision_rounding=self.company_currency_id.rounding):
+            raise UserError(_(
+                "The mooncard transaction %s is linked to the "
+                "invoice/refund %s whose total amount is %s %s, "
+                "but the amount of the transaction is %s %s.") % (
+                self.name, self.invoice_id.number,
+                self.invoice_id.amount_total_signed,
+                self.invoice_id.currency_id.name,
+                self.total_company_currency,
+                self.company_currency_id.name))
+
     def generate_invoice(self):
-        if self.invoice_id:
-            # should not happen because domain blocks that
-            if self.invoice_id.currency_id != self.company_currency_id:
-                raise UserError(_(
-                    "For the moment, we don't support linking to an invoice "
-                    "in another currency than the company currency."))
-            # should not happen because domain blocks that
-            if self.invoice_id.state != 'open':
-                raise UserError(_(
-                    "The mooncard transaction %s is linked to invoice %s "
-                    "which is not in open state.")
-                    % (self.name, self.invoice_id.number))
-            # should not happen because domain blocks that
-            if self.invoice_id.type not in ('in_invoice', 'in_refund'):
-                raise UserError(_(
-                    "The mooncard transaction %s is linked to invoice %s "
-                    "which is not a supplier invoice/refund!")
-                    % (self.name, self.invoice_id.number))
-            # handled by onchange
-            if self.partner_id != self.invoice_id.commercial_partner_id:
-                raise UserError(_(
-                    "The mooncard transaction %s is linked to partner '%s' "
-                    "whereas the related invoice %s is linked to "
-                    "partner '%s'.") % (
-                    self.name, self.partner_id.display_name,
-                    self.invoice_id.commercial_partner_id.display_name))
-            # TODO handle partial payments ?
-            if float_compare(
-                    self.invoice_id.amount_total_signed,
-                    self.total_company_currency * -1,
-                    precision_rounding=self.company_currency_id.rounding):
-                raise UserError(_(
-                    "The mooncard transaction %s is linked to the "
-                    "invoice/refund %s whose total amount is %s %s, "
-                    "but the amount of the transaction is %s %s.") % (
-                    self.name, self.invoice_id.number,
-                    self.invoice_id.amount_total_signed,
-                    self.invoice_id.currency_id.name,
-                    self.total_company_currency,
-                    self.company_currency_id.name))
-            return
+        self.ensure_one()
         assert self.transaction_type == 'presentment', 'wrong transaction type'
         aiio = self.env['account.invoice.import']
         precision = self.company_currency_id.rounding
@@ -360,18 +335,21 @@ class MooncardTransaction(models.Model):
         assert float_compare(
             invoice.amount_tax, abs(self.vat_company_currency),
             precision_rounding=precision) == 0, 'bug on VAT'
-        self.invoice_id = invoice.id
+        return invoice
 
-    @api.one
-    def reconcile(self):
-        assert self.payment_move_line_id
-        assert self.invoice_id
-        assert self.invoice_id.move_id
+    def reconcile(self, bank_move, invoice):
+        self.ensure_one()
+        assert self.bank_counterpart_account_id
+        assert bank_move
+        assert invoice
+        assert invoice.move_id
         assert not self.reconcile_id, 'already has a reconcile mark'
-        movelines_to_rec = self.payment_move_line_id
-        for line in self.invoice_id.move_id.line_ids:
-            if line.account_id == self.payment_move_line_id.account_id:
+        movelines_to_rec = self.env['account.move.line'].search([
+            ('move_id', '=', bank_move.id),
+            ('account_id', '=', self.bank_counterpart_account_id.id),
+            ], limit=1)
+        for line in invoice.move_id.line_ids:
+            if line.account_id == self.bank_counterpart_account_id:
                 movelines_to_rec += line
-                break
         movelines_to_rec.reconcile()
-        self.reconcile_id = self.payment_move_line_id.full_reconcile_id.id
+        return movelines_to_rec[0].full_reconcile_id

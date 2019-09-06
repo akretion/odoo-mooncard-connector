@@ -23,8 +23,8 @@ class MooncardTransaction(models.Model):
         string='Description', states={'done': [('readonly', True)]})
     unique_import_id = fields.Char(
         string='Unique Identifier', readonly=True, copy=False)
-    date = fields.Datetime(
-        string='Date', required=True, readonly=True,
+    date = fields.Date(
+        string='Bank Transaction Date', required=True, readonly=True,
         help="This is the date of the bank transaction written on the "
         "bank statement. It may be a few days after the payment date. "
         "It is used for the payment move.")
@@ -38,7 +38,7 @@ class MooncardTransaction(models.Model):
         ondelete='restrict')
     expense_categ_name = fields.Char(
         string='Expense Category Name', readonly=True)
-    product_id = fields.Many2one(
+    product_id = fields.Many2one(  # Field to remove in v12
         'product.product', string='[OLD] Expense Product', ondelete='restrict',
         states={'done': [('readonly', True)]})
     expense_account_id = fields.Many2one(

@@ -27,18 +27,17 @@
                         <field name="transaction_type"/>
                         <field name="date"/>
                         <field name="payment_date" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
-                        <field name="receipt_number"/>
+                        <field name="receipt_number" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="card_id"/>
                         <field name="description" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="merchant" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="country_id" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="image_url" widget="url" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
-                        <field name="receipt_lost" attrs="{'invisible': [('image_url', '!=', False)]}"/>
+                        <field name="receipt_lost" attrs="{'invisible': ['|', ('transaction_type', '=', 'load'), ('image_url', '!=', False)]}"/>
                         <field name="company_id" groups="base.group_multi_company"/>
                     </group>
                     <group name="classification" string="Classification" colspan="2" attrs="{'invisible': [('transaction_type', '=', 'load')]}">
                         <field name="expense_categ_name"/>
-                        <field name="product_id"/>
                         <field name="expense_account_id"/>
                         <field name="account_analytic_id"
                             groups="analytic.group_analytic_accounting"/>
@@ -48,11 +47,11 @@
                     <group string="Amounts" name="amounts" colspan="2">
                         <field name="company_currency_id" invisible="1"/>
                         <field name="currency_id" invisible="1"/>
-                        <field name="vat_company_currency"/>
-                        <field name="fr_vat_20_amount"/>
-                        <field name="fr_vat_10_amount"/>
-                        <field name="fr_vat_5_5_amount"/>
-                        <field name="fr_vat_2_1_amount"/>
+                        <field name="vat_company_currency" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="fr_vat_20_amount" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="fr_vat_10_amount" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="fr_vat_5_5_amount" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="fr_vat_2_1_amount" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="total_company_currency"/>
                         <field name="total_currency"/>
                     </group>
@@ -69,7 +68,8 @@
         <tree string="Mooncard Transactions" decoration-info="state == 'draft'">
             <field name="name"/>
             <field name="transaction_type" string="Type"/>
-            <field name="date"/>
+            <field name="payment_date"/>
+            <field name="date" string="Bank Date"/>
             <field name="receipt_number"/>
             <field name="description"/>
             <field name="card_id"/>
