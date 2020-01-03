@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo noupdate="1">
+
+<record id="misc_supplier" model="res.partner">
+    <field name="name">Misc Suppliers</field>
+    <field name="is_company" eval="1"/>
+    <field name="supplier" eval="1"/>
+    <field name="customer" eval="0"/>
+    <field name="country_id" ref="base.fr"/> <!-- Several OCA modules set country_id as
+    required, so let's put one here -->
+</record>
+
+</odoo>

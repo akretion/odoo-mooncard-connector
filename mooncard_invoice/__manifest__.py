@@ -8,7 +8,7 @@
     'version': '10.0.3.0.0',
     'category': 'Accounting & Finance',
     'license': 'AGPL-3',
-    'summary': 'Create supplier invoices from mooncard transactions',
+    'summary': 'Deprecated module in v12. Will be removed from repo',
     'author': 'Akretion',
     'website': 'http://www.akretion.com',
     'depends': ['mooncard_base', 'account_invoice_import'],
@@ -23,5 +23,5 @@
         'static/description/banner_odoo_mooncard.jpg',
         'static/description/diagram_odoo_mooncard.jpg',
         ],
-    'installable': True,
+    'installable': False,
 }
