@@ -33,7 +33,7 @@
     <field name="date" eval="time.strftime('%Y-01-02 %H:%M:10')"/>
     <field name="card_id" ref="card1"/>
     <field name="expense_categ_name">Repas - boissons (avec client)</field>
-    <field name="merchant">Pizzeria OpenWeb</field>
+    <field name="vendor">Pizzeria OpenWeb</field>
     <field name="country_id" ref="base.fr"/>
     <field name="vat_company_currency">-3.54</field>
     <field name="vat_rate">10.0</field>
@@ -51,7 +51,7 @@
     <field name="date" eval="time.strftime('%Y-01-03 15:45:10')"/>
     <field name="card_id" ref="card1"/>
     <field name="expense_categ_name">Transport / Avions</field>
-    <field name="merchant">EasyJet</field>
+    <field name="vendor">EasyJet</field>
     <field name="country_id" ref="base.fr"/>
     <field name="vat_company_currency">0</field>
     <field name="vat_rate">0</field>
@@ -68,7 +68,7 @@
     <field name="date" eval="time.strftime('%Y-01-02 15:45:10')"/>
     <field name="card_id" ref="card1"/>
     <field name="expense_categ_name">Transport / Train et métro</field>
-    <field name="merchant">SNCF</field>
+    <field name="vendor">SNCF</field>
     <field name="country_id" ref="base.fr"/>
     <field name="vat_company_currency">0</field>
     <field name="vat_rate">0</field>

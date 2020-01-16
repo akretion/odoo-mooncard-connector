@@ -17,6 +17,7 @@
                     string="Process Line" states="draft" class="btn-primary"/>
                 <field name="state" widget="statusbar"/>
             </header>
+            <sheet>
             <div class="oe_title">
                 <h1>
                     <field name="name"/>
@@ -32,7 +33,7 @@
                         <field name="receipt_number" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="card_id"/>
                         <field name="description" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
-                        <field name="merchant" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="vendor" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="partner_id" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
                         <field name="country_id" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="image_url" widget="url" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
@@ -76,6 +77,12 @@
                     </group>
                 </group>
             </group>
+            </sheet>
+            <div class="oe_chatter">
+                <field name="message_follower_ids" widget="mail_followers"/>
+                <field name="activity_ids" widget="mail_activity"/>
+                <field name="message_ids" widget="mail_thread"/>
+            </div>
         </form>
     </field>
 </record>
@@ -95,7 +102,7 @@
             <field name="expense_account_id"/>
             <field name="account_analytic_id"
                 groups="analytic.group_analytic_accounting"/>
-            <field name="merchant"/>
+            <field name="vendor"/>
             <field name="country_id"/>
             <field name="company_id" groups="base.group_multi_company"/>
             <field name="vat_company_currency" string="VAT"/>
@@ -120,8 +127,8 @@
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch"  type="xml">
         <search string="Search Payment Card Transactions">
-            <field name="name" string="Number, description or merchant"
-                filter_domain="['|', '|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('merchant', 'ilike', self), ('receipt_number', 'ilike', self)]"/>
+            <field name="name" string="Number, description or vendor"
+                filter_domain="['|', '|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('vendor', 'ilike', self), ('receipt_number', 'ilike', self)]"/>
             <field name="date"/>
             <filter name="ready_to_process" string="Ready to process"
                 domain="[('state', '=', 'draft'), ('transaction_type', 'in', ('load', 'expense')), ('expense_account_id', '!=', False), ('description', '!=', False), '|', ('image_url', '!=', False), ('receipt_lost', '=', True)]"/>
@@ -162,7 +169,7 @@
     <field name="arch" type="xml">
         <calendar string="Payment Card Transactions" color="expense_account_id" date_start="date">
             <field name="name"/>
-            <field name="merchant"/>
+            <field name="vendor"/>
             <field name="country_id"/>
             <field name="total_currency"/>
             <field name="currency_id"/>

@@ -27,6 +27,7 @@ except ImportError:
 class NewgenPaymentCardTransaction(models.Model):
     _name = 'newgen.payment.card.transaction'
     _description = 'New-generation payment card transaction'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'date desc'
 
     name = fields.Char(string='Number', readonly=True)
@@ -66,9 +67,10 @@ class NewgenPaymentCardTransaction(models.Model):
         states={'done': [('readonly', True)]}, ondelete='restrict')
     country_id = fields.Many2one(
         'res.country', string='Country', readonly=True)
-    merchant = fields.Char(string='Merchant', readonly=True)
+    # v10 field name: merchant ; renamed to vendor
+    vendor = fields.Char(string='Vendor', readonly=True)
     partner_id = fields.Many2one(
-        'res.partner', string='Vendor',
+        'res.partner', string='Vendor Partner',
         domain=[('supplier', '=', True), ('parent_id', '=', False)],
         states={'done': [('readonly', True)]}, ondelete='restrict',
         default=lambda self: self._default_partner(),
@@ -354,12 +356,18 @@ class NewgenPaymentCardTransaction(models.Model):
             'origin': origin,
             }
         url = self.image_url
-        if not url and not self.receipt_lost:
+        attachments = self.env['ir.attachment'].search([
+            ('res_model', '=', self._name),
+            ('res_id', '=',  self.id),
+            ])
+        if not url and not attachments and not self.receipt_lost:
             raise UserError(_(
-                "Missing image URL on transaction %s. If you lost "
-                "that receipt, you can mark this transaction "
+                "Missing image URL and/or attachments on transaction %s. "
+                "If you lost that receipt, you can mark this transaction "
                 "as 'Receipt Lost'.")
                 % self.name)
+
+        parsed_inv['attachments'] = {}
         if url:
             try:
                 rimage = requests.get(url)
@@ -386,6 +394,10 @@ class NewgenPaymentCardTransaction(models.Model):
             filename = 'Receipt-%s%s' % (self.name, file_extension)
             image_b64 = base64.encodestring(image_binary)
             parsed_inv['attachments'] = {filename: image_b64}
+        if attachments:
+            for att in attachments:
+                parsed_inv['attachments'][att.name] = att.datas
+        # TODO: delete attachments on transaction once invoice is created ?
         return parsed_inv
 
     @api.model
@@ -538,13 +550,13 @@ class NewgenPaymentCardTransaction(models.Model):
         specific_partner_existing_transactions = npcto.search_read([
             ('state', '=', 'done'),
             ('transaction_type', '=', 'expense'),
-            ('merchant', '!=', False),
+            ('vendor', '!=', False),
             ('partner_id', '!=', False),
             ('partner_id', '!=', speeddict['default_partner_id'])],
-            ['merchant', 'partner_id'])
+            ['vendor', 'partner_id'])
         for trans in specific_partner_existing_transactions:
             speeddict['partner'].append((
-                unidecode(trans['merchant']).strip().upper(),
+                unidecode(trans['vendor']).strip().upper(),
                 trans['partner_id'][0]))
         partners = self.env['res.partner'].search_read(
             [('parent_id', '=', False)], ['name'])

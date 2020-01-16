@@ -1,4 +1,4 @@
-# Copyright 2016-2019 Akretion France (http://www.akretion.com/)
+# Copyright 2016-2020 Akretion France (http://www.akretion.com/)
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -24,8 +24,8 @@ class MooncardCsvImport(models.TransientModel):
     filename = fields.Char(string='Filename')
 
     @api.model
-    def partner_match(self, merchant, speed_entry):
-        if speed_entry[0] in merchant:
+    def partner_match(self, vendor, speed_entry):
+        if speed_entry[0] in vendor:
             return speed_entry[1]
         else:
             return False
@@ -101,13 +101,13 @@ class MooncardCsvImport(models.TransientModel):
         if transaction_type == 'load':
             bank_counterpart_account_id = speeddict['transfer_account_id']
         elif transaction_type == 'expense':
-            merchant = line.get('supplier') and line['supplier'].strip()
+            vendor = line.get('supplier') and line['supplier'].strip()
             partner_id = speeddict['default_partner_id']
-            if merchant:
-                merchant_match = unidecode(merchant.upper())
+            if vendor:
+                vendor_match = unidecode(vendor.upper())
                 for speed_entry in speeddict['partner']:
                     partner_match = self.partner_match(
-                        merchant_match, speed_entry)
+                        vendor_match, speed_entry)
                     if partner_match:
                         partner_id = partner_match
                         break
@@ -170,7 +170,7 @@ class MooncardCsvImport(models.TransientModel):
             'payment_date': payment_date,
             'card_id': card_id,
             'country_id': country_id,
-            'merchant': line.get('supplier') and line['supplier'].strip(),
+            'vendor': line.get('supplier') and line['supplier'].strip(),
             'total_company_currency': line['amount_eur'],
             'total_currency': line['amount_currency'],
             'currency_id': currency_id,
@@ -302,7 +302,7 @@ class MooncardCsvImport(models.TransientModel):
         if not mm_ids:
             raise UserError(_("No Mooncard mileage created nor updated."))
         action = self.env['ir.actions.act_window'].for_xml_id(
-            'mooncard_base', 'mooncard_mileage_action')
+            'mooncard_payment_card', 'mooncard_mileage_action')
         action.update({
             'domain': "[('id', 'in', %s)]" % mm_ids,
             'views': False,
@@ -318,10 +318,10 @@ class MooncardCsvImport(models.TransientModel):
         fileobj = TemporaryFile('wb+')
         fileobj.write(base64.b64decode(self.mooncard_file))
         fileobj.seek(0)
-        # TODO port mileage
-        # file_content = fileobj.read()
-        # if file_content.startswith('Identifiant unique;Collaborateur;Email'):
-        #    return self.mooncard_import_mileage(fileobj)
+        file_content = fileobj.read()
+        if file_content.startswith(
+                'Identifiant unique;Collaborateur;Email'.encode('latin1')):
+            return self.mooncard_import_mileage(fileobj)
         fileobj.seek(0)
         reader = unicodecsv.DictReader(
             fileobj, delimiter=',',
