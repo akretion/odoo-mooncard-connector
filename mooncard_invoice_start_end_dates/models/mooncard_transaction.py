@@ -10,8 +10,10 @@ from odoo.exceptions import ValidationError
 class MooncardTransaction(models.Model):
     _inherit = 'mooncard.transaction'
 
-    start_date = fields.Date('Start Date')
-    end_date = fields.Date('End Date')
+    start_date = fields.Date(
+        string='Start Date', states={'done': [('readonly', True)]})
+    end_date = fields.Date(
+        string='End Date', states={'done': [('readonly', True)]})
 
     @api.constrains('start_date', 'end_date')
     def _check_start_end_dates(self):
