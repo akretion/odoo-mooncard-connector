@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2020 Akretion France
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<odoo>
+
+<record id="view_account_config_settings" model="ir.ui.view">
+    <field name="name">mooncard.account.config.settings.form</field>
+    <field name="model">account.config.settings</field>
+    <field name="inherit_id" ref="account.view_account_config_settings" />
+    <field name="arch" type="xml">
+        <xpath expr="//separator[@name='analytic_account']" position="before">
+            <group name="mooncard" string="Mooncard API">
+                <field name="mooncard_api_login"/>
+                <field name="mooncard_api_password" password="1"/>
+                <field name="mooncard_api_company_uuid"/>
+            </group>
+        </xpath>
+    </field>
+</record>
+
+
+</odoo>

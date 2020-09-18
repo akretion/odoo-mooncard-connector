@@ -27,7 +27,7 @@ class MooncardMileage(models.Model):
     description = fields.Char(
         string='Description', states={'done': [('readonly', True)]})
     unique_import_id = fields.Char(
-        string='Unique Identifier', readonly=True, copy=False)
+        string='Unique Identifier', readonly=True, copy=False, required=True)
     date = fields.Date(
         string='Date', required=True, readonly=True)
     departure = fields.Char(
@@ -94,3 +94,76 @@ class MooncardMileage(models.Model):
         raise UserError(_(
             "You must install the module mooncard_invoice or "
             "mooncard_expense"))
+
+    @api.model
+    def _prepare_mileage(self, line, speeddict):
+        bdio = self.env['business.document.import']
+        account_analytic_id = False
+        if line['currency'] != speeddict['company_currency']:
+            raise UserError(_(
+                "The currency of the mileage is %s whereas "
+                "the company currency is %s.") % (
+                    line['currency'], speeddict['company_currency']))
+        account_analytic_id = account_id = trip_type = False
+        if line.get('expense_category_id'):
+            if line['expense_category_id'] not in speeddict['api_exp_categ']:
+                raise UserError(
+                    "The expense category '%s' is unknown. This should "
+                    "never happen." % line['expense_category_id'])
+            account_code = speeddict['api_exp_categ'][line['expense_category_id']]['code']
+            account = bdio._match_account(
+                {'code': account_code}, [],
+                speed_dict=speeddict['accounts'])
+            account_id = account.id
+
+        # convert to float/int
+        # line['price_unit'] = float(line[u'Barême kilométrique'])
+        # if line.get('Codes analytiques'):
+        #    account_analytic_id = speeddict['analytic'].get(
+        #        line['Codes analytiques'].lower())
+        typedict = {
+            'single': 'oneway',
+            'return': 'roundtrip',
+            }
+        if line['source']['distance_type'] not in typedict:
+            raise UserError(_(
+                "Wrong value '%s' for distance type. This should never happen.")
+                % line['source']['distance_type'])
+
+        trip_type = typedict[line['source']['distance_type']]
+        date = self.env['res.company'].convert_datetime_to_utc(
+            line['at'])
+
+        if line['user_profile_id'] not in speeddict['api_users']:
+            raise UserError(
+                "The user profile UUID %s is unkown. This should never happen."
+                % line['user_profile_id'])
+        email = speeddict['api_users'][line['user_profile_id']]
+        if not email:
+            raise UserError(_('Missing email'))
+        email = email.strip().lower()
+        if email not in speeddict['partner_mail']:
+            # for test
+            # partner = self.env['res.partner'].create({'name': 'tutu', 'email': email})
+            # speeddict['partner_mail'][email] = partner.id
+            raise UserError(_(
+                "No partner with email '%s' found") % email)
+        partner_id = speeddict['partner_mail'][email]
+        vals = {
+            'unique_import_id': line['id'],
+            'partner_id': partner_id,
+            'km': line['source']['distance'],
+            # 'price_unit': line['price_unit'],
+            'price_unit': 0.58,  # TODO update
+            'date': date,
+            'description': line['title'],
+            # 'car_name': line[u'Véhicule'],
+            # 'car_plate': line.get(u"Immatriculation"),
+            # 'car_fiscal_power': line.get(u'Puissance fiscale'),
+            'departure': line['source']['start_point'],
+            'arrival': line['source']['end_point'],
+            'trip_type': trip_type,
+            'account_analytic_id': account_analytic_id,
+            'expense_account_id': account_id,
+            }
+        return vals

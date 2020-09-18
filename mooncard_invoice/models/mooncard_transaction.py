@@ -17,16 +17,6 @@ logger = logging.getLogger(__name__)
 class MooncardTransaction(models.Model):
     _inherit = 'mooncard.transaction'
 
-    partner_id = fields.Many2one(
-        'res.partner', string='Vendor', required=True,
-        domain=[('supplier', '=', True), ('parent_id', '=', False)],
-        states={'done': [('readonly', True)]}, ondelete='restrict',
-        default=lambda self:
-            self.env.ref('mooncard_base.mooncard_supplier'),
-        help="By default, all transactions are linked to the generic "
-        "supplier 'Mooncard Misc Suppliers'. You can change the partner "
-        "to the real partner of the transaction if you want, but it may not "
-        "be worth the additionnal work.")
     force_invoice_date = fields.Date(
         string='Force Invoice Date', states={'done': [('readonly', True)]})
     bank_move_only = fields.Boolean(
@@ -52,10 +42,6 @@ class MooncardTransaction(models.Model):
         related='payment_move_line_id.full_reconcile_id', readonly=True)
     load_move_id = fields.Many2one(  # remove field in v12
         'account.move', string="[OLD] Load Move", readonly=True)
-    bank_counterpart_account_id = fields.Many2one(
-        'account.account', domain=[('deprecated', '=', False)],
-        states={'done': [('readonly', True)]}, required=True,
-        string="Counter-part of Bank Move")
     bank_move_id = fields.Many2one(
         # replaces load_move_id and payment_move_id
         'account.move', string="Bank Move", readonly=True)

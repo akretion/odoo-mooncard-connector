@@ -12,19 +12,26 @@
     'author': 'Akretion',
     'website': 'http://www.akretion.com',
     'depends': ['base_business_document_import'],
-    'external_dependencies': {'python': ['unicodecsv', 'pycountry']},
+    'external_dependencies': {
+        'python': [
+            'unicodecsv',
+            'pycountry',
+            'requests_oauthlib',
+            ]},
     'data': [
         'data/partner.xml',
         'data/sequence.xml',
         'data/decimal_precision.xml',
+        'data/cron.xml',
         'views/mooncard_transaction.xml',
         'views/mooncard_mileage.xml',
         'views/mooncard_card.xml',
+        'views/account_config_settings.xml',
         'wizard/mooncard_csv_import_view.xml',
         'wizard/mooncard_process_lines_view.xml',
         'security/ir.model.access.csv',
         'security/mooncard_security.xml',
     ],
-    'demo': ['demo/demo.xml'],
+#    'demo': ['demo/demo.xml'],
     'installable': True,
 }

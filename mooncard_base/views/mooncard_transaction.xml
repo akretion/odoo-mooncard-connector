@@ -30,6 +30,7 @@
                         <field name="receipt_number" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="card_id"/>
                         <field name="description" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="attendees" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="merchant" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="country_id" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="image_url" widget="url" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
