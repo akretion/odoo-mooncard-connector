@@ -44,7 +44,7 @@
 </record>
 
 <menuitem id="mooncard_csv_import_menu" action="mooncard_csv_import_action"
-    parent="mooncard_menu" sequence="20"/>
+    parent="mooncard_menu" sequence="30"/>
 
 
 </odoo>
