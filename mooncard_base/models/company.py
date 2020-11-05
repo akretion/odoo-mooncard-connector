@@ -7,7 +7,6 @@ from odoo import api, fields, models, tools, _
 from odoo.exceptions import UserError
 from odoo.tools import float_compare
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
 import dateutil.parser
 from datetime import datetime, timedelta
 from unidecode import unidecode
@@ -99,8 +98,12 @@ class ResCompany(models.Model):
         return api_params
 
     @api.model
-    @tools.ormcache("oauth_id", "oauth_secret", "login", "password", "company_uuid", "sandbox")
-    def _mooncard_get_new_token(self, oauth_id, oauth_secret, login, password, company_uuid, sandbox):
+    @tools.ormcache(
+            "oauth_id", "oauth_secret",
+            "login", "password", "company_uuid", "sandbox")
+    def _mooncard_get_new_token(
+            self, oauth_id, oauth_secret,
+            login, password, company_uuid, sandbox):
         url = sandbox and SANDBOX_TOKEN_URL or TOKEN_URL
         logger.info('Requesting new token from mooncard via %s', url)
         try:
@@ -312,6 +315,7 @@ class ResCompany(models.Model):
     def mooncard_api_transaction_import(self, api_params, session, speeddict):
         self.ensure_one()
         mto = self.env['mooncard.transaction']
+        # Get MC "bank" accounts
         res_accounts, session = self.mooncard_get(
             api_params, 'accounts', session=session)
         if len(res_accounts) != 1:
@@ -343,6 +347,7 @@ class ResCompany(models.Model):
         mt_ids = []
         expense_needed = {}
         page = 1
+        # Get MC bank statement lines
         while page < MAX_PAGE:
             movements, session = self.mooncard_get(
                 api_params, 'account_movements', session=session,
@@ -454,13 +459,20 @@ class ResCompany(models.Model):
                             attendees = False
                             if expense.get('attendees'):
                                 attendees = u', '.join([x for x in expense['attendees']])
-                            # TODO add support for supplier
+                            supplier = False
+                            if expense.get('supplier_id'):
+                                res_supplier, session = self.mooncard_get(
+                                    api_params,
+                                    'suppliers/%s' % expense['supplier_id'],
+                                    session=session)
+                                supplier = res_supplier.get('name')
                             line.update({
                                 'title': expense.get('title'),
                                 'country_code': expense.get('invoice_country'),
                                 'expense_category_name': expense_categ_name,
                                 'charge_account': charge_account,
                                 'date_authorization': expense.get('at'),
+                                'supplier': supplier,
                                 'receipt_code': expense.get('receipt_code'),
                                 'attachment': attachment,
                                 'original_currency': expense.get('currency'),
