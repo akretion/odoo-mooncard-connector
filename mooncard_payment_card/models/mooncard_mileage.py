@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-# Copyright 2018-2020 Akretion France (http://www.akretion.com/)
+# Copyright 2018-2021 Akretion France (http://www.akretion.com/)
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import api, fields, models, _
-import odoo.addons.decimal_precision as dp
 from babel.dates import format_date
 from odoo.tools.misc import formatLang
 from odoo.exceptions import UserError
@@ -16,13 +14,14 @@ class MooncardMileage(models.Model):
     _name = 'mooncard.mileage'
     _description = 'Mooncard Kilometer Expense'
     _order = 'date desc'
+    _check_company_auto = True
 
     name = fields.Char(string='Number', readonly=True)
     company_id = fields.Many2one(
         'res.company', string='Company', required=True, readonly=True,
-        default=lambda self: self.env['res.company']._company_default_get())
+        default=lambda self: self.env.company)
     company_currency_id = fields.Many2one(
-        'res.currency', related='company_id.currency_id', readonly=True,
+        'res.currency', related='company_id.currency_id',
         string="Company Currency", store=True)
     partner_id = fields.Many2one(
         'res.partner', string='Partner',
@@ -43,16 +42,15 @@ class MooncardMileage(models.Model):
         ], string='Trip Type', states={'done': [('readonly', True)]})
     expense_account_id = fields.Many2one(
         'account.account', states={'done': [('readonly', True)]},
-        domain=[('deprecated', '=', False)],
-        string='Expense Account')
+        domain="[('deprecated', '=', False), ('company_id', '=', company_id)]",
+        string='Expense Account', check_company=True)
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account',
         states={'done': [('readonly', True)]}, ondelete='restrict')
     km = fields.Integer(states={'done': [('readonly', True)]})
     price_unit = fields.Float(
         string='Unit Price', required=True,
-        digits=dp.get_precision('Mileage Price'),
-        states={'done': [('readonly', True)]})
+        digits='Mileage Price', states={'done': [('readonly', True)]})
     car_name = fields.Char(
         string='Car', states={'done': [('readonly', True)]})
     car_plate = fields.Char(
@@ -69,11 +67,11 @@ class MooncardMileage(models.Model):
         ], compute='_compute_state', store=True,
         string='State', readonly=True)
     invoice_id = fields.Many2one(
-        'account.invoice', string='Invoice',
+        'account.move', string='Invoice', check_company=True,
         states={'done': [('readonly', True)]})
-    invoice_state = fields.Selection(
-        related='invoice_id.state', readonly=True,
-        string="Invoice State")
+    invoice_payment_state = fields.Selection(
+        related='invoice_id.payment_state', readonly=True,
+        string="Invoice Payment State")
 
     _sql_constraints = [(
         'unique_import_id',
@@ -85,7 +83,7 @@ class MooncardMileage(models.Model):
         if vals.get('name', '/') == '/':
             vals['name'] = self.env['ir.sequence'].next_by_code(
                 'mooncard.mileage')
-        return super(MooncardMileage, self).create(vals)
+        return super().create(vals)
 
     def unlink(self):
         for line in self:
@@ -93,7 +91,7 @@ class MooncardMileage(models.Model):
                 raise UserError(_(
                     "Cannot delete Mooncard mileage expense '%s' which is in "
                     "done state.") % line.name)
-        return super(MooncardMileage, self).unlink()
+        return super().unlink()
 
     @api.depends('price_unit', 'km')
     def _compute_amount(self):
@@ -101,8 +99,8 @@ class MooncardMileage(models.Model):
             mileage.amount = mileage.price_unit * mileage.km
 
     # If I only write @api.depends('invoice_id'), then it is not invalidated
-    # upon invoice deletion. That's why I use invoice_id.move_name
-    @api.depends('invoice_id.move_name')
+    # upon invoice deletion. That's why I use invoice_id.name
+    @api.depends('invoice_id.name')
     def _compute_state(self):
         for line in self:
             line.state = line.invoice_id and 'done' or 'draft'
@@ -160,17 +158,17 @@ class MooncardMileage(models.Model):
         return name
 
     def prepare_invoice(self):
-        aio = self.env['account.invoice']
+        amo = self.env['account.move']
         date = False
         vals = {
             'partner_id': self[0].partner_id.id,
             'currency_id': self[0].company_id.currency_id.id,
-            'type': 'in_invoice',
+            'move_type': 'in_invoice',
             'company_id': self[0].company_id.id,
             'origin': _('Mooncard Mileage'),
             'invoice_line_ids': [],
         }
-        vals = aio.play_onchanges(vals, ['partner_id'])
+        vals = amo.play_onchanges(vals, ['partner_id'])
         for line in self:
             if not date or date < line.date:
                 date = line.date
@@ -187,9 +185,9 @@ class MooncardMileage(models.Model):
         return vals
 
     def generate_invoice_same_partner(self):
-        aio = self.env['account.invoice']
+        amo = self.env['account.move']
         vals = self.prepare_invoice()
-        invoice = aio.with_context(type='in_invoice').create(vals)
+        invoice = amo.with_context(move_type='in_invoice').create(vals)
         invoice.message_post(body=_(
             "Invoice created from Mooncard mileage."))
         self.write({

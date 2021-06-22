@@ -9,7 +9,7 @@ from odoo.tools import float_compare
 class TestNewgenPaymentCard(TransactionCase):
 
     def setUp(self):
-        super(TestNewgenPaymentCard, self).setUp()
+        super().setUp()
         self.account_model = self.env['account.account']
         self.move_model = self.env['account.move']
         self.journal_model = self.env['account.journal']
@@ -29,8 +29,7 @@ class TestNewgenPaymentCard(TransactionCase):
             'type': 'bank',
             'name': 'Card Test',
             'code': 'CARD',
-            'default_debit_account_id': self.card_bank_account.id,
-            'default_credit_account_id': self.card_bank_account.id,
+            'default_account_id': self.card_bank_account.id,
             })
         self.card1 = self.env.ref('base_newgen_payment_card.card1')
         self.card1.write({
@@ -59,13 +58,14 @@ class TestNewgenPaymentCard(TransactionCase):
             expense.process_line()
             self.assertEqual(expense.state, 'done')
             inv = expense.invoice_id
-            self.assertEqual(inv.state, 'paid')
+            self.assertEqual(inv.state, 'posted')
+            self.assertEqual(inv.payment_state, 'paid')
             if float_compare(
                     expense.total_company_currency, 0,
                     precision_rounding=self.prec) == -1:
-                self.assertEqual(inv.type, 'in_invoice')
+                self.assertEqual(inv.move_type, 'in_invoice')
             else:
-                self.assertEqual(inv.type, 'in_refund')
+                self.assertEqual(inv.move_type, 'in_refund')
             self.assertFalse(float_compare(
                 abs(expense.total_company_currency),
                 inv.amount_total,
@@ -74,7 +74,7 @@ class TestNewgenPaymentCard(TransactionCase):
                 abs(expense.vat_company_currency),
                 inv.amount_tax,
                 precision_rounding=self.prec))
-            self.assertEqual(inv.date_invoice, expense.date)
+            self.assertEqual(inv.invoice_date, expense.date)
             self.assertTrue(expense.bank_move_id)
             self.assertEqual(expense.bank_move_id.date, expense.date)
             self.assertEqual(

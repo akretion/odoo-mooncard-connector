@@ -5,3 +5,4 @@ access_newgen_payment_card_full,Full access on newgen_payment_card to Finance Ma
 access_newgen_payment_card_read,Read access on newgen.payment.card to Employee,model_newgen_payment_card,base.group_user,1,0,0,0
 access_newgen_payment_card_account_mapping_read,Read access on newgen.payment.card.account.mapping to Invoicing grp,model_newgen_payment_card_account_mapping,account.group_account_invoice,1,0,0,0
 access_newgen_payment_card_account_mapping_full,Full access on newgen.payment.card.account.mapping to Financial manager,model_newgen_payment_card_account_mapping,account.group_account_manager,1,1,1,1
+access_newgen_payment_card_process_lines,Full access on newgen.payment.card.process.lines wizard,model_newgen_payment_card_process_lines,account.group_account_invoice,1,1,1,1

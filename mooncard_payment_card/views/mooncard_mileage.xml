@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Copyright 2016-2020 Akretion France (http://www.akretion.com/)
+  Copyright 2016-2021 Akretion France (http://www.akretion.com/)
   @author: Alexis de Lattre <alexis.delattre@akretion.com>
   License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 -->
@@ -50,7 +50,7 @@
                         <field name="price_unit"/>
                         <field name="amount"/>
                         <field name="invoice_id"/>
-                        <field name="invoice_state"/>
+                        <field name="invoice_payment_state"/>
                     </group>
                 </group>
             </group>
@@ -62,23 +62,23 @@
     <field name="name">Mooncard Mileage Tree</field>
     <field name="model">mooncard.mileage</field>
     <field name="arch"  type="xml">
-        <tree string="Mooncard Mileage" decoration-info="state == 'draft'">
+        <tree string="Mooncard Mileage">
             <field name="name"/>
-            <field name="partner_id"/>
+            <field name="partner_id" optional="show"/>
             <field name="date"/>
-            <field name="description"/>
-            <field name="trip_type"/>
+            <field name="description" optional="show"/>
+            <field name="trip_type" optional="show"/>
             <field name="departure"/>
             <field name="arrival"/>
-            <field name="car_name"/>
+            <field name="car_name" optional="show"/>
             <field name="km" sum="1"/>
             <field name="amount" sum="1"/>
             <field name="account_analytic_id"
                 groups="analytic.group_analytic_accounting"/>
             <field name="company_id" groups="base.group_multi_company"/>
             <field name="company_currency_id" invisible="1"/>
-            <field name="state" invisible="1"/>
-            <field name="invoice_id"/>
+            <field name="invoice_id" optional="hide"/>
+            <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'done'"/>
         </tree>
     </field>
 </record>
@@ -159,14 +159,13 @@
 <menuitem id="mooncard_mileage_menu" action="mooncard_mileage_action"
     parent="base_newgen_payment_card.newgen_payment_card_menu" sequence="20"/>
 
-<act_window
-    id="mooncard_mileage_process_lines_action_multi"
-    name="Process Lines"
-    res_model="newgen.payment.card.process.lines"
-    src_model="mooncard.mileage"
-    view_mode="form"
-    target="new"
-    multi="True"
-    key2="client_action_multi"/>
+<record id="mooncard_mileage_process_lines_action_multi" model="ir.actions.act_window">
+    <field name="name">Process Lines</field>
+    <field name="res_model">newgen.payment.card.process.lines</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+    <field name="binding_model_id" ref="mooncard_payment_card.model_mooncard_mileage"/>
+    <field name="binding_view_types">list</field>
+</record>
 
 </odoo>

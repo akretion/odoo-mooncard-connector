@@ -1,10 +1,11 @@
-# Copyright 2016-2019 Akretion France (http://www.akretion.com/)
+# Copyright 2016-2021 Akretion France (http://www.akretion.com/)
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare
+from odoo.tools.misc import format_amount
 import requests
 import base64
 import logging
@@ -29,11 +30,12 @@ class NewgenPaymentCardTransaction(models.Model):
     _description = 'New-generation payment card transaction'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'date desc'
+    _check_company_auto = True
 
     name = fields.Char(string='Number', readonly=True)
     company_id = fields.Many2one(
         'res.company', string='Company', required=True, readonly=True,
-        default=lambda self: self.env['res.company']._company_default_get())
+        default=lambda self: self.env.company)
     company_currency_id = fields.Many2one(
         'res.currency', related='company_id.currency_id',
         string="Company Currency", store=True)
@@ -55,23 +57,23 @@ class NewgenPaymentCardTransaction(models.Model):
         string='Force Invoice Date', states={'done': [('readonly', True)]})
     card_id = fields.Many2one(
         'newgen.payment.card', string='Card', readonly=True,
-        ondelete='restrict')
+        ondelete='restrict', check_company=True)
     expense_categ_name = fields.Char(
         string='Expense Category Name', readonly=True)
     expense_account_id = fields.Many2one(
         'account.account', states={'done': [('readonly', True)]},
-        domain=[('deprecated', '=', False)],
-        string='Expense Account')
+        domain="[('deprecated', '=', False), ('company_id', '=', company_id), ('is_off_balance', '=', False)]",
+        string='Expense Account', check_company=True)
     account_analytic_id = fields.Many2one(
         'account.analytic.account', string='Analytic Account',
-        states={'done': [('readonly', True)]}, ondelete='restrict')
+        states={'done': [('readonly', True)]}, ondelete='restrict',
+        check_company=True)
     country_id = fields.Many2one(
         'res.country', string='Country', readonly=True)
-    # v10 field name: merchant ; renamed to vendor
     vendor = fields.Char(string='Vendor', readonly=True)
     partner_id = fields.Many2one(
         'res.partner', string='Vendor Partner',
-        domain=[('supplier', '=', True), ('parent_id', '=', False)],
+        domain=[('parent_id', '=', False)],
         states={'done': [('readonly', True)]}, ondelete='restrict',
         default=lambda self: self._default_partner(),
         help="By default, all transactions are linked to the generic "
@@ -80,7 +82,7 @@ class NewgenPaymentCardTransaction(models.Model):
         "be worth the additionnal work.")
     transaction_type = fields.Selection([
         ('load', 'Load'),
-        ('expense', 'Expense'),  # v10 value : presentment
+        ('expense', 'Expense'),
         ], string='Transaction Type', readonly=True)
     vat_company_currency = fields.Monetary(
         string='VAT Amount',
@@ -109,30 +111,30 @@ class NewgenPaymentCardTransaction(models.Model):
         ], string='State', default='draft', readonly=True)
     receipt_number = fields.Char(string='Receipt Number', readonly=True)
     bank_move_only = fields.Boolean(
-        string="Generate Bank Move Only", oldname='payment_move_only',
+        string="Generate Bank Move Only",
         states={'done': [('readonly', True)]},
         help="When you process a transaction on which this option is enabled, "
         "Odoo will only generate the move in the bank journal, it will not "
         "generate a supplier invoice/refund. This option is useful when you "
         "make a payment in advance and you haven't received the invoice yet.")
     invoice_id = fields.Many2one(
-        'account.invoice', string='Invoice',
+        'account.move', string='Invoice', check_company=True,
         states={'done': [('readonly', True)]})
-    invoice_state = fields.Selection(
-        related='invoice_id.state', readonly=True,
-        string="Invoice State")
+    invoice_payment_state = fields.Selection(
+        related='invoice_id.payment_state', string="Invoice Payment Status")
     reconcile_id = fields.Many2one(
         'account.full.reconcile', string="Reconcile",
         compute='_compute_reconcile_id', readonly=True)
     bank_counterpart_account_id = fields.Many2one(
-        'account.account', domain=[('deprecated', '=', False)],
+        'account.account',
+        domain="[('deprecated', '=', False), ('company_id', '=', company_id), ('is_off_balance', '=', False)]",
         states={'done': [('readonly', True)]}, required=True,
         # default value mostly used to load demo data
-        default=lambda self: self.env['ir.property'].get(
+        default=lambda self: self.env['ir.property']._get(
             'property_account_payable_id', 'res.partner'),
-        string="Counter-part of Bank Move")
+        string="Counter-part of Bank Move", check_company=True)
     bank_move_id = fields.Many2one(
-        'account.move', string="Bank Move", readonly=True)
+        'account.move', string="Bank Move", readonly=True, check_company=True)
 
     _sql_constraints = [(
         'unique_import_id',
@@ -144,7 +146,7 @@ class NewgenPaymentCardTransaction(models.Model):
         if vals.get('name', '/') == '/':
             vals['name'] = self.env['ir.sequence'].next_by_code(
                 'newgen.payment.card.transaction')
-        return super(NewgenPaymentCardTransaction, self).create(vals)
+        return super().create(vals)
 
     @api.depends('bank_move_id')
     def _compute_reconcile_id(self):
@@ -188,7 +190,7 @@ class NewgenPaymentCardTransaction(models.Model):
                 raise UserError(_(
                     "Cannot delete transaction '%s' which is in "
                     "done state.") % line.name)
-        return super(NewgenPaymentCardTransaction, self).unlink()
+        return super().unlink()
 
     @api.onchange('invoice_id')
     def invoice_id_change(self):
@@ -243,33 +245,27 @@ class NewgenPaymentCardTransaction(models.Model):
             raise UserError(_(
                 "Counter-part of Bank Move is empty "
                 "on transaction %s.") % self.name)
+        transaction_type = dict(self.fields_get('transaction_type', 'selection')['transaction_type']['selection'])[self.transaction_type]
+        ref = '%s (%s)' % (self.name, transaction_type)
         if self.transaction_type == 'expense':
-            if not self.description:
-                raise UserError(_(
-                    "The description field is empty on "
-                    "transaction %s.") % self.name)
-            name = self.description
             partner_id = self.partner_id.id
         elif self.transaction_type == 'load':
-            name = _('Load payment card prepaid-account')
             partner_id = False
         mvals = {
             'journal_id': journal.id,
             'date': self.date,
-            'ref': self.name,
+            'ref': ref,
             'line_ids': [
                 (0, 0, {
-                    'account_id': journal.default_debit_account_id.id,
+                    'account_id': journal.default_account_id.id,
                     'debit': debit,
                     'credit': credit,
-                    'name': name,
                     'partner_id': partner_id,
                     }),
                 (0, 0, {
                     'account_id': self.bank_counterpart_account_id.id,
                     'debit': credit,
                     'credit': debit,
-                    'name': name,
                     'partner_id': partner_id,
                     }),
                 ],
@@ -280,7 +276,7 @@ class NewgenPaymentCardTransaction(models.Model):
         self.ensure_one()
         vals = self._prepare_bank_journal_move()
         bank_move = self.env['account.move'].create(vals)
-        bank_move.post()
+        bank_move.action_post()
         return bank_move
 
     @api.model
@@ -325,12 +321,11 @@ class NewgenPaymentCardTransaction(models.Model):
                 'unece_categ_code': 'S',
                 })
         if not self.description:
-            raise UserError(_(
-                "Missing label on transaction %s")
+            raise UserError(_("Description is missing on transaction %s.")
                 % self.name)
         origin = self.name
         if self.receipt_number:
-            origin = u'%s (%s)' % (origin, self.receipt_number)
+            origin = '%s (%s)' % (origin, self.receipt_number)
         amount_untaxed = self.total_company_currency * -1\
             - self.vat_company_currency * -1
         price_unit = amount_untaxed
@@ -392,7 +387,7 @@ class NewgenPaymentCardTransaction(models.Model):
                     logger.info('Failed to rotate the image. Error: %s', e)
                     pass
             filename = 'Receipt-%s%s' % (self.name, file_extension)
-            image_b64 = base64.encodestring(image_binary)
+            image_b64 = base64.encodebytes(image_binary)
             parsed_inv['attachments'] = {filename: image_b64}
         if attachments:
             for att in attachments:
@@ -419,17 +414,17 @@ class NewgenPaymentCardTransaction(models.Model):
                 "For the moment, we don't support linking to an invoice "
                 "in another currency than the company currency."))
         # should not happen because domain blocks that
-        if self.invoice_id.state != 'open':
+        if self.invoice_id.payment_state != 'not_paid':
             raise UserError(_(
                 "The transaction %s is linked to invoice %s "
-                "which is not in open state.")
+                "which is not in unpaid state.")
                 % (self.name, self.invoice_id.number))
         # should not happen because domain blocks that
-        if self.invoice_id.type not in ('in_invoice', 'in_refund'):
+        if self.invoice_id.move_type not in ('in_invoice', 'in_refund'):
             raise UserError(_(
                 "The transaction %s is linked to invoice %s "
                 "which is not a supplier invoice/refund!")
-                % (self.name, self.invoice_id.number))
+                % (self.name, self.invoice_id.name))
         # handled by onchange
         if self.partner_id != self.invoice_id.commercial_partner_id:
             raise UserError(_(
@@ -437,21 +432,23 @@ class NewgenPaymentCardTransaction(models.Model):
                 "whereas the related invoice %s is linked to "
                 "partner '%s'.") % (
                 self.name, self.partner_id.display_name,
+                self.invoice_id.display_name,
                 self.invoice_id.commercial_partner_id.display_name))
         # TODO handle partial payments ?
         if float_compare(
                 self.invoice_id.amount_total_signed,
-                self.total_company_currency * -1,
+                self.total_company_currency,
                 precision_rounding=self.company_currency_id.rounding):
             raise UserError(_(
                 "The transaction %s is linked to the "
-                "invoice/refund %s whose total amount is %s %s, "
-                "but the amount of the transaction is %s %s.") % (
-                self.name, self.invoice_id.number,
-                self.invoice_id.amount_total_signed,
-                self.invoice_id.currency_id.name,
-                self.total_company_currency,
-                self.company_currency_id.name))
+                "invoice/refund %s whose total amount is %s, "
+                "but the amount of the transaction is %s.") % (
+                self.name, self.invoice_id.name,
+                format_amount(
+                    self.env, self.invoice_id.amount_total_signed * -1, self.invoice_id.currency_id),
+                format_amount(
+                    self.env, self.total_company_currency, self.company_currency_id),
+                ))
 
     def generate_invoice(self):
         self.ensure_one()
@@ -469,11 +466,12 @@ class NewgenPaymentCardTransaction(models.Model):
             'account': self.expense_account_id,
             'account_analytic': self.account_analytic_id or False,
             }
-        invoice = aiio.create_invoice(parsed_inv, import_config=import_config)
+        invoice = aiio.create_invoice(
+            parsed_inv, import_config=import_config, origin='Mooncard connector')
         invoice.message_post(
             body=_("Invoice created from payment card transaction %s.")
             % self.name)
-        invoice.action_invoice_open()
+        invoice.action_post()
         assert float_compare(
             invoice.amount_tax, abs(self.vat_company_currency),
             precision_rounding=precision) == 0, 'bug on VAT'
@@ -484,13 +482,12 @@ class NewgenPaymentCardTransaction(models.Model):
         assert self.bank_counterpart_account_id
         assert bank_move
         assert invoice
-        assert invoice.move_id
         assert not self.reconcile_id, 'already has a reconcile mark'
         movelines_to_rec = self.env['account.move.line'].search([
             ('move_id', '=', bank_move.id),
             ('account_id', '=', self.bank_counterpart_account_id.id),
             ], limit=1)
-        for line in invoice.move_id.line_ids:
+        for line in invoice.line_ids:
             if line.account_id == self.bank_counterpart_account_id:
                 movelines_to_rec += line
         movelines_to_rec.reconcile()
@@ -523,8 +520,8 @@ class NewgenPaymentCardTransaction(models.Model):
         for country in countries:
             speeddict['countries'][country['code'].strip()] = country['id']
 
-        currencies = self.env['res.currency'].search_read(
-            ['|', ('active', '=', True), ('active', '=', False)], ['name'])
+        currencies = self.env['res.currency'].with_context(
+            active_test=False).search_read([], ['name'])
         for curr in currencies:
             speeddict['currencies'][curr['name']] = curr['id']
         npcto = self.env['newgen.payment.card.transaction']

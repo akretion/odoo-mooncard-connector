@@ -68,12 +68,14 @@
                         <field name="bank_counterpart_account_id"/>
                         <field name="invoice_id"
                             attrs="{'invisible': ['|', ('transaction_type', '!=', 'expense'), ('bank_move_only', '=', True)]}"
-                            domain="[('state', '=', 'open'), ('currency_id', '=', company_currency_id), ('type', 'in', ('in_invoice', 'in_refund'))]"/>
-                        <field name="invoice_state"
-                            attrs="{'invisible': ['|', ('transaction_type', '!=', 'expense'), ('bank_move_only', '=', True)]}"/>
-                        <field name="reconcile_id"
+                            domain="[('state', '=', 'posted'), ('payment_state', '=', 'not_paid'), ('currency_id', '=', company_currency_id), ('move_type', 'in', ('in_invoice', 'in_refund'))]"
+                            context="{'tree_view_ref': 'account.view_in_invoice_tree'}"
+                            />
+                        <field name="invoice_payment_state"
                             attrs="{'invisible': ['|', ('transaction_type', '!=', 'expense'), ('bank_move_only', '=', True)]}"/>
                         <field name="bank_move_id"/>
+                        <field name="reconcile_id"
+                            attrs="{'invisible': ['|', ('transaction_type', '!=', 'expense'), ('bank_move_only', '=', True)]}"/>
                     </group>
                 </group>
             </group>
@@ -91,33 +93,29 @@
     <field name="name">Payment Card Transaction Tree</field>
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch"  type="xml">
-        <tree string="Payment Card Transactions" decoration-info="state == 'draft'">
+        <tree string="Payment Card Transactions">
             <field name="name"/>
             <field name="transaction_type" string="Type"/>
             <field name="payment_date"/>
-            <field name="date" string="Bank Date"/>
-            <field name="receipt_number"/>
-            <field name="description"/>
-            <field name="card_id"/>
-            <field name="expense_account_id"/>
+            <field name="date" string="Bank Date" optional="hide"/>
+            <field name="receipt_number" optional="hide"/>
+            <field name="description" optional="show"/>
+            <field name="card_id" optional="show"/>
+            <field name="expense_account_id" optional="show"/>
             <field name="account_analytic_id"
-                groups="analytic.group_analytic_accounting"/>
-            <field name="vendor"/>
-            <field name="country_id"/>
-            <field name="company_id" groups="base.group_multi_company"/>
+                groups="analytic.group_analytic_accounting" optional="show"/>
+            <field name="vendor" optional="show"/>
+            <field name="country_id" optional="hide"/>
             <field name="vat_company_currency" string="VAT"/>
             <field name="total_company_currency" sum="Total" string="Amount"/>
             <field name="company_currency_id" invisible="1"/>
             <field name="total_currency" string="Amount in Expense Currency"/>
             <field name="currency_id" invisible="1"/>
             <field name="image_url" invisible="1"/>
-            <button name="open_image_url"
-                type="object" string="Expense Image"
-                icon="fa-image"
-                attrs="{'invisible': [('image_url', '=', False)]}"/>
+            <field name="company_id" groups="base.group_multi_company"/>
             <button type="object" name="process_line" icon="fa-gear"
                 string="Process Line" states="draft"/>
-            <field name="state"/>
+            <field name="state" decoration-info="state == 'draft'" decoration-success="state == 'done'" widget="badge"/>
         </tree>
     </field>
 </record>
@@ -209,7 +207,9 @@
 <menuitem id="newgen_payment_card_menu" name="Payment Card"
     parent="account.menu_finance" sequence="10"/>
 
-<menuitem id="newgen_payment_card_transaction_menu" action="newgen_payment_card_transaction_action"
-    parent="newgen_payment_card_menu" sequence="10"/>
+<menuitem id="newgen_payment_card_transaction_menu"
+        action="newgen_payment_card_transaction_action"
+        parent="newgen_payment_card_menu"
+        sequence="10"/>
 
 </odoo>

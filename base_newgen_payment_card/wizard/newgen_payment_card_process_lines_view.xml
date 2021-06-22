@@ -33,14 +33,13 @@
     <field name="target">new</field>
 </record>
 
-<act_window
-    id="newgen_payment_card_process_lines_action_multi"
-    name="Process Lines"
-    res_model="newgen.payment.card.process.lines"
-    src_model="newgen.payment.card.transaction"
-    view_mode="form"
-    target="new"
-    multi="True"
-    key2="client_action_multi"/>
+<record id="newgen_payment_card_process_lines_action_multi" model="ir.actions.act_window">
+    <field name="name">Process Lines</field>
+    <field name="res_model">newgen.payment.card.process.lines</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+    <field name="binding_model_id" ref="base_newgen_payment_card.model_newgen_payment_card_transaction" />
+    <field name="binding_view_types">list</field>
+</record>
 
 </odoo>

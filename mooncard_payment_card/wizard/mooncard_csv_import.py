@@ -1,4 +1,4 @@
-# Copyright 2016-2020 Akretion France (http://www.akretion.com/)
+# Copyright 2016-2021 Akretion France (http://www.akretion.com/)
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -77,8 +77,8 @@ class MooncardCsvImport(models.TransientModel):
                 raise UserError(_(
                     "The CSV file contains the Moon Card '%s'. This "
                     "card is not registered in Odoo, cf menu "
-                    "Accounting > Configuration > Miscellaneous > "
-                    "Moon Cards)") % line.get('card_token'))
+                    "Invoicing > Configuration > Payment Cards > "
+                    "Payment Cards)") % line.get('card_token'))
 
         # Accounts
         if transaction_type == 'expense':
@@ -154,8 +154,7 @@ class MooncardCsvImport(models.TransientModel):
             pcountry = pycountry.countries.get(alpha_3=line['country_code'])
             if pcountry and pcountry.alpha_2:
                 country_id = speeddict['countries'].get(pcountry.alpha_2)
-        currency_id = speeddict['currencies'].get(
-            line.get('original_currency'))
+        currency_id = speeddict['currencies'].get(line.get('original_currency'))
         if (
                 transaction_type == 'expense' and
                 line.get('date_authorization')):
@@ -182,8 +181,8 @@ class MooncardCsvImport(models.TransientModel):
         bdio = self.env['business.document.import']
         account_analytic_id = False
         # convert to float/int
-        line['price_unit'] = float(line[u'Barême kilométrique'])
-        line['km'] = int(line[u'Distance (km)'])
+        line['price_unit'] = float(line['Barême kilométrique'])
+        line['km'] = int(line['Distance (km)'])
         account_analytic_id = account_id = trip_type = False
         if line.get('Codes analytiques'):
             account_analytic_id = speeddict['analytic'].get(
@@ -205,11 +204,11 @@ class MooncardCsvImport(models.TransientModel):
             'price_unit': line['price_unit'],
             'date': line['Date'],
             'description': line['Description'],
-            'car_name': line[u'Véhicule'],
-            'car_plate': line.get(u"Immatriculation"),
-            'car_fiscal_power': line.get(u'Puissance fiscale'),
-            'departure': line.get(u'Départ'),
-            'arrival': line.get(u'Arrivée'),
+            'car_name': line['Véhicule'],
+            'car_plate': line.get("Immatriculation"),
+            'car_fiscal_power': line.get('Puissance fiscale'),
+            'departure': line.get('Départ'),
+            'arrival': line.get('Arrivée'),
             'trip_type': trip_type,
             'account_analytic_id': account_analytic_id,
             'expense_account_id': account_id,
