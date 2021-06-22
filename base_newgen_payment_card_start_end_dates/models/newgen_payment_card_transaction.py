@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2020 Akretion France (http://www.akretion.com/)
+# Copyright 2020-2021 Akretion France (http://www.akretion.com/)
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -7,8 +6,8 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
-class MooncardTransaction(models.Model):
-    _inherit = 'mooncard.transaction'
+class NewgenPaymentCardTransaction(models.Model):
+    _inherit = 'newgen.payment.card.transaction'
 
     start_date = fields.Date(
         string='Start Date', states={'done': [('readonly', True)]})
@@ -34,7 +33,7 @@ class MooncardTransaction(models.Model):
                     % trans.display_name)
 
     def _prepare_invoice_import(self):
-        parsed_inv = super(MooncardTransaction, self)._prepare_invoice_import()
+        parsed_inv = super()._prepare_invoice_import()
         if self.start_date and self.end_date:
             parsed_inv['lines'][0].update({
                 'date_start': self.start_date,
