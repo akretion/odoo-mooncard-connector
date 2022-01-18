@@ -12,6 +12,8 @@ from tempfile import TemporaryFile
 import logging
 import pycountry
 import base64
+from odoo.addons.base_newgen_payment_card.models.newgen_payment_card_transaction\
+    import MEANINGFUL_PARTNER_NAME_MIN_SIZE
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +26,18 @@ class MooncardCsvImport(models.TransientModel):
     filename = fields.Char(string='Filename')
 
     @api.model
-    def partner_match(self, vendor, speed_entry):
-        if speed_entry[0] in vendor:
-            return speed_entry[1]
-        else:
-            return False
+    def partner_match(self, vendor, speed_entry, partner_match_rule='contain'):
+        if partner_match_rule == 'contain':
+            if speed_entry[0] in vendor:
+                return speed_entry[1]
+            else:
+                return False
+        elif partner_match_rule == 'equal':
+            if speed_entry[0] == vendor:
+                return speed_entry[1]
+            else:
+                return False
+        return False
 
     @api.model
     def _prepare_transaction(self, line, speeddict, action='create'):
@@ -103,11 +112,15 @@ class MooncardCsvImport(models.TransientModel):
         elif transaction_type == 'expense':
             vendor = line.get('supplier') and line['supplier'].strip()
             partner_id = speeddict['default_partner_id']
-            if vendor:
+            if (
+                    vendor and
+                    len(vendor) >= MEANINGFUL_PARTNER_NAME_MIN_SIZE and
+                    speeddict['partner_match_rule'] and
+                    speeddict['partner_match_rule'] != 'False'):
                 vendor_match = unidecode(vendor.upper())
                 for speed_entry in speeddict['partner']:
                     partner_match = self.partner_match(
-                        vendor_match, speed_entry)
+                        vendor_match, speed_entry, speeddict['partner_match_rule'])
                     if partner_match:
                         partner_id = partner_match
                         break
@@ -305,14 +318,16 @@ class MooncardCsvImport(models.TransientModel):
         action.update({
             'domain': "[('id', 'in', %s)]" % mm_ids,
             'views': False,
-            'nodestroy': False,
             })
         return action
 
     def mooncard_import(self):
         self.ensure_one()
         npcto = self.env['newgen.payment.card.transaction']
+        ico = self.env['ir.config_parameter']
         speeddict = npcto._prepare_import_speeddict()
+        speeddict['partner_match_rule'] = ico.sudo().get_param(
+            'mooncard.partner_match_rule', default='contain')
         logger.info('Importing Mooncard transactions.csv')
         fileobj = TemporaryFile('wb+')
         fileobj.write(base64.b64decode(self.mooncard_file))
@@ -381,6 +396,5 @@ class MooncardCsvImport(models.TransientModel):
         action.update({
             'domain': "[('id', 'in', %s)]" % mt_ids,
             'views': False,
-            'nodestroy': False,
             })
         return action

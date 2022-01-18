@@ -16,6 +16,7 @@
         'security/mooncard_security.xml',
         'security/ir.model.access.csv',
         'data/sequence.xml',
+        'data/ir_config_parameter.xml',
         'wizard/mooncard_csv_import_view.xml',
         'views/mooncard_mileage.xml',
     ],

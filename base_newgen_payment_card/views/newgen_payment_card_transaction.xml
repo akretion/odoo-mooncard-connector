@@ -94,6 +94,14 @@
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch"  type="xml">
         <tree string="Payment Card Transactions">
+            <header>
+                <button
+                    name="%(newgen_payment_card_process_lines_action)d"
+                    type="action"
+                    string="Process"
+                    groups="account.group_account_invoice"
+                />
+            </header>
             <field name="name"/>
             <field name="transaction_type" string="Type"/>
             <field name="payment_date"/>
@@ -105,6 +113,7 @@
             <field name="account_analytic_id"
                 groups="analytic.group_analytic_accounting" optional="show"/>
             <field name="vendor" optional="show"/>
+            <field name="partner_id" optional="hide"/>
             <field name="country_id" optional="hide"/>
             <field name="vat_company_currency" string="VAT"/>
             <field name="total_company_currency" sum="Total" string="Amount"/>

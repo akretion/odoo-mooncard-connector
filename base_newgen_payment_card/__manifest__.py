@@ -15,9 +15,9 @@
     'data': [
         'data/partner.xml',
         'data/sequence.xml',
+        'wizard/newgen_payment_card_process_lines_view.xml',
         'views/newgen_payment_card_transaction.xml',
         'views/newgen_payment_card.xml',
-        'wizard/newgen_payment_card_process_lines_view.xml',
         'security/ir.model.access.csv',
         'security/newgen_payment_card_security.xml',
     ],
