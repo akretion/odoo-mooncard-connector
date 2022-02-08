@@ -28,7 +28,7 @@ class MooncardCsvImport(models.TransientModel):
     @api.model
     def partner_match(self, vendor, speed_entry, partner_match_rule='contain'):
         if partner_match_rule == 'contain':
-            if speed_entry[0] in vendor:
+            if speed_entry[0] in vendor or vendor in speed_entry[0]:
                 return speed_entry[1]
             else:
                 return False
