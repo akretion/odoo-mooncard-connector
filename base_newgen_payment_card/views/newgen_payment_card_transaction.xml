@@ -149,6 +149,9 @@
                 domain="[('state', '=', 'draft')]"/>
             <filter name="done" string="Done"
                 domain="[('state', '=', 'done')]"/>
+            <separator/>
+            <filter name="expense_missing_image" string="Missing Image"
+                domain="[('image_url', '=', False), ('transaction_type', '=', 'expense')]"/>
             <group string="Group By" name="groupby">
                 <filter name="date_groupby" string="Date"
                     context="{'group_by': 'date:week'}"/>
