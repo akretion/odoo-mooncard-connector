@@ -321,8 +321,7 @@ class NewgenPaymentCardTransaction(models.Model):
                 'unece_categ_code': 'S',
                 })
         if not self.description:
-            raise UserError(_("Description is missing on transaction %s.")
-                % self.name)
+            raise UserError(_("Description is missing on transaction %s.") % self.name)
         origin = self.name
         if self.receipt_number:
             origin = '%s (%s)' % (origin, self.receipt_number)
@@ -450,6 +449,18 @@ class NewgenPaymentCardTransaction(models.Model):
                     self.env, self.total_company_currency, self.company_currency_id),
                 ))
 
+    def _prepare_invoice_import_config(self):
+        self.ensure_one()
+        if not self.expense_account_id:
+            raise UserError(_(
+                "Missing expense account on transaction %s.") % self.name)
+        import_config = {
+            'invoice_line_method': 'nline_no_product',
+            'account': self.expense_account_id,
+            'account_analytic': self.account_analytic_id or False,
+            }
+        return import_config
+
     def generate_invoice(self):
         self.ensure_one()
         assert self.transaction_type == 'expense', 'wrong transaction type'
@@ -458,14 +469,7 @@ class NewgenPaymentCardTransaction(models.Model):
         parsed_inv = self._prepare_invoice_import()
         logger.debug('Payment card invoice import parsed_inv=%s', parsed_inv)
         parsed_inv = aiio.pre_process_parsed_inv(parsed_inv)
-        if not self.expense_account_id:
-            raise UserError(_(
-                "Missing expense account on transaction %s") % self.name)
-        import_config = {
-            'invoice_line_method': 'nline_no_product',
-            'account': self.expense_account_id,
-            'account_analytic': self.account_analytic_id or False,
-            }
+        import_config = self._prepare_invoice_import_config()
         invoice = aiio.create_invoice(
             parsed_inv, import_config=import_config, origin='Mooncard connector')
         invoice.message_post(
