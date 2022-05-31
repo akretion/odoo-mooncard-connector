@@ -287,7 +287,7 @@ class NewgenPaymentCardTransaction(models.Model):
     def _countries_vat_refund(self):
         return self.company_id.country_id
 
-    def _get_autoliquidation_tax(self):
+    def _prepare_autoliquidation_taxes(self):
         self.ensure_one()
         assert self.autoliquidation in ('intracom', 'extracom')
         ato = self.env["account.tax"]
@@ -312,7 +312,19 @@ class NewgenPaymentCardTransaction(models.Model):
                 "in company '%s'.") % (
                     self._fields['autoliquidation'].convert_to_export(self.autoliquidation, self),
                     self.company_id.display_name))
-        return tax
+        taxes = [{'id': tax.id}]
+        return taxes
+
+    def _prepare_regular_taxes(self):
+        # This method is inherited in l10n_fr_base_newgen_payment_card
+        self.ensure_one()
+        taxes = [{
+            'amount_type': 'percent',
+            'amount': self.vat_rate,
+            'unece_type_code': 'VAT',
+            'unece_categ_code': 'S',
+            }]
+        return taxes
 
     def _prepare_invoice_import(self):
         self.ensure_one()
@@ -327,7 +339,6 @@ class NewgenPaymentCardTransaction(models.Model):
             self.vat_company_currency, 0)
         total_compare = self.company_currency_id.compare_amounts(
             self.total_company_currency, 0)
-        taxes = []
         if vat_compare:
             if (
                     self.country_id and
@@ -344,15 +355,12 @@ class NewgenPaymentCardTransaction(models.Model):
                     "The sign of the VAT amount (%s) should be the same as "
                     "the sign of the total amount (%s).")
                     % (self.vat_company_currency, self.total_company_currency))
-            taxes.append({
-                'amount_type': 'percent',
-                'amount': self.vat_rate,
-                'unece_type_code': 'VAT',
-                'unece_categ_code': 'S',
-                })
+
+            taxes = self._prepare_regular_taxes()
         elif self.autoliquidation in ('intracom', 'extracom'):
-            tax = self._get_autoliquidation_tax()
-            taxes.append({'id': tax.id})
+            taxes = self._prepare_autoliquidation_taxes()
+        else:
+            taxes = []
         if not self.description:
             raise UserError(_("Description is missing on transaction %s.") % self.name)
         origin = self.name
