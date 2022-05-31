@@ -84,6 +84,12 @@ class NewgenPaymentCardTransaction(models.Model):
         ('load', 'Load'),
         ('expense', 'Expense'),
         ], string='Transaction Type', readonly=True)
+    autoliquidation = fields.Selection([
+        ('intracom', 'Intra-EU'),
+        ('extracom', 'Extra-EU'),
+        ('none', 'None'),
+        ], default='none', string='Auto-Liquidation',
+        states={'done': [('readonly', True)]})
     vat_company_currency = fields.Monetary(
         string='VAT Amount',
         # not readonly, because accountant may have to change the value
@@ -228,9 +234,8 @@ class NewgenPaymentCardTransaction(models.Model):
 
     def _prepare_bank_journal_move(self):
         self.ensure_one()
-        precision = self.company_currency_id.rounding
         amount = self.total_company_currency
-        if float_compare(amount, 0, precision_rounding=precision) > 0:
+        if self.company_currency_id.compare_amounts(amount, 0) > 0:
             credit = 0
             debit = amount
         else:
@@ -279,13 +284,38 @@ class NewgenPaymentCardTransaction(models.Model):
         bank_move.action_post()
         return bank_move
 
-    @api.model
     def _countries_vat_refund(self):
-        return self.env.user.company_id.country_id
+        return self.company_id.country_id
+
+    def _get_autoliquidation_tax(self):
+        self.ensure_one()
+        assert self.autoliquidation in ('intracom', 'extracom')
+        ato = self.env["account.tax"]
+        autoliq2categ = {
+            'intracom': 'K',
+            'extracom': 'G',
+            }
+        domain = [
+            ('company_id', '=', self.company_id.id),
+            ('type_tax_use', '=', 'purchase'),
+            ('unece_type_code', '=', 'VAT'),
+            ('amount_type', '=', 'percent'),
+            ('amount', '>', 0),
+            ('unece_categ_code', '=', autoliq2categ[self.autoliquidation]),
+            ]
+        if hasattr(ato, 'fr_vat_autoliquidation'):
+            domain.append(('fr_vat_autoliquidation', '=', True))
+        tax = ato.search(domain, order='amount desc', limit=1)
+        if not tax:
+            raise UserError(_(
+                "Odoo could not find any %s auto-liquidation tax properly configured "
+                "in company '%s'.") % (
+                    self._fields['autoliquidation'].convert_to_export(self.autoliquidation, self),
+                    self.company_id.display_name))
+        return tax
 
     def _prepare_invoice_import(self):
         self.ensure_one()
-        precision = self.company_currency_id.rounding
         if self.force_invoice_date:
             date_dt = self.force_invoice_date
         elif self.payment_date:
@@ -293,10 +323,10 @@ class NewgenPaymentCardTransaction(models.Model):
         else:
             date_dt = self.date
         date = fields.Date.to_string(date_dt)
-        vat_compare = float_compare(
-            self.vat_company_currency, 0, precision_rounding=precision)
-        total_compare = float_compare(
-            self.total_company_currency, 0, precision_rounding=precision)
+        vat_compare = self.company_currency_id.compare_amounts(
+            self.vat_company_currency, 0)
+        total_compare = self.company_currency_id.compare_amounts(
+            self.total_company_currency, 0)
         taxes = []
         if vat_compare:
             if (
@@ -320,6 +350,9 @@ class NewgenPaymentCardTransaction(models.Model):
                 'unece_type_code': 'VAT',
                 'unece_categ_code': 'S',
                 })
+        elif self.autoliquidation in ('intracom', 'extracom'):
+            tax = self._get_autoliquidation_tax()
+            taxes.append({'id': tax.id})
         if not self.description:
             raise UserError(_("Description is missing on transaction %s.") % self.name)
         origin = self.name
@@ -434,10 +467,9 @@ class NewgenPaymentCardTransaction(models.Model):
                 self.invoice_id.display_name,
                 self.invoice_id.commercial_partner_id.display_name))
         # TODO handle partial payments ?
-        if float_compare(
+        if self.company_currency_id.compare_amounts(
                 self.invoice_id.amount_total_signed,
-                self.total_company_currency,
-                precision_rounding=self.company_currency_id.rounding):
+                self.total_company_currency):
             raise UserError(_(
                 "The transaction %s is linked to the "
                 "invoice/refund %s whose total amount is %s, "
@@ -465,7 +497,6 @@ class NewgenPaymentCardTransaction(models.Model):
         self.ensure_one()
         assert self.transaction_type == 'expense', 'wrong transaction type'
         aiio = self.env['account.invoice.import']
-        precision = self.company_currency_id.rounding
         parsed_inv = self._prepare_invoice_import()
         logger.debug('Payment card invoice import parsed_inv=%s', parsed_inv)
         parsed_inv = aiio.pre_process_parsed_inv(parsed_inv)
@@ -476,9 +507,8 @@ class NewgenPaymentCardTransaction(models.Model):
             body=_("Invoice created from payment card transaction %s.")
             % self.name)
         invoice.action_post()
-        assert float_compare(
-            invoice.amount_tax, abs(self.vat_company_currency),
-            precision_rounding=precision) == 0, 'bug on VAT'
+        assert self.company_currency_id.compare_amounts(
+            invoice.amount_tax, abs(self.vat_company_currency)) == 0, 'bug on VAT'
         return invoice
 
     def reconcile(self, bank_move, invoice):
@@ -498,9 +528,8 @@ class NewgenPaymentCardTransaction(models.Model):
         return movelines_to_rec[0].full_reconcile_id
 
     @api.model
-    def _prepare_import_speeddict(self):
+    def _prepare_import_speeddict(self, company):
         """Used in provided-specific modules"""
-        company = self.env.user.company_id
         bdio = self.env['business.document.import']
         speeddict = {
             'tokens': {}, 'accounts': {}, 'analytic': {},
@@ -523,6 +552,11 @@ class NewgenPaymentCardTransaction(models.Model):
             [('code', '!=', False)], ['code'])
         for country in countries:
             speeddict['countries'][country['code'].strip()] = country['id']
+        speeddict['eu_country_ids'] = self.env.ref('base.europe').country_ids.ids
+        if not company.country_id.id:
+            raise UserError(_(
+                "Country is not set on company '%s'.") % company.display_name)
+        speeddict['my_country_id'] = company.country_id.id
 
         currencies = self.env['res.currency'].with_context(
             active_test=False).search_read([], ['name'])

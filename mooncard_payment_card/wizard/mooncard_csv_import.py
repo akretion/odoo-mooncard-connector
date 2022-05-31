@@ -24,6 +24,9 @@ class MooncardCsvImport(models.TransientModel):
 
     mooncard_file = fields.Binary(string='CSV File', required=True)
     filename = fields.Char(string='Filename')
+    company_id = fields.Many2one(
+        'res.company', string='Company', required=True,
+        default=lambda self: self.env.company)
 
     @api.model
     def partner_match(self, vendor, speed_entry, partner_match_rule='contain'):
@@ -128,8 +131,23 @@ class MooncardCsvImport(models.TransientModel):
             bank_counterpart_account_id =\
                 partner.property_account_payable_id.id
 
+        country_id = False
+        if line.get('country_code') and len(line['country_code']) == 3:
+            logger.debug(
+                'search country with code %s with pycountry',
+                line['country_code'])
+            pcountry = pycountry.countries.get(alpha_3=line['country_code'])
+            if pcountry and pcountry.alpha_2:
+                country_id = speeddict['countries'].get(pcountry.alpha_2)
+        elif line.get('country_code') and len(line['country_code']) > 3:
+            # Temporary to workaround Mooncard bug
+            country_name = unidecode(line['country_code'].strip()).lower()
+            if country_name in speeddict['country_names']:
+                country_id = speeddict['country_names'][country_name]
+
         # VAT rate
         vat_rate = 0
+        autoliquidation = 'none'
         if not float_is_zero(line['vat_eur'], precision_digits=2):
             rates_amount = [
                 ('20.0', abs(line['vat_20_id'])),
@@ -140,6 +158,12 @@ class MooncardCsvImport(models.TransientModel):
             rates_amount_sorted = sorted(
                 rates_amount, key=lambda to_sort: to_sort[1])
             vat_rate = rates_amount_sorted[-1][0]
+        else:
+            if country_id and country_id != speeddict['my_country_id']:
+                if country_id in speeddict['eu_country_ids']:
+                    autoliquidation = 'intracom'
+                else:
+                    autoliquidation = 'extracom'
 
         vals = {
             'transaction_type': transaction_type,
@@ -153,20 +177,15 @@ class MooncardCsvImport(models.TransientModel):
             'receipt_number': line.get('receipt_code'),
             'partner_id': partner_id,
             'bank_counterpart_account_id': bank_counterpart_account_id,
+            'country_id': country_id,
+            'autoliquidation': autoliquidation,
             }
 
         if action == 'update':
             return vals
 
         # Continue with fields required for create
-        country_id = payment_date = False
-        if line.get('country_code') and len(line['country_code']) == 3:
-            logger.debug(
-                'search country with code %s with pycountry',
-                line['country_code'])
-            pcountry = pycountry.countries.get(alpha_3=line['country_code'])
-            if pcountry and pcountry.alpha_2:
-                country_id = speeddict['countries'].get(pcountry.alpha_2)
+        payment_date = False
         currency_id = speeddict['currencies'].get(line.get('original_currency'))
         if (
                 transaction_type == 'expense' and
@@ -177,11 +196,11 @@ class MooncardCsvImport(models.TransientModel):
                 line['date_authorization'], '%Y-%m-%d %H:%M:%S %Z')
 
         vals.update({
+            'company_id': self.company_id.id,
             'unique_import_id': line.get('id'),
             'date': line['date_transaction'] and line['date_transaction'][:10],
             'payment_date': payment_date,
             'card_id': card_id,
-            'country_id': country_id,
             'vendor': line.get('supplier') and line['supplier'].strip(),
             'total_company_currency': line['amount_eur'],
             'total_currency': line['amount_currency'],
@@ -213,6 +232,7 @@ class MooncardCsvImport(models.TransientModel):
             trip_type = typedict[line['Type de trajet']]
 
         vals = {
+            'company_id': self.company_id.id,
             'km': line['km'],
             'price_unit': line['price_unit'],
             'date': line['Date'],
@@ -246,9 +266,8 @@ class MooncardCsvImport(models.TransientModel):
         return vals
 
     @api.model
-    def _prepare_mileage_speeddict(self):
+    def _prepare_mileage_speeddict(self, company):
         bdio = self.env['business.document.import']
-        company = self.env.user.company_id
         speeddict = {'partner': {}, 'analytic': {}, 'accounts': {}}
 
         partner_res = self.env['res.partner'].search_read(
@@ -267,7 +286,7 @@ class MooncardCsvImport(models.TransientModel):
 
     def mooncard_import_mileage(self, fileobj):
         mmo = self.env['mooncard.mileage']
-        speeddict = self._prepare_mileage_speeddict()
+        speeddict = self._prepare_mileage_speeddict(self.company_id)
         fileobj.seek(0)
         reader = unicodecsv.DictReader(
             fileobj, delimiter=';',
@@ -325,7 +344,14 @@ class MooncardCsvImport(models.TransientModel):
         self.ensure_one()
         npcto = self.env['newgen.payment.card.transaction']
         ico = self.env['ir.config_parameter']
-        speeddict = npcto._prepare_import_speeddict()
+        speeddict = npcto._prepare_import_speeddict(self.company_id)
+        # Temporary hack until mooncard restores the country_code column
+        speeddict['country_names'] = {}
+        countries = self.env['res.country'].with_context(lang='fr_FR').search_read(
+            [('name', '!=', False)], ['name'])
+        for country in countries:
+            country_name = unidecode(country['name'].strip()).lower()
+            speeddict['country_names'][country_name] = country['id']
         speeddict['partner_match_rule'] = ico.sudo().get_param(
             'mooncard.partner_match_rule', default='contain')
         logger.info('Importing Mooncard transactions.csv')
