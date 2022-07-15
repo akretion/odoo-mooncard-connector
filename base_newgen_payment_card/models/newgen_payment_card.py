@@ -18,14 +18,25 @@ class NewgenPaymentCard(models.Model):
         string='Card/Account Number', required=True, copy=False)
     active = fields.Boolean(string='Active', default=True)
     company_id = fields.Many2one(
-        'res.company', string='Company', required=True,
-        default=lambda self: self.env.company)
+        'res.company', string='Company', required=True)
     journal_id = fields.Many2one(
         'account.journal', string='Bank Journal', check_company=True,
         domain="[('type', '=', 'bank'), ('company_id', '=', company_id)]",
         ondelete='restrict')
     mapping_ids = fields.One2many(
         'newgen.payment.card.account.mapping', 'card_id', string='Mapping')
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        res['company_id'] = self.env.company.id
+        existing_card_same_company = self.search([
+            ('company_id', '=', res['company_id']),
+            ('journal_id', '!=', False),
+            ], limit=1)
+        if existing_card_same_company:
+            res['journal_id'] = existing_card_same_company.journal_id.id
+        return res
 
     @api.depends('code', 'name')
     def name_get(self):

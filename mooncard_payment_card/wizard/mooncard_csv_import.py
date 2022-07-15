@@ -42,9 +42,9 @@ class MooncardCsvImport(models.TransientModel):
                 return False
         return False
 
-    @api.model
     def _prepare_transaction(self, line, speeddict, action='create'):
         bdio = self.env['business.document.import']
+        npco = self.env['newgen.payment.card']
         account_analytic_id = expense_account_id = card_id = partner_id = False
         # convert to float
         float_fields = [
@@ -86,11 +86,11 @@ class MooncardCsvImport(models.TransientModel):
         if line.get('card_token'):
             card_id = speeddict['tokens'].get(line['card_token'])
             if not card_id:
-                raise UserError(_(
-                    "The CSV file contains the Moon Card '%s'. This "
-                    "card is not registered in Odoo, cf menu "
-                    "Invoicing > Configuration > Payment Cards > "
-                    "Payment Cards)") % line.get('card_token'))
+                card = npco.sudo().create({
+                    'name': line['card_token'],
+                    'company_id': self.company_id.id,
+                    })
+                speeddict['tokens'][line['card_token']] = card.id
 
         # Accounts
         if transaction_type == 'expense':
