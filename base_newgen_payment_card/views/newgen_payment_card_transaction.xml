@@ -97,14 +97,14 @@
         <tree string="Payment Card Transactions">
             <header>
                 <button
-                    name="%(newgen_payment_card_process_lines_action)d"
-                    type="action"
-                    string="Process"
+                    name="process_line"
+                    type="object"
+                    string="Process Lines"
                     groups="account.group_account_invoice"
                 />
             </header>
             <field name="name"/>
-            <field name="transaction_type" string="Type"/>
+            <field name="transaction_type" string="Type" widget="badge" decoration-danger="transaction_type == 'load'" decoration-warning="transaction_type == 'expense'"/>
             <field name="payment_date"/>
             <field name="date" string="Bank Date" optional="hide"/>
             <field name="receipt_number" optional="hide"/>
@@ -116,15 +116,13 @@
             <field name="vendor" optional="show"/>
             <field name="partner_id" optional="hide"/>
             <field name="country_id" optional="hide"/>
-            <field name="vat_company_currency" string="VAT"/>
+            <field name="vat_company_currency" string="VAT" optional="show"/>
             <field name="total_company_currency" sum="Total" string="Amount"/>
             <field name="company_currency_id" invisible="1"/>
             <field name="total_currency" string="Amount in Expense Currency"/>
             <field name="currency_id" invisible="1"/>
             <field name="image_url" invisible="1"/>
-            <field name="company_id" groups="base.group_multi_company"/>
-            <button type="object" name="process_line" icon="fa-gear"
-                string="Process Line" states="draft"/>
+            <field name="company_id" groups="base.group_multi_company" optional="show"/>
             <field name="state" decoration-info="state == 'draft'" decoration-success="state == 'done'" widget="badge"/>
         </tree>
     </field>

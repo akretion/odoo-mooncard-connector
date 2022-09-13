@@ -63,6 +63,14 @@
     <field name="model">mooncard.mileage</field>
     <field name="arch"  type="xml">
         <tree string="Mooncard Mileage">
+            <header>
+                <button
+                    name="process_line"
+                    type="object"
+                    string="Process Lines"
+                    groups="account.group_account_invoice"
+                />
+            </header>
             <field name="name"/>
             <field name="partner_id" optional="show"/>
             <field name="date"/>
@@ -72,10 +80,11 @@
             <field name="arrival"/>
             <field name="car_name" optional="show"/>
             <field name="km" sum="1"/>
+            <field name="price_unit" optional="hide"/>
             <field name="amount" sum="1"/>
             <field name="account_analytic_id"
-                groups="analytic.group_analytic_accounting"/>
-            <field name="company_id" groups="base.group_multi_company"/>
+                groups="analytic.group_analytic_accounting" optional="show"/>
+            <field name="company_id" groups="base.group_multi_company" optional="show"/>
             <field name="company_currency_id" invisible="1"/>
             <field name="invoice_id" optional="hide"/>
             <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'done'"/>
@@ -158,14 +167,5 @@
 
 <menuitem id="mooncard_mileage_menu" action="mooncard_mileage_action"
     parent="base_newgen_payment_card.newgen_payment_card_menu" sequence="20"/>
-
-<record id="mooncard_mileage_process_lines_action_multi" model="ir.actions.act_window">
-    <field name="name">Process Lines</field>
-    <field name="res_model">newgen.payment.card.process.lines</field>
-    <field name="view_mode">form</field>
-    <field name="target">new</field>
-    <field name="binding_model_id" ref="mooncard_payment_card.model_mooncard_mileage"/>
-    <field name="binding_view_types">list</field>
-</record>
 
 </odoo>

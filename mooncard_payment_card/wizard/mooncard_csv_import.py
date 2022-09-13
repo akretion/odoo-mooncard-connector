@@ -213,8 +213,8 @@ class MooncardCsvImport(models.TransientModel):
         bdio = self.env['business.document.import']
         account_analytic_id = False
         # convert to float/int
-        line['price_unit'] = float(line['Barême kilométrique'])
-        line['km'] = int(line['Distance (km)'])
+        line['price_unit'] = float(line['Barème kilométrique'])
+        line['km'] = int(line['Distance'])
         account_analytic_id = account_id = trip_type = False
         if line.get('Codes analytiques'):
             account_analytic_id = speeddict['analytic'].get(
@@ -230,12 +230,14 @@ class MooncardCsvImport(models.TransientModel):
             }
         if line.get('Type de trajet') and line['Type de trajet'] in typedict:
             trip_type = typedict[line['Type de trajet']]
+        date_str = line['Date de dépense']
+        date = datetime.strptime(date_str, '%d/%m/%y')
 
         vals = {
             'company_id': self.company_id.id,
             'km': line['km'],
             'price_unit': line['price_unit'],
-            'date': line['Date'],
+            'date': date,
             'description': line['Description'],
             'car_name': line['Véhicule'],
             'car_plate': line.get("Immatriculation"),
@@ -251,9 +253,11 @@ class MooncardCsvImport(models.TransientModel):
             return vals
 
         # Continue with fields required for create
-        email = line.get('Email')
+        email = line.get('Code utilisateur')
         if not email:
-            raise UserError(_('Missing email'))
+            raise UserError(_(
+                "Code utilisateur is missing. "
+                "It should contain the email of the employee."))
         email = email.strip().lower()
         if email not in speeddict['partner']:
             raise UserError(_(
@@ -332,8 +336,8 @@ class MooncardCsvImport(models.TransientModel):
         fileobj.close()
         if not mm_ids:
             raise UserError(_("No Mooncard mileage created nor updated."))
-        action = self.env['ir.actions.act_window'].for_xml_id(
-            'mooncard_payment_card', 'mooncard_mileage_action')
+        action = self.env['ir.actions.actions']._for_xml_id(
+            'mooncard_payment_card.mooncard_mileage_action')
         action.update({
             'domain': "[('id', 'in', %s)]" % mm_ids,
             'views': False,
@@ -360,7 +364,7 @@ class MooncardCsvImport(models.TransientModel):
         fileobj.seek(0)
         file_content = fileobj.read()
         if file_content.startswith(
-                'Identifiant unique;Collaborateur;Email'.encode('latin1')):
+                'Identifiant unique;Date de dépense;Heure;Date de débit;Montant devise;Devise;Montant;Payment method;Pays;Adresse du marchand;Marchand;Fournisseur;Collaborateur'.encode('latin1')):
             return self.mooncard_import_mileage(fileobj)
         fileobj.seek(0)
         reader = unicodecsv.DictReader(

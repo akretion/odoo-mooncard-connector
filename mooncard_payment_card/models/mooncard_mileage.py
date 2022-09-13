@@ -117,17 +117,20 @@ class MooncardMileage(models.Model):
                 lines_by_partner[line.partner_id] += line
             else:
                 lines_by_partner[line.partner_id] = line
+        if not lines_by_partner:
+            raise UserError(_("Selected mileages are already processed."))
         invoice_ids = []
         for lines in lines_by_partner.values():
             invoice = lines.generate_invoice_same_partner()
             invoice_ids.append(invoice.id)
-        action = self.env['ir.actions.act_window'].for_xml_id(
-            'account', 'action_vendor_bill_template')
+        action = self.env['ir.actions.actions']._for_xml_id(
+            'account.action_move_in_invoice_type')
         action['views'] = False
+        action['view_id'] = False
         if len(invoice_ids) > 1:
             action['domain'] = "[('id', 'in', %s)]" % invoice_ids
         else:
-            action['view_mode'] = 'form,tree,kanban,calendar,pivot,graph'
+            action['view_mode'] = 'form,tree,kanban'
             action['res_id'] = invoice_ids[0]
         return action
 
@@ -143,7 +146,7 @@ class MooncardMileage(models.Model):
         price_unit_formatted = formatLang(
             self.env, self.price_unit, dp='Mileage Price',
             monetary=True, currency_obj=self.company_id.currency_id)
-        name = _('%s %s: %s %s %s %s %d km (%s %s, %s CV, %s/km)') % (
+        name = _('%s %s: %s %s %s %s %d km\n%s %s, %s CV, %s/km\nRef: %s') % (
             date_formatted,
             self.description,
             self.trip_type and triptype_key2label[self.trip_type] or False,
@@ -154,7 +157,8 @@ class MooncardMileage(models.Model):
             self.car_name,
             self.car_plate,
             self.car_fiscal_power,
-            price_unit_formatted)
+            price_unit_formatted,
+            self.name)
         return name
 
     def prepare_invoice(self):
@@ -165,7 +169,7 @@ class MooncardMileage(models.Model):
             'currency_id': self[0].company_id.currency_id.id,
             'move_type': 'in_invoice',
             'company_id': self[0].company_id.id,
-            'origin': _('Mooncard Mileage'),
+            'invoice_origin': _('Mooncard Mileage'),
             'invoice_line_ids': [],
         }
         vals = amo.play_onchanges(vals, ['partner_id'])
@@ -178,8 +182,7 @@ class MooncardMileage(models.Model):
                 'name': name,
                 'quantity': 1,
                 'account_id': line.expense_account_id.id,
-                'account_analytic_id': line.account_analytic_id.id or False,
-                'origin': line.name,
+                'analytic_account_id': line.account_analytic_id.id or False,
                 }))
         vals['date'] = date
         return vals

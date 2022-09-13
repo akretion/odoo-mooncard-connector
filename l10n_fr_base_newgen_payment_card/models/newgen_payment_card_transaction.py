@@ -10,7 +10,7 @@ class NewgenPaymentCardTransaction(models.Model):
     _inherit = 'newgen.payment.card.transaction'
 
     def _prepare_regular_taxes(self):
-        # This method is inherited in l10n_fr_base_newgen_payment_card
+        # Set tax "TVA déd./immobilisation (achat)" on expenses with an asset account
         self.ensure_one()
         taxes = super()._prepare_regular_taxes()
         if (
