@@ -68,8 +68,7 @@ class NewgenPaymentCardTransaction(models.Model):
         'account.analytic.account', string='Analytic Account',
         states={'done': [('readonly', True)]}, ondelete='restrict',
         check_company=True)
-    country_id = fields.Many2one(
-        'res.country', string='Country', readonly=True)
+    country_id = fields.Many2one('res.country', string='Country')
     vendor = fields.Char(string='Vendor', readonly=True)
     partner_id = fields.Many2one(
         'res.partner', string='Vendor Partner',
