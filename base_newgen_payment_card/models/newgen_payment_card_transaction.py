@@ -70,6 +70,7 @@ class NewgenPaymentCardTransaction(models.Model):
         check_company=True)
     country_id = fields.Many2one('res.country', string='Country')
     vendor = fields.Char(string='Vendor', readonly=True)
+    vendor_vat = fields.Char(string='Vendor VAT Number', readonly=True)
     partner_id = fields.Many2one(
         'res.partner', string='Vendor Partner',
         domain=[('parent_id', '=', False)],
@@ -588,24 +589,30 @@ class NewgenPaymentCardTransaction(models.Model):
                 "The default partner (%s) should be a parent partner.")
                 % default_partner.display_name)
         speeddict['default_partner_id'] = default_partner.id
-        speeddict['partner'] = []
+        speeddict['partner_labels'] = {}
         specific_partner_existing_transactions = npcto.search_read([
             ('state', '=', 'done'),
             ('transaction_type', '=', 'expense'),
             ('vendor', '!=', False),
             ('partner_id', '!=', False),
             ('partner_id', '!=', speeddict['default_partner_id'])],
-            ['vendor', 'partner_id'])
+            ['vendor', 'partner_id'], order='id')
+        # order by id to have the latest value for a particular label
         for trans in specific_partner_existing_transactions:
-            speeddict['partner'].append((
-                unidecode(trans['vendor']).strip().upper(),
-                trans['partner_id'][0]))
+            label = unidecode(trans['vendor']).strip().upper()
+            speeddict['partner_labels'][label] = trans['partner_id'][0]
+        speeddict['partner_vat'] = {}
+        speeddict['partner_names'] = {}
         partners = self.env['res.partner'].search_read(
-            [('parent_id', '=', False)], ['name'])
+            [('parent_id', '=', False), ('id', '!=', company.partner_id.id)],
+            ['name', 'vat'])
         for partner in partners:
             partner_name = unidecode(partner['name'].strip().upper())
             if len(partner_name) >= MEANINGFUL_PARTNER_NAME_MIN_SIZE:
-                speeddict['partner'].append((partner_name, partner['id']))
+                speeddict['partner_names'][partner_name] = partner['id']
+            if partner['vat']:
+                # 'vat' field is already sanitized
+                speeddict['partner_vat'][partner['vat']] = partner['id']
         speeddict['default_vat_rate'] = 0
         if (
                 company.account_purchase_tax_id and

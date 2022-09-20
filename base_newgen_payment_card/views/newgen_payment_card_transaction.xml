@@ -34,6 +34,7 @@
                         <field name="card_id"/>
                         <field name="description" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="vendor" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="vendor_vat" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="partner_id" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
                         <field name="country_id" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
                         <field name="image_url" widget="url" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>

@@ -9,6 +9,7 @@ from datetime import datetime
 import unicodecsv
 from unidecode import unidecode
 from tempfile import TemporaryFile
+from stdnum.vatin import is_valid
 import logging
 import pycountry
 import base64
@@ -46,6 +47,7 @@ class MooncardCsvImport(models.TransientModel):
         bdio = self.env['business.document.import']
         npco = self.env['newgen.payment.card']
         account_analytic_id = expense_account_id = card_id = partner_id = False
+        vendor_vat = False
         # convert to float
         float_fields = [
             'vat_eur', 'amount_eur', 'amount_currency',
@@ -114,19 +116,51 @@ class MooncardCsvImport(models.TransientModel):
             bank_counterpart_account_id = speeddict['transfer_account_id']
         elif transaction_type == 'expense':
             vendor = line.get('supplier') and line['supplier'].strip()
-            partner_id = speeddict['default_partner_id']
+
+            if line.get('supplier_vat_number') and line['supplier_vat_number'].strip():
+                raw_vat = line['supplier_vat_number'].strip().replace(' ', '').upper()
+                if is_valid(raw_vat):
+                    vendor_vat = raw_vat
+                else:
+                    logger.warning("Supplier VAT number %s is invalid.", raw_vat)
+
+            # Partner matching
+            # 1. Try to match on VAT
+            if vendor_vat and vendor_vat in speeddict['partner_vat']:
+                partner_id = speeddict['partner_vat'][vendor_vat]
+                logger.debug('Partner ID %d matched on VAT %s', partner_id, vendor_vat)
+
             if (
+                    not partner_id and
                     vendor and
-                    len(vendor) >= MEANINGFUL_PARTNER_NAME_MIN_SIZE and
-                    speeddict['partner_match_rule'] and
-                    speeddict['partner_match_rule'] != 'False'):
-                vendor_match = unidecode(vendor.upper())
-                for speed_entry in speeddict['partner']:
-                    partner_match = self.partner_match(
-                        vendor_match, speed_entry, speeddict['partner_match_rule'])
-                    if partner_match:
-                        partner_id = partner_match
-                        break
+                    len(vendor) >= MEANINGFUL_PARTNER_NAME_MIN_SIZE):
+                # 2. Try to match on labels : exact match
+                vendor_label = unidecode(vendor).upper()
+                if vendor_label in speeddict['partner_labels']:
+                    partner_id = speeddict['partner_labels'][vendor_label]
+                    logger.debug(
+                        'Partner ID %d matched on label %s', partner_id, vendor_label)
+
+                # 3. Try to match on partner name (configurable)
+                if (
+                        not partner_id and
+                        speeddict['partner_match_rule'] and
+                        speeddict['partner_match_rule'] != 'False'):
+                    for speed_entry in speeddict['partner_names'].items():
+                        partner_match = self.partner_match(
+                            vendor_label, speed_entry, speeddict['partner_match_rule'])
+                        if partner_match:
+                            partner_id = partner_match
+                            logger.debug(
+                                "Partner ID %d matched on name '%s' with "
+                                "partner_match_rule=%s",
+                                partner_id, vendor_label,
+                                speeddict['partner_match_rule'])
+                            break
+            # Fallback on Mooncard misc supplier
+            if not partner_id:
+                partner_id = speeddict['default_partner_id']
+
             partner = self.env['res.partner'].browse(partner_id)
             bank_counterpart_account_id =\
                 partner.property_account_payable_id.id
@@ -181,6 +215,7 @@ class MooncardCsvImport(models.TransientModel):
             'partner_id': partner_id,
             'bank_counterpart_account_id': bank_counterpart_account_id,
             'country_id': country_id,
+            'vendor_vat': vendor_vat,
             'autoliquidation': autoliquidation,
             }
 
