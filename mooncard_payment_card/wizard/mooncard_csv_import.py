@@ -132,18 +132,21 @@ class MooncardCsvImport(models.TransientModel):
                 partner.property_account_payable_id.id
 
         country_id = False
-        if line.get('country_code') and len(line['country_code']) == 3:
-            logger.debug(
-                'search country with code %s with pycountry',
-                line['country_code'])
-            pcountry = pycountry.countries.get(alpha_3=line['country_code'])
-            if pcountry and pcountry.alpha_2:
-                country_id = speeddict['countries'].get(pcountry.alpha_2)
-        elif line.get('country_code') and len(line['country_code']) > 3:
-            # Temporary to workaround Mooncard bug
-            country_name = unidecode(line['country_code'].strip()).lower()
-            if country_name in speeddict['country_names']:
-                country_id = speeddict['country_names'][country_name]
+        if line.get('country_code'):
+            if len(line['country_code']) == 2:
+                country_id = speeddict['countries'].get(line['country_code'])
+            elif len(line['country_code']) == 3:
+                logger.debug(
+                    'search country with code %s with pycountry',
+                    line['country_code'])
+                pcountry = pycountry.countries.get(alpha_3=line['country_code'])
+                if pcountry and pcountry.alpha_2:
+                    country_id = speeddict['countries'].get(pcountry.alpha_2)
+            elif len(line['country_code']) > 3:
+                # Workaround Mooncard bug, fixed by mooncard on 20/09/2022
+                country_name = unidecode(line['country_code'].strip()).lower()
+                if country_name in speeddict['country_names']:
+                    country_id = speeddict['country_names'][country_name]
 
         # VAT rate
         vat_rate = 0
