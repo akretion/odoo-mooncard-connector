@@ -4,7 +4,7 @@
 
 {
     'name': 'Mooncard Payment Card',
-    'version': '14.0.1.0.0',
+    'version': '15.0.1.0.0',
     'category': 'Accounting',
     'license': 'AGPL-3',
     'summary': 'Odoo-Mooncard connector',

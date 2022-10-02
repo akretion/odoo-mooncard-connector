@@ -4,7 +4,7 @@
 
 {
     'name': 'New-generation payment card - Base module',
-    'version': '14.0.1.0.0',
+    'version': '15.0.1.0.0',
     'category': 'Accounting',
     'license': 'AGPL-3',
     'summary': 'New-generation payment card',

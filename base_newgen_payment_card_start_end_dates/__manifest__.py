@@ -4,7 +4,7 @@
 
 {
     'name': 'Base Newgen Payment Card Start End Dates',
-    'version': '14.0.1.0.0',
+    'version': '15.0.1.0.0',
     'category': 'Accounting & Finance',
     'license': 'AGPL-3',
     'summary': 'Add start/end dates on payment card transactions',
