@@ -86,13 +86,19 @@ class MooncardCsvImport(models.TransientModel):
 
         # Card
         if line.get('card_token'):
-            card_id = speeddict['tokens'].get(line['card_token'])
-            if not card_id:
+            if line['card_token'] not in speeddict['tokens']:
+                existing_card = npco.search([
+                    ('company_id', '=', self.company_id.id),
+                    ('journal_id', '!=', False),
+                    ], limit=1, order='id desc')
+                journal_id = existing_card and existing_card.journal_id.id or False
                 card = npco.sudo().create({
                     'name': line['card_token'],
                     'company_id': self.company_id.id,
+                    'journal_id': journal_id,
                     })
                 speeddict['tokens'][line['card_token']] = card.id
+            card_id = speeddict['tokens'][line['card_token']]
 
         # Accounts
         if transaction_type == 'expense':
