@@ -16,9 +16,8 @@ class NewgenPaymentCard(models.Model):
         help="Link to user ; only for information purpose.")
     name = fields.Char(
         string='Card/Account Number', required=True, copy=False)
-    active = fields.Boolean(string='Active', default=True)
-    company_id = fields.Many2one(
-        'res.company', string='Company', required=True)
+    active = fields.Boolean(default=True)
+    company_id = fields.Many2one('res.company', required=True)
     journal_id = fields.Many2one(
         'account.journal', string='Bank Journal', check_company=True,
         domain="[('type', '=', 'bank'), ('company_id', '=', company_id)]",

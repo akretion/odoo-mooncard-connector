@@ -13,7 +13,7 @@
     <field name="arch"  type="xml">
         <form string="Mooncard CSV Import Wizard">
             <group name="help-import">
-              <div>
+              <div colspan="2">
                  <p>This import wizard accepts two types of files downloaded from <a href="https://app.mooncard.co/">Mooncard</a>:
                     <ul>
                         <li>Bank statement files (Odoo format), that will generate Payment Card Transactions,</li>

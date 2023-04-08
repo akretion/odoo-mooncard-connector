@@ -11,7 +11,7 @@
     <field name="name">New Generation Payment Card Form</field>
     <field name="model">newgen.payment.card</field>
     <field name="arch"  type="xml">
-        <form string="Payment Card">
+        <form>
             <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
             <group name="main">
                 <field name="name"/>
@@ -19,10 +19,11 @@
                 <field name="user_id"/>
                 <field name="journal_id" context="{'default_type': 'bank'}"/>
                 <field name="company_id" groups="base.group_multi_company"/>
+                <field name="company_id" invisible="1"/>
                 <field name="active" invisible="1"/>
             </group>
             <group name="mapping" string="Override Default Accounts">
-                <field name="mapping_ids" nolabel="1">
+                <field name="mapping_ids" nolabel="1" colspan="2">
                     <tree editable="bottom">
                         <field name="expense_account_id" />
                         <field name="force_expense_account_id" />
@@ -38,7 +39,7 @@
     <field name="name">New Generation Payment Card Tree</field>
     <field name="model">newgen.payment.card</field>
     <field name="arch"  type="xml">
-        <tree string="Payment Cards">
+        <tree>
             <field name="name" decoration-bf="1"/>
             <field name="code"/>
             <field name="user_id"/>
@@ -52,7 +53,7 @@
     <field name="name">New Generation Payment Card search view</field>
     <field name="model">newgen.payment.card</field>
     <field name="arch"  type="xml">
-        <search string="Search Payment Cards">
+        <search>
             <field name="name" string="Token Number, Short Name or User"
                 filter_domain="['|', '|', ('name', 'ilike', self), ('code', 'ilike', self), ('user_id', 'ilike', self)]"/>
             <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>

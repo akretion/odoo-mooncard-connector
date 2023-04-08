@@ -12,7 +12,7 @@
     <field name="name">Mooncard Mileage Form</field>
     <field name="model">mooncard.mileage</field>
     <field name="arch"  type="xml">
-        <form string="Mooncard Mileage">
+        <form>
             <header>
                 <button name="process_line" type="object"
                     string="Process Line" states="draft" class="btn-primary"/>
@@ -36,11 +36,15 @@
                         <field name="car_plate"/>
                         <field name="car_fiscal_power"/>
                         <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="company_id" invisible="1"/>
                     </group>
                     <group name="classification" string="Classification" colspan="2">
                         <field name="expense_account_id"/>
-                        <field name="account_analytic_id"
-                            groups="analytic.group_analytic_accounting"/>
+                        <field name="analytic_distribution"
+                                groups="analytic.group_analytic_accounting"
+                                widget="analytic_distribution"
+                                options="{'account_field': 'expense_account_id', 'business_domain': 'bill'}"
+                                />
                     </group>
                 </group>
                 <group name="right">
@@ -62,7 +66,7 @@
     <field name="name">Mooncard Mileage Tree</field>
     <field name="model">mooncard.mileage</field>
     <field name="arch"  type="xml">
-        <tree string="Mooncard Mileage">
+        <tree>
             <header>
                 <button
                     name="process_line"
@@ -82,7 +86,7 @@
             <field name="km" sum="1"/>
             <field name="price_unit" optional="hide"/>
             <field name="amount" sum="1"/>
-            <field name="account_analytic_id"
+            <field name="analytic_distribution" widget="analytic_distribution"
                 groups="analytic.group_analytic_accounting" optional="show"/>
             <field name="company_id" groups="base.group_multi_company" optional="show"/>
             <field name="company_currency_id" invisible="1"/>
@@ -96,7 +100,7 @@
     <field name="name">Mooncard Mileage search view</field>
     <field name="model">mooncard.mileage</field>
     <field name="arch"  type="xml">
-        <search string="Search Mooncard Mileage">
+        <search>
             <field name="name" string="Number, description, departure or arrival"
                 filter_domain="['|', '|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('arrival', 'ilike', self), ('departure', 'ilike', self)]"/>
             <field name="partner_id"/>
@@ -105,7 +109,9 @@
             <filter name="draft" string="Draft"
                 domain="[('state', '=', 'draft')]"/>
             <filter name="done" string="Done"
-                domain="[('state', '=', 'done')]"/>
+                    domain="[('state', '=', 'done')]"/>
+            <separator/>
+            <filter string="Date" name="date" date="date"/>
             <group string="Group By" name="groupby">
                 <filter name="partner_groupby" string="Partner"
                     context="{'group_by': 'partner_id'}"/>
@@ -113,8 +119,6 @@
                     context="{'group_by': 'date:week'}"/>
                 <filter name="account_groupby" string="Expense Account"
                     context="{'group_by': 'expense_account_id'}"/>
-                <filter name="account_analytic_groupby" string="Analytic Account"
-                        context="{'group_by': 'account_analytic_id'}"/>
                 <filter name="invoice_groupby" string="Vendor Bills"
                     context="{'group_by': 'invoice_id'}"/>
             </group>
@@ -126,7 +130,7 @@
     <field name="name">Mooncard Mileage calendar view</field>
     <field name="model">mooncard.mileage</field>
     <field name="arch" type="xml">
-        <calendar string="Mooncard Mileage" color="expense_account_id" date_start="date">
+        <calendar color="expense_account_id" date_start="date">
             <field name="name"/>
             <field name="description"/>
             <field name="km"/>
@@ -139,7 +143,7 @@
     <field name="name">Mooncard Mileage pivot view</field>
     <field name="model">mooncard.mileage</field>
     <field name="arch"  type="xml">
-        <pivot string="Mooncard Mileage">
+        <pivot>
             <field name="date" type="col" interval="month"/>
             <field name="partner_id" type="row"/>
             <field name="km" type="measure"/>
@@ -152,7 +156,7 @@
     <field name="name">Mooncard Mileage graph view</field>
     <field name="model">mooncard.mileage</field>
     <field name="arch"  type="xml">
-        <graph string="Mooncard Mileage">
+        <graph>
             <field name="date" type="row"/>
             <field name="amount" type="measure"/>
         </graph>

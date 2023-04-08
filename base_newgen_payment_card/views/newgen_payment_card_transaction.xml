@@ -11,7 +11,7 @@
     <field name="name">New Generation Payment Transaction Form</field>
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch"  type="xml">
-        <form string="Payment card transaction">
+        <form>
             <header>
                 <button name="process_line" type="object"
                     string="Process Line" states="draft" class="btn-primary"/>
@@ -28,30 +28,34 @@
                     <group name="transaction" string="Transaction Info" colspan="2">
                         <field name="transaction_type"/>
                         <field name="date"/>
-                        <field name="payment_date" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="payment_date" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
                         <field name="force_invoice_date" attrs="{'invisible': ['|', ('transaction_type', '!=', 'expense'), ('bank_move_only', '=', True)]}"/>
-                        <field name="receipt_number" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="receipt_number" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
                         <field name="card_id"/>
-                        <field name="description" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
-                        <field name="vendor" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
-                        <field name="vendor_vat" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
+                        <field name="description" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
+                        <field name="vendor" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
+                        <field name="vendor_vat" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
                         <field name="partner_id" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
-                        <field name="country_id" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
-                        <field name="image_url" widget="url" attrs="{'invisible': [('transaction_type', '=', 'load')]}"/>
-                        <field name="receipt_lost" attrs="{'invisible': ['|', ('transaction_type', '=', 'load'), ('image_url', '!=', False)]}"/>
+                        <field name="country_id" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
+                        <field name="image_url" widget="url" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}"/>
+                        <field name="receipt_lost" attrs="{'invisible': ['|', ('transaction_type', '!=', 'expense'), ('image_url', '!=', False)]}"/>
                         <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="company_id" invisible="1"/>
                         <field name="company_currency_id" invisible="1"/>
                         <field name="currency_id" invisible="1"/>
                     </group>
-                    <group name="classification" string="Classification" colspan="2" attrs="{'invisible': [('transaction_type', '=', 'load')]}">
+                    <group name="classification" string="Classification" colspan="2" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}">
                         <field name="expense_categ_name"/>
                         <field name="expense_account_id"/>
-                        <field name="account_analytic_id"
-                            groups="analytic.group_analytic_accounting"/>
+                        <field name="analytic_distribution"
+                                groups="analytic.group_analytic_accounting"
+                                widget="analytic_distribution"
+                                options="{'account_field': 'expense_account_id', 'business_domain': 'bill'}"
+                                />
                     </group>
                 </group>
                 <group name="right">
-                    <group string="Amounts" name="amounts_expense" colspan="2" attrs="{'invisible': [('transaction_type', '=', 'load')]}">
+                    <group string="Amounts" name="amounts_expense" colspan="2" attrs="{'invisible': [('transaction_type', '!=', 'expense')]}">
                         <field name="vat_company_currency"/>
                         <label for="vat_rate" string="VAT Rate"/>
                         <div name="vat_rate">
@@ -61,7 +65,7 @@
                         <field name="total_company_currency"/>
                         <field name="total_currency"/>
                     </group>
-                    <group string="Amount" name="amounts_load" colspan="2" attrs="{'invisible': [('transaction_type', '=', 'expense')]}">
+                    <group string="Amount" name="amounts_load" colspan="2" attrs="{'invisible': [('transaction_type', '!=', 'load')]}">
                         <field name="total_company_currency"/>
                     </group>
                     <group name="accounting" string="Accounting" colspan="2">
@@ -95,7 +99,7 @@
     <field name="name">Payment Card Transaction Tree</field>
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch"  type="xml">
-        <tree string="Payment Card Transactions">
+        <tree>
             <header>
                 <button
                     name="process_line"
@@ -112,7 +116,7 @@
             <field name="description" optional="show"/>
             <field name="card_id" optional="show"/>
             <field name="expense_account_id" optional="show"/>
-            <field name="account_analytic_id"
+            <field name="analytic_distribution" widget="analytic_distribution"
                 groups="analytic.group_analytic_accounting" optional="show"/>
             <field name="vendor" optional="show"/>
             <field name="partner_id" optional="hide"/>
@@ -133,7 +137,7 @@
     <field name="name">Payment Card Transaction search view</field>
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch"  type="xml">
-        <search string="Search Payment Card Transactions">
+        <search>
             <field name="name" string="Number, description or vendor"
                 filter_domain="['|', '|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('vendor', 'ilike', self), ('receipt_number', 'ilike', self)]"/>
             <field name="date"/>
@@ -150,6 +154,8 @@
             <filter name="done" string="Done"
                 domain="[('state', '=', 'done')]"/>
             <separator/>
+            <filter string="Bank Date" name="date" date="date"/>
+            <separator/>
             <filter name="expense_missing_image" string="Missing Image"
                 domain="[('image_url', '=', False), ('transaction_type', '=', 'expense')]"/>
             <group string="Group By" name="groupby">
@@ -157,8 +163,6 @@
                     context="{'group_by': 'date:week'}"/>
                 <filter name="account_groupby" string="Expense Account"
                     context="{'group_by': 'expense_account_id'}"/>
-                <filter name="account_analytic" string="Analytic Account"
-                    context="{'group_by': 'account_analytic_id'}"/>
                 <filter name="card_groupby"
                     string="Card" context="{'group_by': 'card_id'}"/>
                 <filter name="transaction_type_groupby"
@@ -177,7 +181,7 @@
     <field name="name">Payment Card Transaction calendar view</field>
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch" type="xml">
-        <calendar string="Payment Card Transactions" color="expense_account_id" date_start="date">
+        <calendar color="expense_account_id" date_start="date">
             <field name="name"/>
             <field name="vendor"/>
             <field name="country_id"/>
@@ -191,7 +195,7 @@
     <field name="name">Payment Card Transaction pivot view</field>
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch"  type="xml">
-        <pivot string="Payment Card Transactions">
+        <pivot>
             <field name="date" type="col" interval="month"/>
             <field name="expense_account_id" type="row"/>
             <field name="total_company_currency" type="measure"/>
@@ -203,7 +207,7 @@
     <field name="name">Payment Card Transaction graph view</field>
     <field name="model">newgen.payment.card.transaction</field>
     <field name="arch"  type="xml">
-        <graph string="Payment Card Transactions">
+        <graph>
             <field name="expense_account_id" type="row"/>
             <field name="total_company_currency" type="measure"/>
         </graph>

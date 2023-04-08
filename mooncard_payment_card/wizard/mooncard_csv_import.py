@@ -46,7 +46,7 @@ class MooncardCsvImport(models.TransientModel):
     def _prepare_transaction(self, line, speeddict, action='create'):
         bdio = self.env['business.document.import']
         npco = self.env['newgen.payment.card']
-        account_analytic_id = expense_account_id = card_id = partner_id = False
+        analytic_distribution = expense_account_id = card_id = partner_id = False
         vendor_vat = False
         # convert to float
         float_fields = [
@@ -116,11 +116,10 @@ class MooncardCsvImport(models.TransientModel):
             if line.get('analytic_code_1'):
                 account_analytic_id = speeddict['analytic'].get(
                     line['analytic_code_1'].lower())
+                analytic_distribution = {account_analytic_id: 100}
 
-        # Partner and bank_counterpart_account_id
-        if transaction_type == 'load':
-            bank_counterpart_account_id = speeddict['transfer_account_id']
-        elif transaction_type == 'expense':
+        # Partner
+        if transaction_type == 'expense':
             vendor = line.get('supplier') and line['supplier'].strip()
 
             if line.get('supplier_vat_number') and line['supplier_vat_number'].strip():
@@ -167,10 +166,6 @@ class MooncardCsvImport(models.TransientModel):
             if not partner_id:
                 partner_id = speeddict['default_partner_id']
 
-            partner = self.env['res.partner'].browse(partner_id)
-            bank_counterpart_account_id =\
-                partner.property_account_payable_id.id
-
         country_id = False
         if line.get('country_code'):
             if len(line['country_code']) == 2:
@@ -213,13 +208,12 @@ class MooncardCsvImport(models.TransientModel):
             'description': line.get('title'),
             'expense_categ_name': line.get('expense_category_name'),
             'expense_account_id': expense_account_id,
-            'account_analytic_id': account_analytic_id,
+            'analytic_distribution': analytic_distribution,
             'vat_company_currency': line['vat_eur'],
             'vat_rate': vat_rate,
             'image_url': line.get('attachment'),
             'receipt_number': line.get('receipt_code'),
             'partner_id': partner_id,
-            'bank_counterpart_account_id': bank_counterpart_account_id,
             'country_id': country_id,
             'vendor_vat': vendor_vat,
             'autoliquidation': autoliquidation,
@@ -255,14 +249,14 @@ class MooncardCsvImport(models.TransientModel):
     @api.model
     def _prepare_mileage(self, line, speeddict, action='create'):
         bdio = self.env['business.document.import']
-        account_analytic_id = False
         # convert to float/int
         line['price_unit'] = float(line['Barème kilométrique'])
         line['km'] = int(line['Distance'])
-        account_analytic_id = account_id = trip_type = False
+        analytic_distribution = account_id = trip_type = False
         if line.get('Codes analytiques'):
             account_analytic_id = speeddict['analytic'].get(
                 line['Codes analytiques'].lower())
+            analytic_distribution = {account_analytic_id: 100}
         if line.get('Compte de charge'):
             account = bdio._match_account(
                 {'code': line['Compte de charge']}, [],
@@ -289,7 +283,7 @@ class MooncardCsvImport(models.TransientModel):
             'departure': line.get('Départ'),
             'arrival': line.get('Arrivée'),
             'trip_type': trip_type,
-            'account_analytic_id': account_analytic_id,
+            'analytic_distribution': analytic_distribution,
             'expense_account_id': account_id,
             }
 
@@ -342,8 +336,8 @@ class MooncardCsvImport(models.TransientModel):
         i = 0
         exiting_mileage = {}
         existings = mmo.search([])
-        for l in existings:
-            exiting_mileage[l.unique_import_id] = l
+        for line in existings:
+            exiting_mileage[line.unique_import_id] = line
         mm_ids = []
         for line in reader:
             i += 1
@@ -408,7 +402,7 @@ class MooncardCsvImport(models.TransientModel):
         fileobj.seek(0)
         file_content = fileobj.read()
         if file_content.startswith(
-                'Identifiant unique;Date de dépense;Heure;Date de débit;Montant devise;Devise;Montant;Payment method;Pays;Adresse du marchand;Marchand;Fournisseur;Collaborateur'.encode('latin1')):
+                'Identifiant unique;Date de dépense;Heure;Date de débit;Montant devise;Devise;Montant;Payment method;Pays;Adresse du marchand;Marchand;Fournisseur;Collaborateur'.encode('latin1')):  # noqa: E501
             return self.mooncard_import_mileage(fileobj)
         fileobj.seek(0)
         reader = unicodecsv.DictReader(
@@ -417,8 +411,8 @@ class MooncardCsvImport(models.TransientModel):
         i = 0
         exiting_transactions = {}
         existings = npcto.search([])
-        for l in existings:
-            exiting_transactions[l.unique_import_id] = l
+        for line in existings:
+            exiting_transactions[line.unique_import_id] = line
         mt_ids = []
         for line in reader:
             i += 1

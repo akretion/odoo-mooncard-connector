@@ -12,51 +12,44 @@ logger = logging.getLogger(__name__)
 
 class MooncardMileage(models.Model):
     _name = 'mooncard.mileage'
+    _inherit = "analytic.mixin"
     _description = 'Mooncard Kilometer Expense'
     _order = 'date desc'
     _check_company_auto = True
 
-    name = fields.Char(string='Number', readonly=True)
+    name = fields.Char(string='Number', readonly=True, default=lambda self: _("New"))
     company_id = fields.Many2one(
-        'res.company', string='Company', required=True, readonly=True,
+        'res.company', required=True, readonly=True,
         default=lambda self: self.env.company)
     company_currency_id = fields.Many2one(
         'res.currency', related='company_id.currency_id',
         string="Company Currency", store=True)
     partner_id = fields.Many2one(
-        'res.partner', string='Partner',
+        'res.partner',
         ondelete='restrict', states={'done': [('readonly', True)]})
-    description = fields.Char(
-        string='Description', states={'done': [('readonly', True)]})
+    description = fields.Char(states={'done': [('readonly', True)]})
     unique_import_id = fields.Char(
         string='Unique Identifier', readonly=True, copy=False)
-    date = fields.Date(
-        string='Date', required=True, readonly=True)
-    departure = fields.Char(
-        string='Departure', states={'done': [('readonly', True)]})
-    arrival = fields.Char(
-        string='Arrival', states={'done': [('readonly', True)]})
+    date = fields.Date(required=True, states={'done': [('readonly', True)]})
+    departure = fields.Char(states={'done': [('readonly', True)]})
+    arrival = fields.Char(states={'done': [('readonly', True)]})
     trip_type = fields.Selection([
         ('oneway', 'One-Way'),
         ('roundtrip', 'Round Trip'),
-        ], string='Trip Type', states={'done': [('readonly', True)]})
+        ], states={'done': [('readonly', True)]})
     expense_account_id = fields.Many2one(
         'account.account', states={'done': [('readonly', True)]},
         domain="[('deprecated', '=', False), ('company_id', '=', company_id)]",
         string='Expense Account', check_company=True)
-    account_analytic_id = fields.Many2one(
-        'account.analytic.account', string='Analytic Account',
-        states={'done': [('readonly', True)]}, ondelete='restrict')
+
     km = fields.Integer(states={'done': [('readonly', True)]})
     price_unit = fields.Float(
         string='Unit Price', required=True,
         digits='Mileage Price', states={'done': [('readonly', True)]})
     car_name = fields.Char(
         string='Car', states={'done': [('readonly', True)]})
-    car_plate = fields.Char(
-        string='Car Plate', states={'done': [('readonly', True)]})
-    car_fiscal_power = fields.Char(
-        string='Car Fiscal Power', states={'done': [('readonly', True)]})
+    car_plate = fields.Char(states={'done': [('readonly', True)]})
+    car_fiscal_power = fields.Char(states={'done': [('readonly', True)]})
     amount = fields.Monetary(
         string='Total Amount', compute='_compute_amount', store=True,
         currency_field='company_currency_id', readonly=True,
@@ -64,26 +57,28 @@ class MooncardMileage(models.Model):
     state = fields.Selection([
         ('draft', 'Draft'),
         ('done', 'Done'),
-        ], compute='_compute_state', store=True,
-        string='State', readonly=True)
+        ], compute='_compute_state', store=True)
     invoice_id = fields.Many2one(
-        'account.move', string='Invoice', check_company=True,
+        'account.move', string='Vendor Bill', check_company=True,
         states={'done': [('readonly', True)]})
     invoice_payment_state = fields.Selection(
         related='invoice_id.payment_state', readonly=True,
-        string="Invoice Payment State")
+        string="Vendor Bill Payment State")
 
     _sql_constraints = [(
         'unique_import_id',
         'unique(unique_import_id)',
         'A mooncard mileage can be imported only once!')]
 
-    @api.model
-    def create(self, vals):
-        if vals.get('name', '/') == '/':
-            vals['name'] = self.env['ir.sequence'].next_by_code(
-                'mooncard.mileage')
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'company_id' in vals:
+                self = self.with_company(vals['company_id'])
+            if vals.get('name', _("New")) == _("New"):
+                vals['name'] = self.env['ir.sequence'].next_by_code(
+                    'mooncard.mileage', sequence_date=vals.get('date')) or _("New")
+        return super().create(vals_list)
 
     def unlink(self):
         for line in self:
@@ -97,6 +92,21 @@ class MooncardMileage(models.Model):
     def _compute_amount(self):
         for mileage in self:
             mileage.amount = mileage.price_unit * mileage.km
+
+    @api.depends("expense_account_id", "partner_id")
+    def _compute_analytic_distribution(self):
+        for mileage in self:
+            distrib = self.env[
+                "account.analytic.distribution.model"
+            ]._get_distribution(
+                {
+                    "partner_id": mileage.partner_id.id,
+                    "partner_category_id": mileage.partner_id.category_id.ids,
+                    "account_prefix": mileage.expense_account_id.code,
+                    "company_id": mileage.company_id.id,
+                }
+            )
+            mileage.analytic_distribution = distrib or mileage.analytic_distribution
 
     # If I only write @api.depends('invoice_id'), then it is not invalidated
     # upon invoice deletion. That's why I use invoice_id.name
@@ -162,7 +172,6 @@ class MooncardMileage(models.Model):
         return name
 
     def prepare_invoice(self):
-        amo = self.env['account.move']
         date = False
         vals = {
             'partner_id': self[0].partner_id.id,
@@ -172,25 +181,27 @@ class MooncardMileage(models.Model):
             'invoice_origin': _('Mooncard Mileage'),
             'invoice_line_ids': [],
         }
-        vals = amo.play_onchanges(vals, ['partner_id'])
         for line in self:
             if not date or date < line.date:
                 date = line.date
+            assert line.company_id.id == vals["company_id"]
             name = line.prepare_invoice_line_name()
             vals['invoice_line_ids'].append((0, 0, {
                 'price_unit': line.amount,
                 'name': name,
                 'quantity': 1,
                 'account_id': line.expense_account_id.id,
-                'analytic_account_id': line.account_analytic_id.id or False,
+                'analytic_distribution': line.analytic_distribution or False,
+                'tax_ids': False,
                 }))
-        vals['date'] = date
+        vals['invoice_date'] = date
         return vals
 
     def generate_invoice_same_partner(self):
         amo = self.env['account.move']
         vals = self.prepare_invoice()
-        invoice = amo.with_context(move_type='in_invoice').create(vals)
+        invoice = amo.create(vals)
+        invoice.with_context(validate_analytic=True)._post(soft=False)
         invoice.message_post(body=_(
             "Invoice created from Mooncard mileage."))
         self.write({
