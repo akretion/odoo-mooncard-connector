@@ -226,6 +226,7 @@ class NewgenPaymentCardTransaction(models.Model):
     @api.depends('partner_id', 'transaction_type', 'company_id')
     def _compute_bank_counterpart_account_id(self):
         for trans in self:
+            account_id = False
             if trans.transaction_type == 'load':
                 account_id = trans.company_id.transfer_account_id.id or False
             elif trans.transaction_type == 'expense':
