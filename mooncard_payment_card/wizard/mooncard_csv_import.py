@@ -466,7 +466,7 @@ class MooncardCsvImport(models.TransientModel):
                 "No payment card transaction created nor updated."))
         action = self.env.ref(
             'base_newgen_payment_card.newgen_payment_card_transaction_action'
-            ).read()[0]
+            ).sudo().read()[0]
         action.update({
             'domain': "[('id', 'in', %s)]" % mt_ids,
             'views': False,
