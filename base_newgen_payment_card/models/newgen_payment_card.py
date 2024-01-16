@@ -23,6 +23,9 @@ class NewgenPaymentCard(models.Model):
         'account.journal', string='Bank Journal', check_company=True,
         domain="[('type', '=', 'bank'), ('company_id', '=', company_id)]",
         ondelete='restrict')
+    purchase_journal_id = fields.Many2one(
+        'account.journal', string='Purchase journal', ondelete='restrict',
+        domain="[('type', '=', 'purchase')]")
     mapping_ids = fields.One2many(
         'newgen.payment.card.account.mapping', 'card_id', string='Mapping')
 
