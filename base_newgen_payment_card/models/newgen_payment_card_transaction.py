@@ -498,6 +498,7 @@ class NewgenPaymentCardTransaction(models.Model):
             'invoice_line_method': 'nline_no_product',
             'account': self.expense_account_id,
             'account_analytic': self.account_analytic_id or False,
+            'journal': self.card_id.purchase_journal_id or False,
             }
         return import_config
 

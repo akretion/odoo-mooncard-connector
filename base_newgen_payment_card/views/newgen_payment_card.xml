@@ -18,6 +18,7 @@
                 <field name="code"/>
                 <field name="user_id"/>
                 <field name="journal_id" context="{'default_type': 'bank'}"/>
+                <field name="purchase_journal_id"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="active" invisible="1"/>
             </group>
