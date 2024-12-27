@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_newgen_payment_card_transaction_vat_line_invoice_grp,Read/write/create access on newgen.payment.card.transaction.vat.line to Invoice grp,model_newgen_payment_card_transaction_vat_line,account.group_account_invoice,1,1,1,0
+access_newgen_payment_card_transaction_vat_line_full,Full access on newgen.payment.card.transaction.vat.line to Finance Manager,model_newgen_payment_card_transaction_vat_line,account.group_account_manager,1,1,1,1

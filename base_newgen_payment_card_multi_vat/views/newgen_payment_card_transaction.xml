@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+<record id="newgen_payment_card_transaction_form" model="ir.ui.view">
+    <field name="model">newgen.payment.card.transaction</field>
+    <field
+            name="inherit_id"
+            ref="base_newgen_payment_card.newgen_payment_card_transaction_form"
+        />
+    <field name="arch" type="xml">
+        <field name="expense_categ_name" position="after">
+            <field name="has_multiple_vat_line" invisible="1"/>
+        </field>
+        <xpath expr="//label[@for='vat_rate']" position="attributes">
+            <attribute name="attrs">{"invisible": [('has_multiple_vat_line', '=', True)]}</attribute>
+        </xpath>
+        <xpath expr="//div[@name='vat_rate']" position="attributes">
+            <attribute name="attrs">{"invisible": [('has_multiple_vat_line', '=', True)]}</attribute>
+        </xpath>
+        <xpath expr="//field[@name='expense_account_id']" position="attributes">
+            <attribute name="attrs">{"invisible": [('has_multiple_vat_line', '=', True)]}</attribute>
+        </xpath>
+        <field name="total_currency" position="after">
+            <separator string="Vat Lines" colspan="4" />
+            <field name="vat_line_ids" nolabel="1" colspan="4">
+                <tree editable="top">
+                    <field name="subtotal_company_currency" optional="hide" />
+                    <field name="total_company_currency" optional="hide" />
+                    <field name="vat_company_currency" />
+                    <field name="vat_rate" />
+                    <field name="expense_account_id" />
+                    <field name="company_id" invisible="1" />
+                    <field name="state" invisible="1" />
+                    <field name="company_currency_id" invisible="1" />
+                    <field name="currency_id" invisible="1" />
+                </tree>
+            </field>
+       </field>
+    </field>
+</record>
+
+</odoo>
