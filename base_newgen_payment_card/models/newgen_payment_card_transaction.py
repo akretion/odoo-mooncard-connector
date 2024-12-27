@@ -390,6 +390,12 @@ class NewgenPaymentCardTransaction(models.Model):
                 }],
             'origin': origin,
             }
+        parsed_inv['attachments'] = self._get_attachment_vals()
+        return parsed_inv
+
+    def _get_attachment_vals(self):
+        self.ensure_one()
+        attachment_vals = {}
         url = self.image_url
         attachments = self.env['ir.attachment'].search([
             ('res_model', '=', self._name),
@@ -401,8 +407,6 @@ class NewgenPaymentCardTransaction(models.Model):
                 "If you lost that receipt, you can mark this transaction "
                 "as 'Receipt Lost'.")
                 % self.name)
-
-        parsed_inv['attachments'] = {}
         if url:
             try:
                 rimage = requests.get(url)
@@ -428,12 +432,12 @@ class NewgenPaymentCardTransaction(models.Model):
                     pass
             filename = 'Receipt-%s%s' % (self.name, file_extension)
             image_b64 = base64.encodebytes(image_binary)
-            parsed_inv['attachments'] = {filename: image_b64}
+            attachment_vals[filename] = image_b64
         if attachments:
             for att in attachments:
-                parsed_inv['attachments'][att.name] = att.datas
+                attachment_vals[att.name] = att.datas
         # TODO: delete attachments on transaction once invoice is created ?
-        return parsed_inv
+        return attachment_vals
 
     @api.model
     def _rotate_image(self, image_binary):
