@@ -1,0 +1,2 @@
+from . import newgen_payment_card_transaction
+from . import newgen_payment_card_transaction_vat_line
