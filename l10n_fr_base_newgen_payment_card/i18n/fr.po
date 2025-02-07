@@ -1,0 +1,22 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_fr_base_newgen_payment_card
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-02-07 22:48+0000\n"
+"PO-Revision-Date: 2025-02-07 22:48+0000\n"
+"Last-Translator: Alexis de Lattre <alexis.delattre@akretion.com>\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_fr_base_newgen_payment_card
+#: model:ir.model,name:l10n_fr_base_newgen_payment_card.model_newgen_payment_card_transaction
+msgid "New-generation payment card transaction"
+msgstr "Transaction par carte de paiement de nouvelle génération"

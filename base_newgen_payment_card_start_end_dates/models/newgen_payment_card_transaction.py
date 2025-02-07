@@ -19,17 +19,17 @@ class NewgenPaymentCardTransaction(models.Model):
         for trans in self:
             if trans.start_date and not trans.end_date:
                 raise ValidationError(_(
-                    "Missing End Date for Mooncard transaction '%s'.")
+                    "Missing End Date for transaction '%s'.")
                     % trans.display_name)
             if trans.end_date and not trans.start_date:
                 raise ValidationError(_(
-                    "Missing Start Date for Mooncard transaction '%s'.")
+                    "Missing Start Date for transaction '%s'.")
                     % trans.display_name)
             if trans.end_date and trans.start_date and \
                     trans.start_date > trans.end_date:
                 raise ValidationError(_(
                     "Start Date should be before or be the same as "
-                    "End Date for Mooncard transaction '%s'.")
+                    "End Date for transaction '%s'.")
                     % trans.display_name)
 
     def _prepare_invoice_import(self):

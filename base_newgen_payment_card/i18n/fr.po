@@ -1,0 +1,909 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* base_newgen_payment_card
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-02-07 21:51+0000\n"
+"PO-Revision-Date: 2025-02-07 21:51+0000\n"
+"Last-Translator: Alexis de Lattre <alexis.delattre@akretion.com>\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.constraint,message:base_newgen_payment_card.constraint_newgen_payment_card_transaction_unique_import_id
+msgid "A payment card transaction can be imported only once!"
+msgstr ""
+"Une transaction par carte de paiement ne peut être importée qu'une seule "
+"fois !"
+
+#. module: base_newgen_payment_card
+#: model:ir.model,name:base_newgen_payment_card.model_newgen_payment_card_account_mapping
+msgid "Account mapping for new generation payment cards"
+msgstr ""
+"Table de correspondance des comptes pour les cartes de paiement de nouvelle génération"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
+msgid "Accounting"
+msgstr "Comptabilité"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_needaction
+msgid "Action Needed"
+msgstr "Action requise"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__active
+msgid "Active"
+msgstr "Actif"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_ids
+msgid "Activities"
+msgstr "Activités"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Style d'affichage de l'activité-alerte"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_state
+msgid "Activity State"
+msgstr "État de l'activité"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Îcone du type d'activité"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
+msgid "Amount"
+msgstr "Montant"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
+msgid "Amount in Expense Currency"
+msgstr "Montant en devise de la dépense"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
+msgid "Amounts"
+msgstr "Montants"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_distribution
+msgid "Analytic"
+msgstr "Analytique"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_distribution_search
+msgid "Analytic Distribution Search"
+msgstr "Recherche de distribution analytique"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_precision
+msgid "Analytic Precision"
+msgstr "Précision analytique"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_form
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_search
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_attachment_count
+msgid "Attachment Count"
+msgstr "Nombre de pièces jointes"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__autoliquidation
+msgid "Auto-Liquidation"
+msgstr "Auto-Liquidation"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
+msgid "Bank Date"
+msgstr "Date bancaire"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__journal_id
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_search
+msgid "Bank Journal"
+msgstr "Journal de banque"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__bank_move_id
+msgid "Bank Journal Entry"
+msgstr "Pièce du journal de banque"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Bank Journal not configured on payment card '%s'"
+msgstr "Journal de banque non configuré sur la carte de paiement '%s'"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__date
+msgid "Bank Transaction Date"
+msgstr "Date de l'opération bancaire"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__partner_id
+msgid ""
+"By default, all transactions are linked to the generic supplier 'Misc "
+"Suppliers'. You can change the partner to the real partner of the "
+"transaction if you want, but it may not be worth the additionnal work."
+msgstr ""
+"Par défaut, toutes les transactions sont liées au fournisseur générique "
+"\"Fournisseurs divers\". Vous pouvez remplacer ce partenaire par le véritable "
+"partenaire de la transaction si vous le souhaitez, "
+"mais cela ne vaut peut-être pas le travail supplémentaire."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Cannot delete transaction '%s' which is in done state."
+msgstr "Impossible de supprimer la transaction '%s' qui est à l'état terminé."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__card_id
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Card"
+msgstr "Carte"
+
+#. module: base_newgen_payment_card
+#: model:ir.actions.act_window,name:base_newgen_payment_card.newgen_payment_card_transaction_action
+#: model:ir.ui.menu,name:base_newgen_payment_card.newgen_payment_card_transaction_menu
+msgid "Card Transactions"
+msgstr "Transactions par carte"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__name
+msgid "Card/Account Number"
+msgstr "Numéro de carte/compte"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
+msgid "Classification"
+msgstr "Classification"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__company_id
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__company_id
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__company_currency_id
+msgid "Company Currency"
+msgstr "Devise de la société"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"Could not download the image of transaction %s from URL %s (HTTP error code "
+"%s)."
+msgstr ""
+"Il n'a pas été possible de télécharger l'image de la transaction %s à partir "
+"de l'URL %s (code d'erreur HTTP %s)."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__bank_counterpart_account_id
+msgid "Counter-part of Bank Journal Item"
+msgstr "Contrepartie de l'écriture comptable bancaire"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Counter-part of Bank Journal Item is empty on transaction %s."
+msgstr ""
+"La contrepartie de l'écriture comptable bancaire est vide sur la transaction %s."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__country_id
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Country"
+msgstr "Pays"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Country is not set on company '%s'."
+msgstr "Le pays n'est pas défini pour la société '%s'."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__create_uid
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__create_uid
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__create_date
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__create_date
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Currency"
+msgstr "Devise"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Date"
+msgstr "Date"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__description
+msgid "Description"
+msgstr "Description"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Description is missing on transaction %s."
+msgstr "La description est manquante sur la transaction %s."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__display_name
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__display_name
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields.selection,name:base_newgen_payment_card.selection__newgen_payment_card_transaction__state__done
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Done"
+msgstr "Terminé"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields.selection,name:base_newgen_payment_card.selection__newgen_payment_card_transaction__state__draft
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields.selection,name:base_newgen_payment_card.selection__newgen_payment_card_transaction__transaction_type__expense
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Expense"
+msgstr "Dépense"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__expense_account_id
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__expense_account_id
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Expense Account"
+msgstr "Compte de charge"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__expense_categ_name
+msgid "Expense Category"
+msgstr "Catégorie de dépense"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__currency_id
+msgid "Expense Currency"
+msgstr "Devise de la dépense"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields.selection,name:base_newgen_payment_card.selection__newgen_payment_card_transaction__autoliquidation__extracom
+msgid "Extra-EU"
+msgstr "Extra-UE"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Failed to download the image of the receipt. Error message: %s."
+msgstr "Échec du téléchargement de l'image du reçu. Message d'erreur : %s."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_follower_ids
+msgid "Followers"
+msgstr "Abonnés"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Abonnés (partenaires)"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "Îcone font-awesome, par exemple fa-task"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"For the moment, we don't support linking to an invoice in another currency "
+"than the company currency."
+msgstr ""
+"Pour l'instant, il n'est pas possible d'établir un lien avec une facture "
+"dans une devise autre que celle de la société."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__force_invoice_date
+msgid "Force Invoice Date"
+msgstr "Forcer la date de facture"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__bank_move_only
+msgid "Generate Bank Journal Entry Only"
+msgstr "Générer uniquement la pièce du journal de banque"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_search
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Group By"
+msgstr "Grouper par"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__has_message
+msgid "Has Message"
+msgstr "A un message"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__id
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__id
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__id
+msgid "ID"
+msgstr "ID"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_exception_icon
+msgid "Icon"
+msgstr "Îcone"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Îcone pour indiquer une activité-alerte"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si activé, de nouveaux messages nécessitent votre attention."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__message_has_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si activé, des messages ont une erreur d'envoi."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__image_url
+msgid "Image URL"
+msgstr "URL de l'image"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields.selection,name:base_newgen_payment_card.selection__newgen_payment_card_transaction__autoliquidation__intracom
+msgid "Intra-EU"
+msgstr "Intra-UE"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__invoice_id
+msgid "Invoice"
+msgstr "Facture"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__invoice_payment_state
+msgid "Invoice Payment Status"
+msgstr "Statut de paiement de la facture"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Invoice created from payment card transaction %s."
+msgstr "Facture créée à partir de la transaction par carte de paiement %s."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_is_follower
+msgid "Is Follower"
+msgstr "Est abonné"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card____last_update
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping____last_update
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction____last_update
+msgid "Last Modified on"
+msgstr "Dernière modification le"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__write_uid
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__write_uid
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__write_date
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__write_date
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card__user_id
+msgid "Link to user ; only for information purpose."
+msgstr "Lien vers l'utilisateur ; uniquement à titre d'information."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields.selection,name:base_newgen_payment_card.selection__newgen_payment_card_transaction__transaction_type__load
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Load"
+msgstr "Chargement"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_main_attachment_id
+msgid "Main Attachment"
+msgstr "Pièce jointe principale"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__vat_rate
+msgid "Main VAT rate of the transaction in percent."
+msgstr "Taux de TVA dominant de la transaction en pourcentage."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__mapping_ids
+msgid "Mapping"
+msgstr "Table de correspondance"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_has_error
+msgid "Message Delivery error"
+msgstr "Erreur d'envoi du message"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_ids
+msgid "Messages"
+msgstr "Messages"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Missing 'Internal Bank Transfer Account' on company '%s'."
+msgstr "'Compte de virement interne' non configuré sur la société '%s'."
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Missing Image"
+msgstr "Image manquante"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Missing expense account on transaction %s."
+msgstr "Compte de charge manquant sur la transaction %s."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"Missing image URL and/or attachments on transaction %s. If you lost that "
+"receipt, you can mark this transaction as 'Receipt Lost'."
+msgstr ""
+"Absence de l'URL de l'image et/ou des pièces jointes sur la transaction %s. "
+"Si vous avez perdu ce reçu, vous pouvez cocher la case "
+"\"Reçu perdu\" de cette transaction."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Missing image URL for transaction %s."
+msgstr "URL de l'image manquante pour la transaction %s."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "Date butoir de l'activité"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "New"
+msgstr "Nouveau"
+
+#. module: base_newgen_payment_card
+#: model:ir.model,name:base_newgen_payment_card.model_newgen_payment_card
+msgid "New generation payment card"
+msgstr "Carte de paiement de nouvelle génération"
+
+#. module: base_newgen_payment_card
+#: model:ir.model,name:base_newgen_payment_card.model_newgen_payment_card_transaction
+msgid "New-generation payment card transaction"
+msgstr "Transaction par carte de paiement de nouvelle génération"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "Prochaine activité du calendrier"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Date butoir de l'activité suivante"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_summary
+msgid "Next Activity Summary"
+msgstr "Résumé de l'activité suivante"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_type_id
+msgid "Next Activity Type"
+msgstr "Type de l'activité suivante"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields.selection,name:base_newgen_payment_card.selection__newgen_payment_card_transaction__autoliquidation__none
+msgid "None"
+msgstr "Aucun"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__name
+msgid "Number"
+msgstr "Numéro"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Nombre d'actions"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_has_error_counter
+msgid "Number of errors"
+msgstr "Nombre d'erreurs"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Nombre de messages nécessitant une action"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Nombre de messages en échec d'envoi"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Number, description or vendor"
+msgstr "Numéro, description ou fournisseur"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"Odoo could not find any %s auto-liquidation tax properly configured in "
+"company '%s'."
+msgstr ""
+"Odoo n'a pas pu trouver de taxe d'auto-liquidation %s correctement "
+"configurée dans la société '%s'."
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_form
+msgid "Override Default Accounts"
+msgstr "Remplacer les comptes par défaut"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__force_expense_account_id
+msgid "Override Expense Account"
+msgstr "Remplacer le compte de charge"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Partner missing on expense transaction '%s'."
+msgstr "Partenaire manquant sur la transaction \"%s\"."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__card_id
+#: model:ir.ui.menu,name:base_newgen_payment_card.newgen_payment_card_menu
+msgid "Payment Card"
+msgstr "Carte de paiement"
+
+#. module: base_newgen_payment_card
+#: model:ir.actions.act_window,name:base_newgen_payment_card.newgen_payment_card_action
+#: model:ir.ui.menu,name:base_newgen_payment_card.newgen_payment_card_config
+#: model:ir.ui.menu,name:base_newgen_payment_card.newgen_payment_card_config_menu
+msgid "Payment Cards"
+msgstr "Cartes de paiement"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__payment_date
+msgid "Payment Date"
+msgstr "Date de paiement"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Ready to validate"
+msgstr "Prêt à valider"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__receipt_lost
+msgid "Receipt Lost"
+msgstr "Reçu perdu"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__receipt_number
+msgid "Receipt Number"
+msgstr "Numéro de reçu"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__reconcile_id
+msgid "Reconcile"
+msgstr "Lettrage"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_user_id
+msgid "Responsible User"
+msgstr "Utilisateur responsable"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__code
+msgid "Short Name"
+msgstr "Nom court"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__state
+msgid "State"
+msgstr "État"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Statut basé sur les activités\n"
+"En retard : La date d'échéance est déjà dépassée\n"
+"Aujourd'hui : La date de l'activité est aujourd'hui\n"
+"Planifié : Activités futures."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "The default partner (%s) should be a parent partner."
+msgstr "Le partenaire par défaut (%s) doit être un partenaire parent."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"The sign of the VAT amount (%s) should be the same as the sign of the total "
+"amount (%s)."
+msgstr ""
+"Le signe du montant de la TVA (%s) doit être le même que celui du montant "
+"total (%s)."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"The transaction %s is linked to invoice %s which is not a supplier invoice/"
+"refund!"
+msgstr ""
+"La transaction %s est liée à la facture %s qui n'est pas une facture/"
+"avoir fournisseur !"
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"The transaction %s is linked to invoice %s which is not in unpaid state."
+msgstr ""
+"La transaction %s est liée à la facture %s qui n'est pas à l'état "
+"impayé."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"The transaction %s is linked to partner '%s' whereas the related invoice %s "
+"is linked to partner '%s'."
+msgstr ""
+"La transaction %s est liée au partenaire \"%s\" tandis que la facture "
+"%s est liée au partenaire \"%s\"."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"The transaction %s is linked to the invoice/refund %s whose total amount is "
+"%s, but the amount of the transaction is %s."
+msgstr ""
+"La transaction %s est liée à la facture/avoir %s dont le montant "
+"total est %s, mais le montant de la transaction est %s."
+
+#. module: base_newgen_payment_card
+#. odoo-python
+#: code:addons/base_newgen_payment_card/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"The transaction '%s' is associated with country '%s'. As we cannot refund "
+"VAT from this country, the VAT amount of that transaction should be updated "
+"to 0."
+msgstr ""
+"La transaction '%s' est associée au pays '%s'. Comme nous ne pouvons pas "
+"déduire la TVA de ce pays, le montant de la TVA de cette transaction doit "
+"être mis à jour à 0."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__date
+msgid ""
+"This is the date of the bank transaction written on the bank statement. It "
+"may be a few days after the payment date. It is used for the payment move."
+msgstr ""
+"Il s'agit de la date de l'opération bancaire inscrite sur le relevé de "
+"compte. Elle peut être postérieure de quelques jours à la date de paiement. "
+"Elle est utilisée pour la pièce du journal de banque."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__payment_date
+msgid ""
+"This is the real date of the payment. It may be a few days before the date "
+"of the bank transaction written on the bank statement. It is used for the "
+"supplier invoice."
+msgstr ""
+"Il s'agit de la date réelle du paiement. Elle peut être antérieure de "
+"quelques jours à la date de la transaction bancaire inscrite sur le relevé "
+"de compte. Elle est utilisée pour la facture du fournisseur."
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_search
+msgid "Token Number, Short Name or User"
+msgstr "Numéro de jeton, nom abrégé ou utilisateur"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
+msgid "Total"
+msgstr "Total"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__total_company_currency
+msgid "Total Amount in Company Currency"
+msgstr "Montant total en devise de la société"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__total_currency
+msgid "Total Amount in Expense Currency"
+msgstr "Montant total dans la devise de la dépense"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
+msgid "Transaction Info"
+msgstr "Info sur la transaction"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__transaction_type
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
+msgid "Transaction Type"
+msgstr "Type de transaction"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
+msgid "Type"
+msgstr "Type"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "Type de l'activité-alerte sur l'enregistrement."
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__unique_import_id
+msgid "Unique Identifier"
+msgstr "Identifiant unique"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__user_id
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
+msgid "VAT"
+msgstr "TVA"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__vat_company_currency
+msgid "VAT Amount"
+msgstr "Montant de la TVA"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__vat_company_currency
+msgid "VAT Amount in Company Currency"
+msgstr "Montant de la TVA dans la devise de la société"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
+msgid "VAT Rate"
+msgstr "Taux de TVA"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__vat_rate
+msgid "VAT Rate (%)"
+msgstr "Taux de TVA (%)"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
+msgid "Validate"
+msgstr "Valider"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__vendor
+msgid "Vendor"
+msgstr "Fournisseur"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__partner_id
+msgid "Vendor Partner"
+msgstr "Partenaire fournisseur"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__vendor_vat
+msgid "Vendor VAT Number"
+msgstr "Numéro de TVA du fournisseur"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__website_message_ids
+msgid "Website Messages"
+msgstr "Messages du site Web"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__website_message_ids
+msgid "Website communication history"
+msgstr "Historique des échanges sur le site Web"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__bank_move_only
+msgid ""
+"When you process a transaction on which this option is enabled, Odoo will "
+"only generate the move in the bank journal, it will not generate a supplier "
+"invoice/refund. This option is useful when you make a payment in advance and "
+"you haven't received the invoice yet."
+msgstr ""
+"Lorsque vous traitez une transaction sur laquelle cette option est activée, "
+"Odoo ne génère que la pièce du journal de banque, il ne génère pas "
+"de facture/avoir fournisseur. Cette option est utile lorsque vous "
+"effectuez un paiement à l'avance et que vous n'avez pas encore reçu la "
+"facture."

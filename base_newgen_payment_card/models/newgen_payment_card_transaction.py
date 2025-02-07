@@ -48,7 +48,7 @@ class NewgenPaymentCardTransaction(models.Model):
         string='Bank Transaction Date', required=True, readonly=True,
         help="This is the date of the bank transaction written on the "
         "bank statement. It may be a few days after the payment date. "
-        "It is used for the payment move.")
+        "It is used for the bank journal entry.")
     payment_date = fields.Datetime(
         string='Payment Date', readonly=True,
         help="This is the real date of the payment. It may be a few days "
@@ -60,7 +60,7 @@ class NewgenPaymentCardTransaction(models.Model):
         'newgen.payment.card', string='Card', readonly=True,
         ondelete='restrict', check_company=True)
     expense_categ_name = fields.Char(
-        string='Expense Category Name', readonly=True)
+        string='Expense Category', readonly=True)
     expense_account_id = fields.Many2one(
         'account.account', states={'done': [('readonly', True)]},
         domain="[('deprecated', '=', False), ('company_id', '=', company_id), ('is_off_balance', '=', False)]",
@@ -115,10 +115,10 @@ class NewgenPaymentCardTransaction(models.Model):
         ], string='State', default='draft', readonly=True)
     receipt_number = fields.Char(string='Receipt Number', readonly=True)
     bank_move_only = fields.Boolean(
-        string="Generate Bank Move Only",
+        string="Generate Bank Journal Entry Only",
         states={'done': [('readonly', True)]},
         help="When you process a transaction on which this option is enabled, "
-        "Odoo will only generate the move in the bank journal, it will not "
+        "Odoo will only generate the journal entry in the bank journal, it will not "
         "generate a supplier invoice/refund. This option is useful when you "
         "make a payment in advance and you haven't received the invoice yet.")
     invoice_id = fields.Many2one(
@@ -134,9 +134,9 @@ class NewgenPaymentCardTransaction(models.Model):
         compute='_compute_bank_counterpart_account_id', store=True, precompute=True,
         readonly=False, states={'done': [('readonly', True)]},
         domain="[('deprecated', '=', False), ('company_id', '=', company_id), ('is_off_balance', '=', False)]",
-        string="Counter-part of Bank Move", check_company=True)
+        string="Counter-part of Bank Journal Item", check_company=True)
     bank_move_id = fields.Many2one(
-        'account.move', string="Bank Move", readonly=True, check_company=True)
+        'account.move', string="Bank Journal Entry", readonly=True, check_company=True)
 
     _sql_constraints = [(
         'unique_import_id',
@@ -277,7 +277,7 @@ class NewgenPaymentCardTransaction(models.Model):
         journal = self.card_id.journal_id
         if not self.bank_counterpart_account_id:
             raise UserError(_(
-                "Counter-part of Bank Move is empty "
+                "Counter-part of Bank Journal Item is empty "
                 "on transaction %s.") % self.name)
         transaction_type = dict(
             self.fields_get(
