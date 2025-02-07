@@ -1,0 +1,56 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* base_newgen_payment_card_start_end_dates
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-02-07 22:51+0000\n"
+"PO-Revision-Date: 2025-02-07 22:51+0000\n"
+"Last-Translator: Alexis de Lattre <alexis.delattre@akretion.com>\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base_newgen_payment_card_start_end_dates
+#: model:ir.model.fields,field_description:base_newgen_payment_card_start_end_dates.field_newgen_payment_card_transaction__end_date
+msgid "End Date"
+msgstr "Date de fin"
+
+#. module: base_newgen_payment_card_start_end_dates
+#. odoo-python
+#: code:addons/base_newgen_payment_card_start_end_dates/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Missing End Date for transaction '%s'."
+msgstr "Date de fin manquante sur la transaction '%s'."
+
+#. module: base_newgen_payment_card_start_end_dates
+#. odoo-python
+#: code:addons/base_newgen_payment_card_start_end_dates/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid "Missing Start Date for transaction '%s'."
+msgstr "Date de début manquante sur la transaction '%s'."
+
+#. module: base_newgen_payment_card_start_end_dates
+#: model:ir.model,name:base_newgen_payment_card_start_end_dates.model_newgen_payment_card_transaction
+msgid "New-generation payment card transaction"
+msgstr "Transaction par carte de paiement de nouvelle génération"
+
+#. module: base_newgen_payment_card_start_end_dates
+#: model:ir.model.fields,field_description:base_newgen_payment_card_start_end_dates.field_newgen_payment_card_transaction__start_date
+msgid "Start Date"
+msgstr "Date de début"
+
+#. module: base_newgen_payment_card_start_end_dates
+#. odoo-python
+#: code:addons/base_newgen_payment_card_start_end_dates/models/newgen_payment_card_transaction.py:0
+#, python-format
+msgid ""
+"Start Date should be before or be the same as End Date for transaction '%s'."
+msgstr ""
+"La date de début doit être antérieure ou identique à la date de fin de la "
+"transaction \"%s\"."

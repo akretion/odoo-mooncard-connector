@@ -1,0 +1,425 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mooncard_payment_card
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-02-07 22:52+0000\n"
+"PO-Revision-Date: 2025-02-07 22:53+0000\n"
+"Last-Translator: Alexis de Lattre <alexis.delattre@akretion.com>\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/models/mooncard_mileage.py:0
+#, python-format
+msgid ""
+"%s %s: %s %s %s %s %d km\n"
+"%s %s, %s CV, %s/km\n"
+"Ref: %s"
+msgstr ""
+"%s %s: %s %s %s %s %d km\n"
+"%s %s, %s CV, %s/km\n"
+"Ref : %s"
+
+#. module: mooncard_payment_card
+#: model:ir.model.constraint,message:mooncard_payment_card.constraint_mooncard_mileage_unique_import_id
+msgid "A mooncard mileage can be imported only once!"
+msgstr "Un frais kilométrique Mooncard ne peut être importée qu'une seule fois !"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_form
+msgid "Amounts"
+msgstr "Montants"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__analytic_distribution
+msgid "Analytic"
+msgstr "Analytique"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__analytic_distribution_search
+msgid "Analytic Distribution Search"
+msgstr "Recherche de distribution analytique"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__analytic_precision
+msgid "Analytic Precision"
+msgstr "Précision analytique"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__arrival
+msgid "Arrival"
+msgstr "Arrivée"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_csv_import_form
+msgid ""
+"Bank statement files (Odoo format), that will generate Payment Card "
+"Transactions,"
+msgstr ""
+"Fichiers de relevé de compte (format Odoo), qui généreront des transactions "
+"par carte de paiement."
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__mooncard_file
+msgid "CSV File"
+msgstr "Fichier CSV"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_csv_import_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/wizard/mooncard_csv_import.py:0
+#, python-format
+msgid "Cannot convert float field '%s' with value '%s'."
+msgstr "Impossible de convertir le champ float '%s' avec la valeur '%s'."
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/models/mooncard_mileage.py:0
+#, python-format
+msgid "Cannot delete Mooncard mileage expense '%s' which is in done state."
+msgstr ""
+"Impossible de supprimer le frais kilométrique Mooncard '%s' qui est à l'état terminé."
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__car_name
+msgid "Car"
+msgstr "Voiture"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__car_fiscal_power
+msgid "Car Fiscal Power"
+msgstr "Puissance fiscale de la voiture"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__car_plate
+msgid "Car Plate"
+msgstr "Plaque de voiture"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_form
+msgid "Classification"
+msgstr "Classification"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/wizard/mooncard_csv_import.py:0
+#, python-format
+msgid ""
+"Code utilisateur is missing. It should contain the email of the employee."
+msgstr ""
+"Il manque le code utilisateur. Il devrait contenir l'adresse électronique de "
+"l'employé."
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__company_id
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__company_currency_id
+msgid "Company Currency"
+msgstr "Devise de la société"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__create_uid
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__create_date
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__date
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_search
+msgid "Date"
+msgstr "Date"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__departure
+msgid "Departure"
+msgstr "Départ"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__description
+msgid "Description"
+msgstr "Description"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__display_name
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields.selection,name:mooncard_payment_card.selection__mooncard_mileage__state__done
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_search
+msgid "Done"
+msgstr "Terminé"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields.selection,name:mooncard_payment_card.selection__mooncard_mileage__state__draft
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_search
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__expense_account_id
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_search
+msgid "Expense Account"
+msgstr "Compte de charge"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__filename
+msgid "Filename"
+msgstr "Nom du fichier"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_search
+msgid "Group By"
+msgstr "Grouper par"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__id
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__id
+msgid "ID"
+msgstr "ID"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_csv_import_form
+msgid "Import"
+msgstr "Importation"
+
+#. module: mooncard_payment_card
+#: model:ir.model,name:mooncard_payment_card.model_mooncard_csv_import
+msgid "Import Mooncard Transactions"
+msgstr "Importer des transactions Mooncard"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/models/mooncard_mileage.py:0
+#, python-format
+msgid "Invoice created from Mooncard mileage."
+msgstr "Facture créée à partir des frais kilométriques Mooncard."
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__km
+msgid "Km"
+msgstr "Km"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import____last_update
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage____last_update
+msgid "Last Modified on"
+msgstr "Dernière modification le"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__write_uid
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_csv_import__write_date
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_csv_import_form
+msgid "Mileage files, that will generate Mooncard Mileage."
+msgstr ""
+"Fichiers de frais kilométriques, qui généreront les frais kilométriques Mooncard."
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/wizard/mooncard_csv_import.py:0
+#, python-format
+msgid "Missing ID in CSV file line %d."
+msgstr "ID manquant dans le fichier CSV ligne %d."
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_csv_import_form
+msgid "Mooncard"
+msgstr "Mooncard"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_csv_import_form
+msgid "Mooncard CSV Import Wizard"
+msgstr "Assistant d'import CSV Mooncard"
+
+#. module: mooncard_payment_card
+#: model:ir.actions.act_window,name:mooncard_payment_card.mooncard_csv_import_action
+#: model:ir.ui.menu,name:mooncard_payment_card.mooncard_csv_import_menu
+msgid "Mooncard Import"
+msgstr "Import Mooncard"
+
+#. module: mooncard_payment_card
+#: model:ir.model,name:mooncard_payment_card.model_mooncard_mileage
+msgid "Mooncard Kilometer Expense"
+msgstr "Charge du frais kilomètrique"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/models/mooncard_mileage.py:0
+#: model:ir.actions.act_window,name:mooncard_payment_card.mooncard_mileage_action
+#: model:ir.ui.menu,name:mooncard_payment_card.mooncard_mileage_menu
+#, python-format
+msgid "Mooncard Mileage"
+msgstr "Frais kilométrique Mooncard"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/models/mooncard_mileage.py:0
+#, python-format
+msgid "New"
+msgstr "Nouveau"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/wizard/mooncard_csv_import.py:0
+#, python-format
+msgid "No Mooncard mileage created nor updated."
+msgstr "Aucun frais kilométrique Mooncard n'a été créé ni mis à jour."
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/wizard/mooncard_csv_import.py:0
+#, python-format
+msgid "No partner with email '%s' found"
+msgstr "Aucun partenaire avec l'email '%s' trouvé"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/wizard/mooncard_csv_import.py:0
+#, python-format
+msgid "No payment card transaction created nor updated."
+msgstr "Aucune transaction par carte de paiement n'a été créée ou mise à jour."
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__name
+msgid "Number"
+msgstr "Numéro"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_search
+msgid "Number, description, departure or arrival"
+msgstr "Numéro, description, départ ou arrivée"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields.selection,name:mooncard_payment_card.selection__mooncard_mileage__trip_type__oneway
+msgid "One-Way"
+msgstr "Aller simple"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__partner_id
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_search
+msgid "Partner"
+msgstr "Partenaire"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_form
+msgid "Process Line"
+msgstr "Valider"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_tree
+msgid "Process Lines"
+msgstr "Valider"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields.selection,name:mooncard_payment_card.selection__mooncard_mileage__trip_type__roundtrip
+msgid "Round Trip"
+msgstr "Aller-retour"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/models/mooncard_mileage.py:0
+#, python-format
+msgid "Selected mileages are already processed."
+msgstr "Les frais kilométriques sélectionnés sont déjà validés."
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__state
+msgid "State"
+msgstr "État"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_csv_import_form
+msgid "This import wizard accepts two types of files downloaded from"
+msgstr ""
+"Cet assistant d'import accepte deux types de fichiers téléchargés à "
+"partir de"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__amount
+msgid "Total Amount"
+msgstr "Montant total"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,help:mooncard_payment_card.field_mooncard_mileage__amount
+msgid "Total amount in company currency"
+msgstr "Montant total dans la devise de la société"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_form
+msgid "Transaction Info"
+msgstr "Infos sur la transaction"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__trip_type
+msgid "Trip Type"
+msgstr "Type de déplacement"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__unique_import_id
+msgid "Unique Identifier"
+msgstr "Identifiant unique"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__price_unit
+msgid "Unit Price"
+msgstr "Prix unitaire"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__invoice_id
+msgid "Vendor Bill"
+msgstr "Facture fournisseur"
+
+#. module: mooncard_payment_card
+#: model:ir.model.fields,field_description:mooncard_payment_card.field_mooncard_mileage__invoice_payment_state
+msgid "Vendor Bill Payment State"
+msgstr "État du paiement de la facture fournisseur"
+
+#. module: mooncard_payment_card
+#: model_terms:ir.ui.view,arch_db:mooncard_payment_card.mooncard_mileage_search
+msgid "Vendor Bills"
+msgstr "Factures fournisseurs"
+
+#. module: mooncard_payment_card
+#. odoo-python
+#: code:addons/mooncard_payment_card/wizard/mooncard_csv_import.py:0
+#, python-format
+msgid ""
+"Wrong transaction type '%s'. The only possible values are 'P' (expense) or "
+"'L' (load)."
+msgstr ""
+"Mauvais type de transaction '%s'. Les seules valeurs possibles sont "
+"'P' (dépense) ou 'L' (chargement)."

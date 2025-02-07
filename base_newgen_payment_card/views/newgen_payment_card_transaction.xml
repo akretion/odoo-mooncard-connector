@@ -14,7 +14,7 @@
         <form>
             <header>
                 <button name="process_line" type="object"
-                    string="Process Line" states="draft" class="btn-primary"/>
+                    string="Validate" states="draft" class="btn-primary"/>
                 <field name="state" widget="statusbar"/>
             </header>
             <sheet>
@@ -104,7 +104,7 @@
                 <button
                     name="process_line"
                     type="object"
-                    string="Process Lines"
+                    string="Validate"
                     groups="account.group_account_invoice"
                 />
             </header>
@@ -141,7 +141,7 @@
             <field name="name" string="Number, description or vendor"
                 filter_domain="['|', '|', '|', ('name', 'ilike', self), ('description', 'ilike', self), ('vendor', 'ilike', self), ('receipt_number', 'ilike', self)]"/>
             <field name="date"/>
-            <filter name="ready_to_process" string="Ready to process"
+            <filter name="ready_to_process" string="Ready to validate"
                 domain="[('state', '=', 'draft'), ('transaction_type', 'in', ('load', 'expense')), ('expense_account_id', '!=', False), ('description', '!=', False), '|', ('image_url', '!=', False), ('receipt_lost', '=', True)]"/>
             <separator/>
             <filter name="load" string="Load"
