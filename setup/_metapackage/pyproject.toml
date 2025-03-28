@@ -1,0 +1,14 @@
+[project]
+name = "odoo-addons-akretion-odoo-mooncard-connector"
+version = "18.0.20250328.0"
+dependencies = [
+    "odoo-addon-base_newgen_payment_card==18.0.*",
+    "odoo-addon-base_newgen_payment_card_start_end_dates==18.0.*",
+    "odoo-addon-l10n_fr_base_newgen_payment_card==18.0.*",
+    "odoo-addon-mooncard_payment_card==18.0.*",
+]
+classifiers=[
+    "Programming Language :: Python",
+    "Framework :: Odoo",
+    "Framework :: Odoo :: 18.0",
+]
