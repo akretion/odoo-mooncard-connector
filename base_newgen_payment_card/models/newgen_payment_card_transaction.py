@@ -1,21 +1,18 @@
-# Copyright 2016-2021 Akretion France (http://www.akretion.com/)
+# Copyright 2016-2025 Akretion France (https://www.akretion.com/)
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, Command, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare
 from odoo.tools.misc import format_amount
 import requests
-import base64
 import logging
 from urllib.parse import urlparse
+from markupsafe import Markup
 import os
 import io
-import logging
-from unidecode import unidecode
 
-MEANINGFUL_PARTNER_NAME_MIN_SIZE = 3
 TIMEOUT = 30
 
 logger = logging.getLogger(__name__)
@@ -40,8 +37,7 @@ class NewgenPaymentCardTransaction(models.Model):
     company_currency_id = fields.Many2one(
         'res.currency', related='company_id.currency_id',
         string="Company Currency", store=True)
-    description = fields.Char(
-        string='Description', states={'done': [('readonly', True)]})
+    description = fields.Char(string='Description')
     unique_import_id = fields.Char(
         string='Unique Identifier', readonly=True, copy=False)
     date = fields.Date(
@@ -54,26 +50,24 @@ class NewgenPaymentCardTransaction(models.Model):
         help="This is the real date of the payment. It may be a few days "
         "before the date of the bank transaction written on the bank "
         "statement. It is used for the supplier invoice.")
-    force_invoice_date = fields.Date(
-        string='Force Invoice Date', states={'done': [('readonly', True)]})
+    force_invoice_date = fields.Date(string='Force Invoice Date')
     card_id = fields.Many2one(
         'newgen.payment.card', string='Card', readonly=True,
         ondelete='restrict', check_company=True)
     expense_categ_name = fields.Char(
         string='Expense Category', readonly=True)
     expense_account_id = fields.Many2one(
-        'account.account', states={'done': [('readonly', True)]},
-        domain="[('deprecated', '=', False), ('company_id', '=', company_id), ('is_off_balance', '=', False)]",
+        'account.account',
+        domain="[('deprecated', '=', False), ('company_ids', 'in', company_id), ('account_type', '!=', 'off_balance')]",
         string='Expense Account', check_company=True)
-    analytic_distribution = fields.Json(states={'done': [('readonly', True)]})
+    analytic_distribution = fields.Json()
     country_id = fields.Many2one('res.country', string='Country')
     vendor = fields.Char(string='Vendor', readonly=True)
     vendor_vat = fields.Char(string='Vendor VAT Number', readonly=True)
     partner_id = fields.Many2one(
         'res.partner', string='Vendor Partner',
-        domain=[('parent_id', '=', False)],
-        states={'draft': [('readonly', False)]}, ondelete='restrict',
-        compute="_compute_partner_id", store=True, precompute=True,
+        domain=[('parent_id', '=', False)], ondelete='restrict',
+        compute="_compute_partner_id", store=True, precompute=True, readonly=False,
         help="By default, all transactions are linked to the generic "
         "supplier 'Misc Suppliers'. You can change the partner "
         "to the real partner of the transaction if you want, but it may not "
@@ -86,17 +80,14 @@ class NewgenPaymentCardTransaction(models.Model):
         ('intracom', 'Intra-EU'),
         ('extracom', 'Extra-EU'),
         ('none', 'None'),
-        ], default='none', string='Auto-Liquidation',
-        states={'done': [('readonly', True)]})
+        ], default='none', string='Auto-Liquidation')
     vat_company_currency = fields.Monetary(
         string='VAT Amount',
         # not readonly, because accountant may have to change the value
         currency_field='company_currency_id',
-        states={'done': [('readonly', True)]},
         help='VAT Amount in Company Currency')
     vat_rate = fields.Float(
-        string='VAT Rate (%)', states={'done': [('readonly', True)]},
-        digits=(16, 4),
+        string='VAT Rate (%)', digits=(16, 4),
         help='Main VAT rate of the transaction in percent.')
     total_company_currency = fields.Monetary(
         string='Total Amount in Company Currency',
@@ -106,9 +97,8 @@ class NewgenPaymentCardTransaction(models.Model):
     total_currency = fields.Monetary(
         string='Total Amount in Expense Currency', readonly=True,
         currency_field='currency_id')
-    image_url = fields.Char(string='Image URL', readonly=True)
-    receipt_lost = fields.Boolean(
-        string='Receipt Lost', states={'done': [('readonly', True)]})
+    image_url = fields.Char(string='Image URL')
+    receipt_lost = fields.Boolean(string='Receipt Lost')
     state = fields.Selection([
         ('draft', 'Draft'),
         ('done', 'Done'),
@@ -116,24 +106,19 @@ class NewgenPaymentCardTransaction(models.Model):
     receipt_number = fields.Char(string='Receipt Number', readonly=True)
     bank_move_only = fields.Boolean(
         string="Generate Bank Journal Entry Only",
-        states={'done': [('readonly', True)]},
         help="When you process a transaction on which this option is enabled, "
         "Odoo will only generate the journal entry in the bank journal, it will not "
         "generate a supplier invoice/refund. This option is useful when you "
         "make a payment in advance and you haven't received the invoice yet.")
     invoice_id = fields.Many2one(
-        'account.move', string='Invoice', check_company=True,
-        states={'done': [('readonly', True)]})
+        'account.move', string='Invoice', check_company=True)
     invoice_payment_state = fields.Selection(
         related='invoice_id.payment_state', string="Invoice Payment Status")
-    reconcile_id = fields.Many2one(
-        'account.full.reconcile', string="Reconcile",
-        compute='_compute_reconcile_id', readonly=True)
     bank_counterpart_account_id = fields.Many2one(
         'account.account',
         compute='_compute_bank_counterpart_account_id', store=True, precompute=True,
-        readonly=False, states={'done': [('readonly', True)]},
-        domain="[('deprecated', '=', False), ('company_id', '=', company_id), ('is_off_balance', '=', False)]",
+        readonly=False,
+        domain="[('deprecated', '=', False), ('company_ids', 'in', company_id), ('account_type', '!=', 'off_balance')]",
         string="Counter-part of Bank Journal Item", check_company=True)
     bank_move_id = fields.Many2one(
         'account.move', string="Bank Journal Entry", readonly=True, check_company=True)
@@ -154,19 +139,6 @@ class NewgenPaymentCardTransaction(models.Model):
                     sequence_date=vals.get('date')) or _("New")
         return super().create(vals_list)
 
-    @api.depends('bank_move_id')
-    def _compute_reconcile_id(self):
-        for trans in self:
-            reconcile_id = False
-            if trans.bank_move_id:
-                for line in trans.bank_move_id.line_ids:
-                    if (
-                            line.account_id ==
-                            trans.bank_counterpart_account_id and
-                            line.full_reconcile_id):
-                        reconcile_id = line.full_reconcile_id.id
-            trans.reconcile_id = reconcile_id
-
     @api.depends("partner_id", "expense_account_id")
     def _compute_analytic_distribution(self):
         for trans in self:
@@ -182,19 +154,17 @@ class NewgenPaymentCardTransaction(models.Model):
             )
             trans.analytic_distribution = distribution or trans.analytic_distribution
 
-    @api.depends('invoice_id')
+    # We could write the partner matching here
+    # advantage: generic code, not mooncard-specific
+    # drawback: no speeddict that allows to speed-up matching
+    @api.depends('invoice_id', 'company_id')
     def _compute_partner_id(self):
         for trans in self:
             if trans.invoice_id:
                 partner = trans.invoice_id.commercial_partner_id
             else:
-                partner = trans._default_partner()
+                partner = trans.company_id._default_partner()
             trans.partner_id = partner and partner.id or False
-
-    def _default_partner(self, raise_if_not_found=False):
-        return self.env.ref(
-            'base_newgen_payment_card.misc_supplier',
-            raise_if_not_found=raise_if_not_found)
 
     @api.constrains('transaction_type', 'partner_id')
     def _check_transaction(self):
@@ -220,7 +190,7 @@ class NewgenPaymentCardTransaction(models.Model):
             if trans.state == 'done':
                 raise UserError(_(
                     "Cannot delete transaction '%s' which is in "
-                    "done state.") % trans.name)
+                    "done state.") % trans.display_name)
         return super().unlink()
 
     @api.depends('partner_id', 'transaction_type', 'company_id')
@@ -243,7 +213,7 @@ class NewgenPaymentCardTransaction(models.Model):
             if line.state != 'draft':
                 logger.warning(
                     'Skipping transaction %s which is not draft',
-                    line.name)
+                    line.display_name)
                 continue
             vals = {'state': 'done'}
             bank_move = line.generate_bank_journal_move()
@@ -256,8 +226,7 @@ class NewgenPaymentCardTransaction(models.Model):
                     else:
                         invoice = line.generate_invoice()
                         vals['invoice_id'] = invoice.id
-                    rec = line.reconcile(bank_move, invoice)
-                    vals['reconcile_id'] = rec.id
+                    line.reconcile(bank_move, invoice)
             line.write(vals)
         return True
 
@@ -283,7 +252,7 @@ class NewgenPaymentCardTransaction(models.Model):
             self.fields_get(
                 'transaction_type',
                 'selection')['transaction_type']['selection'])[self.transaction_type]
-        ref = '%s (%s)' % (self.name, transaction_type)
+        ref = f'{self.name} ({transaction_type})'
         if self.transaction_type == 'expense':
             partner_id = self.partner_id.id
         elif self.transaction_type == 'load':
@@ -293,13 +262,13 @@ class NewgenPaymentCardTransaction(models.Model):
             'date': self.date,
             'ref': ref,
             'line_ids': [
-                (0, 0, {
+                Command.create({
                     'account_id': journal.default_account_id.id,
                     'debit': debit,
                     'credit': credit,
                     'partner_id': partner_id,
                     }),
-                (0, 0, {
+                Command.create({
                     'account_id': self.bank_counterpart_account_id.id,
                     'debit': credit,
                     'credit': debit,
@@ -345,29 +314,37 @@ class NewgenPaymentCardTransaction(models.Model):
                     self._fields['autoliquidation'].convert_to_export(
                         self.autoliquidation, self),
                     self.company_id.display_name))
-        taxes = [{'id': tax.id}]
-        return taxes
+        tax_ids = [tax.id]
+        return tax_ids
 
     def _prepare_regular_taxes(self):
         # This method is inherited in l10n_fr_base_newgen_payment_card
         self.ensure_one()
-        taxes = [{
-            'amount_type': 'percent',
-            'amount': self.vat_rate,
-            'unece_type_code': 'VAT',
-            'unece_categ_code': 'S',
-            }]
-        return taxes
+        domain = [
+            ('company_id', '=', self.company_id.id),
+            ('type_tax_use', '=', 'purchase'),
+            ('price_include', '=', False),
+            ('amount_type', '=', 'percent'),
+            ('amount', '>', 0),
+            ('unece_type_code', '=', 'VAT'),
+            ('unece_categ_code', '=', 'S'),
+            ]
+        taxes = self.env['account.tax'].search(domain)
+        for tax in taxes:
+            # self.vat_rate = 20.0
+            if not float_compare(tax.amount, self.vat_rate, precision_digits=4):
+                return [tax.id]
+        raise UserError(_(
+            "Failed to match regular purchase VAT tax %.2f %%.") % self.vat_rate)
 
-    def _prepare_invoice_import(self):
+    def _prepare_invoice(self):
         self.ensure_one()
         if self.force_invoice_date:
-            date_dt = self.force_invoice_date
+            date = self.force_invoice_date
         elif self.payment_date:
-            date_dt = self.payment_date
+            date = self.payment_date
         else:
-            date_dt = self.date
-        date = fields.Date.to_string(date_dt)
+            date = self.date
         vat_compare = self.company_currency_id.compare_amounts(
             self.vat_company_currency, 0)
         total_compare = self.company_currency_id.compare_amounts(
@@ -389,39 +366,49 @@ class NewgenPaymentCardTransaction(models.Model):
                     "the sign of the total amount (%s).")
                     % (self.vat_company_currency, self.total_company_currency))
 
-            taxes = self._prepare_regular_taxes()
+            tax_ids = self._prepare_regular_taxes()
         elif self.autoliquidation in ('intracom', 'extracom'):
-            taxes = self._prepare_autoliquidation_taxes()
+            tax_ids = self._prepare_autoliquidation_taxes()
         else:
-            taxes = []
+            tax_ids = []
         if not self.description:
-            raise UserError(_("Description is missing on transaction %s.") % self.name)
+            raise UserError(_("Description is missing on transaction '%s'.") % self.display_name)
+        if not self.expense_account_id:
+            raise UserError(_(
+                "Missing expense account on transaction '%s'.") % self.display_name)
+        if not self.partner_id:
+            raise UserError(_(
+                "Missing partner on transaction '%s'.") % self.display_name)
+
         origin = self.name
         if self.receipt_number:
             origin = '%s (%s)' % (origin, self.receipt_number)
         amount_untaxed = self.total_company_currency * -1\
             - self.vat_company_currency * -1
-        price_unit = amount_untaxed
-        qty = 1
         if total_compare > 0:  # refund
-            qty *= -1
-            price_unit *= -1
-        parsed_inv = {
-            'partner': {'recordset': self.partner_id},
-            'date': date,
-            'date_due': date,
-            'currency': {'recordset': self.company_id.currency_id},
-            'amount_total': self.total_company_currency * -1,
-            'amount_untaxed': amount_untaxed,
-            'invoice_number': self.name,
-            'lines': [{
-                'taxes': taxes,
+            move_type = 'in_refund'
+            price_unit = amount_untaxed * -1
+        else:  # invoice
+            move_type = 'in_invoice'
+            price_unit = amount_untaxed
+        vals = {
+            'partner_id': self.partner_id.id,
+            'invoice_date': date,
+            'invoice_date_due': date,
+            'currency_id': self.company_id.currency_id.id,
+            'move_type': move_type,
+            'ref': self.name,
+            'invoice_origin': origin,
+            'attachment_ids': [],
+            'invoice_line_ids': [Command.create({
+                'display_type': 'product',
+                'tax_ids': tax_ids,
+                'account_id': self.expense_account_id.id,
+                'analytic_distribution': self.analytic_distribution or False,
                 'price_unit': price_unit,
                 'name': self.description,
-                'qty': qty,
-                'uom': {'recordset': self.env.ref('uom.product_uom_unit')},
-                }],
-            'origin': origin,
+                'quantity': 1,
+                })],
             }
         url = self.image_url
         attachments = self.env['ir.attachment'].search([
@@ -435,7 +422,6 @@ class NewgenPaymentCardTransaction(models.Model):
                 "as 'Receipt Lost'.")
                 % self.name)
 
-        parsed_inv['attachments'] = {}
         if url:
             try:
                 rimage = requests.get(url, timeout=TIMEOUT)
@@ -460,13 +446,18 @@ class NewgenPaymentCardTransaction(models.Model):
                     logger.info('Failed to rotate the image. Error: %s', e)
                     pass
             filename = 'Receipt-%s%s' % (self.name, file_extension)
-            image_b64 = base64.encodebytes(image_binary)
-            parsed_inv['attachments'] = {filename: image_b64}
-        if attachments:
-            for att in attachments:
-                parsed_inv['attachments'][att.name] = att.datas
-        # TODO: delete attachments on transaction once invoice is created ?
-        return parsed_inv
+            vals['attachment_ids'].append(Command.create({
+                'name': filename,
+                'res_model': 'account.move',
+                'raw': image_binary,
+                }))
+        for att in attachments:
+            vals['attachment_ids'].append(Command.create({
+                'name': att.name,
+                'res_model': 'account.move',
+                'raw': att.raw,
+                }))
+        return vals
 
     @api.model
     def _rotate_image(self, image_binary):
@@ -524,42 +515,47 @@ class NewgenPaymentCardTransaction(models.Model):
                     self.env, self.total_company_currency, self.company_currency_id),
                 ))
 
-    def _prepare_invoice_import_config(self):
-        self.ensure_one()
-        if not self.expense_account_id:
-            raise UserError(_(
-                "Missing expense account on transaction %s.") % self.name)
-        import_config = {
-            'invoice_line_method': 'nline_no_product',
-            'account': self.expense_account_id,
-            'analytic_distribution': self.analytic_distribution or False,
-            }
-        return import_config
-
     def generate_invoice(self):
         self.ensure_one()
         assert self.transaction_type == 'expense', 'wrong transaction type'
-        aiio = self.env['account.invoice.import']
-        parsed_inv = self._prepare_invoice_import()
-        logger.debug('Payment card invoice import parsed_inv=%s', parsed_inv)
-        parsed_inv = aiio.pre_process_parsed_inv(parsed_inv)
-        import_config = self._prepare_invoice_import_config()
-        invoice = aiio.create_invoice(
-            parsed_inv, import_config=import_config, origin='Mooncard connector')
-        invoice.message_post(
-            body=_("Invoice created from payment card transaction %s.")
-            % self.name)
+        inv_vals = self._prepare_invoice()
+        logger.debug('Payment card invoice inv_vals=%s', inv_vals)
+        invoice = self.env['account.move'].create(inv_vals)
+        trans_link = f"<a href='#' data-oe-model='{self._name}' data-oe-id='{self.id}'>{self.display_name}</a>"
+        invoice.message_post(body=Markup(_("Invoice created from payment card transaction %s.") % trans_link))
         invoice.with_context(validate_analytic=True)._post(soft=False)
-        assert self.company_currency_id.compare_amounts(
-            invoice.amount_tax, abs(self.vat_company_currency)) == 0, 'bug on VAT'
+        self._post_process_invoice(invoice)
         return invoice
+
+    def _post_process_invoice(self, invoice):
+        cur = self.company_currency_id
+        total_compare = cur.compare_amounts(
+            self.total_company_currency, 0)
+        amount_total = self.total_company_currency
+        amount_tax = self.vat_company_currency
+        if total_compare < 0:
+            amount_total *= -1
+            amount_tax *= -1
+        # force total tax amount to match total amount
+        invoice._check_total_amount(amount_total)
+        if self.company_currency_id.compare_amounts(invoice.amount_total, amount_total):
+            raise UserError(_(
+                "Wrong total amount. Transaction total amount: %(trans_total)s. "
+                "Vendor bill/refund total amount: %(invoice_total)s. This should never happen.",
+                trans_total=format_amount(self.env, amount_total, cur),
+                invoice_total=format_amount(self.env, invoice.amount_total, cur),
+                )
+                )
+        if self.company_currency_id.compare_amounts(invoice.amount_tax, amount_tax):
+            raise UserError(_(
+                "Wrong tax amount. Maybe the code to force the tax amount didn't work. "
+                "This should never happen."))
 
     def reconcile(self, bank_move, invoice):
         self.ensure_one()
         assert self.bank_counterpart_account_id
         assert bank_move
         assert invoice
-        assert not self.reconcile_id, 'already has a reconcile mark'
         movelines_to_rec = self.env['account.move.line'].search([
             ('move_id', '=', bank_move.id),
             ('account_id', '=', self.bank_counterpart_account_id.id),
@@ -568,93 +564,3 @@ class NewgenPaymentCardTransaction(models.Model):
             if line.account_id == self.bank_counterpart_account_id:
                 movelines_to_rec += line
         movelines_to_rec.reconcile()
-        return movelines_to_rec[0].full_reconcile_id
-
-    @api.model
-    def _prepare_import_speeddict(self, company):
-        """Used in provided-specific modules"""
-        bdio = self.env['business.document.import']
-        speeddict = {
-            'tokens': {}, 'accounts': {}, 'analytic': {},
-            'countries': {}, 'currencies': {}, 'mapping': {}}
-
-        token_res = self.env['newgen.payment.card'].search_read(
-            [('company_id', '=', company.id)], ['name'])
-        for token in token_res:
-            speeddict['tokens'][token['name']] = token['id']
-
-        speeddict['accounts'] = bdio._prepare_account_speed_dict()
-
-        analytic_res = self.env['account.analytic.account'].search_read(
-            [('company_id', '=', company.id), ('code', '!=', False)], ['code'])
-        for analytic in analytic_res:
-            analytic_code = analytic['code'].strip().lower()
-            speeddict['analytic'][analytic_code] = analytic['id']
-
-        countries = self.env['res.country'].search_read(
-            [('code', '!=', False)], ['code'])
-        for country in countries:
-            speeddict['countries'][country['code'].strip()] = country['id']
-        speeddict['eu_country_ids'] = self.env.ref('base.europe').country_ids.ids
-        if not company.country_id.id:
-            raise UserError(_(
-                "Country is not set on company '%s'.") % company.display_name)
-        speeddict['my_country_id'] = company.country_id.id
-
-        currencies = self.env['res.currency'].with_context(
-            active_test=False).search_read([], ['name'])
-        for curr in currencies:
-            speeddict['currencies'][curr['name']] = curr['id']
-        npcto = self.env['newgen.payment.card.transaction']
-        map_res = self.env['newgen.payment.card.account.mapping'].search_read(
-            [('company_id', '=', company.id)])
-        for map_entry in map_res:
-            speeddict['mapping'][
-                (map_entry['card_id'][0],
-                 map_entry['expense_account_id'][0])] =\
-                map_entry['force_expense_account_id'][0]
-        if not company.transfer_account_id:
-            raise UserError(_(
-                "Missing 'Internal Bank Transfer Account' on company '%s'.")
-                % company.display_name)
-        speeddict['transfer_account_id'] = company.transfer_account_id.id
-        default_partner = self._default_partner(raise_if_not_found=True)
-        if default_partner.parent_id:
-            raise UserError(_(
-                "The default partner (%s) should be a parent partner.")
-                % default_partner.display_name)
-        speeddict['default_partner_id'] = default_partner.id
-        speeddict['partner_labels'] = {}
-        specific_partner_existing_transactions = npcto.search_read([
-            ('state', '=', 'done'),
-            ('transaction_type', '=', 'expense'),
-            ('vendor', '!=', False),
-            ('partner_id', '!=', False),
-            ('partner_id', '!=', speeddict['default_partner_id'])],
-            ['vendor', 'partner_id'], order='id')
-        # order by id to have the latest value for a particular label
-        for trans in specific_partner_existing_transactions:
-            label = unidecode(trans['vendor']).strip().upper()
-            speeddict['partner_labels'][label] = trans['partner_id'][0]
-        speeddict['partner_vat'] = {}
-        speeddict['partner_names'] = {}
-        partners = self.env['res.partner'].search_read(
-            [('parent_id', '=', False), ('id', '!=', company.partner_id.id)],
-            ['name', 'vat'])
-        for partner in partners:
-            partner_name = unidecode(partner['name'].strip().upper())
-            if len(partner_name) >= MEANINGFUL_PARTNER_NAME_MIN_SIZE:
-                speeddict['partner_names'][partner_name] = partner['id']
-            if partner['vat']:
-                # 'vat' field is already sanitized
-                speeddict['partner_vat'][partner['vat']] = partner['id']
-        speeddict['default_vat_rate'] = 0
-        if (
-                company.account_purchase_tax_id and
-                company.account_purchase_tax_id.amount_type == 'percent' and
-                float_compare(
-                    company.account_purchase_tax_id.amount, 0,
-                    precision_digits=4) > 0):
-            speeddict['default_vat_rate'] =\
-                company.account_purchase_tax_id.amount
-        return speeddict

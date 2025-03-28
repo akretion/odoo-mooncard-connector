@@ -1,8 +1,8 @@
-# Copyright 2018-2021 Akretion France (http://www.akretion.com/)
+# Copyright 2018-2025 Akretion France (https://www.akretion.com/)
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, Command, _
 from babel.dates import format_date
 from odoo.tools.misc import formatLang
 from odoo.exceptions import UserError
@@ -17,58 +17,56 @@ class MooncardMileage(models.Model):
     _order = 'date desc'
     _check_company_auto = True
 
-    name = fields.Char(string='Number', readonly=True, default=lambda self: _("New"))
+    name = fields.Char(string='Number', readonly=True, default=lambda self: _("New"), copy=False)
     company_id = fields.Many2one(
-        'res.company', required=True, readonly=True,
-        default=lambda self: self.env.company)
+        'res.company', required=True, default=lambda self: self.env.company)
     company_currency_id = fields.Many2one(
         'res.currency', related='company_id.currency_id',
         string="Company Currency", store=True)
-    partner_id = fields.Many2one(
-        'res.partner',
-        ondelete='restrict', states={'done': [('readonly', True)]})
-    description = fields.Char(states={'done': [('readonly', True)]})
+    partner_id = fields.Many2one('res.partner', ondelete='restrict')
+    description = fields.Char()
     unique_import_id = fields.Char(
         string='Unique Identifier', readonly=True, copy=False)
-    date = fields.Date(required=True, states={'done': [('readonly', True)]})
-    departure = fields.Char(states={'done': [('readonly', True)]})
-    arrival = fields.Char(states={'done': [('readonly', True)]})
+    date = fields.Date(required=True)
+    departure = fields.Char()
+    arrival = fields.Char()
     trip_type = fields.Selection([
         ('oneway', 'One-Way'),
         ('roundtrip', 'Round Trip'),
-        ], states={'done': [('readonly', True)]})
+        ])
     expense_account_id = fields.Many2one(
-        'account.account', states={'done': [('readonly', True)]},
-        domain="[('deprecated', '=', False), ('company_id', '=', company_id)]",
+        'account.account',
+        domain="[('deprecated', '=', False), ('company_ids', 'in', company_id)]",
         string='Expense Account', check_company=True)
 
-    km = fields.Integer(states={'done': [('readonly', True)]})
+    km = fields.Integer()
     price_unit = fields.Float(
-        string='Unit Price', required=True,
-        digits='Mileage Price', states={'done': [('readonly', True)]})
-    car_name = fields.Char(
-        string='Car', states={'done': [('readonly', True)]})
-    car_plate = fields.Char(states={'done': [('readonly', True)]})
-    car_fiscal_power = fields.Char(states={'done': [('readonly', True)]})
+        string='Unit Price', required=True, digits='Mileage Price')
+    car_name = fields.Char(string='Car')
+    car_plate = fields.Char()
+    car_fiscal_power = fields.Char()
     amount = fields.Monetary(
         string='Total Amount', compute='_compute_amount', store=True,
-        currency_field='company_currency_id', readonly=True,
+        currency_field='company_currency_id',
         help="Total amount in company currency")
     state = fields.Selection([
         ('draft', 'Draft'),
         ('done', 'Done'),
         ], compute='_compute_state', store=True)
     invoice_id = fields.Many2one(
-        'account.move', string='Vendor Bill', check_company=True,
-        states={'done': [('readonly', True)]})
+        'account.move', string='Vendor Bill', check_company=True, copy=False, readonly=True)
     invoice_payment_state = fields.Selection(
-        related='invoice_id.payment_state', readonly=True,
+        related='invoice_id.payment_state',
         string="Vendor Bill Payment State")
 
     _sql_constraints = [(
         'unique_import_id',
         'unique(unique_import_id)',
-        'A mooncard mileage can be imported only once!')]
+        'A mooncard mileage can be imported only once!'),
+        ('unique_name_company',
+         'unique(name, company_id)',
+         "A mooncard mileage with the same number already exists in this company."),
+        ]
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -85,13 +83,13 @@ class MooncardMileage(models.Model):
             if line.state == 'done':
                 raise UserError(_(
                     "Cannot delete Mooncard mileage expense '%s' which is in "
-                    "done state.") % line.name)
+                    "done state.") % line.display_name)
         return super().unlink()
 
-    @api.depends('price_unit', 'km')
+    @api.depends('price_unit', 'km', 'company_id')
     def _compute_amount(self):
         for mileage in self:
-            mileage.amount = mileage.price_unit * mileage.km
+            mileage.amount = mileage.company_id.currency_id.round(mileage.price_unit * mileage.km)
 
     @api.depends("expense_account_id", "partner_id")
     def _compute_analytic_distribution(self):
@@ -140,7 +138,7 @@ class MooncardMileage(models.Model):
         if len(invoice_ids) > 1:
             action['domain'] = "[('id', 'in', %s)]" % invoice_ids
         else:
-            action['view_mode'] = 'form,tree,kanban'
+            action['view_mode'] = 'form,list,kanban'
             action['res_id'] = invoice_ids[0]
         return action
 
@@ -155,7 +153,7 @@ class MooncardMileage(models.Model):
                 date_dt, format='short', locale=self.env.user.lang or 'fr_FR')
         price_unit_formatted = formatLang(
             self.env, self.price_unit, dp='Mileage Price',
-            monetary=True, currency_obj=self.company_id.currency_id)
+            currency_obj=self.company_id.currency_id)
         name = _('%s %s: %s %s %s %s %d km\n%s %s, %s CV, %s/km\nRef: %s') % (
             date_formatted,
             self.description,
@@ -186,7 +184,7 @@ class MooncardMileage(models.Model):
                 date = line.date
             assert line.company_id.id == vals["company_id"]
             name = line.prepare_invoice_line_name()
-            vals['invoice_line_ids'].append((0, 0, {
+            vals['invoice_line_ids'].append(Command.create({
                 'price_unit': line.amount,
                 'name': name,
                 'quantity': 1,
@@ -204,7 +202,5 @@ class MooncardMileage(models.Model):
         invoice.with_context(validate_analytic=True)._post(soft=False)
         invoice.message_post(body=_(
             "Invoice created from Mooncard mileage."))
-        self.write({
-            'invoice_id': invoice.id,
-            })
+        self.write({'invoice_id': invoice.id})
         return invoice

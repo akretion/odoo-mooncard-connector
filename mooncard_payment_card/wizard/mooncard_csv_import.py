@@ -1,4 +1,4 @@
-# Copyright 2016-2021 Akretion France (http://www.akretion.com/)
+# Copyright 2016-2025 Akretion France (https://www.akretion.com/)
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -6,14 +6,14 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from odoo.tools import float_compare, float_is_zero
 from datetime import datetime
-import unicodecsv
+import csv
 from unidecode import unidecode
-from tempfile import TemporaryFile
+from io import StringIO
 from stdnum.vatin import is_valid
 import logging
 import pycountry
 import base64
-from odoo.addons.base_newgen_payment_card.models.newgen_payment_card_transaction\
+from odoo.addons.base_newgen_payment_card.models.res_company\
     import MEANINGFUL_PARTNER_NAME_MIN_SIZE
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,6 @@ class MooncardCsvImport(models.TransientModel):
         return False
 
     def _prepare_transaction(self, line, speeddict, action='create'):
-        bdio = self.env['business.document.import']
         npco = self.env['newgen.payment.card']
         analytic_distribution = expense_account_id = card_id = partner_id = False
         vendor_vat = False
@@ -103,10 +102,8 @@ class MooncardCsvImport(models.TransientModel):
         # Accounts
         if transaction_type == 'expense':
             if line.get('charge_account'):
-                expense_account = bdio._match_account(
-                    {'code': line['charge_account']}, [],
-                    speed_dict=speeddict['accounts'])
-                expense_account_id = expense_account.id
+                expense_account_id = npco._match_account(
+                    line['charge_account'], speeddict['accounts'])
 
             if card_id and expense_account_id:
                 tuple_match = (card_id, expense_account_id)
@@ -248,7 +245,7 @@ class MooncardCsvImport(models.TransientModel):
 
     @api.model
     def _prepare_mileage(self, line, speeddict, action='create'):
-        bdio = self.env['business.document.import']
+        npco = self.env['newgen.payment.card']
         # convert to float/int
         line['price_unit'] = float(line['Barème kilométrique'])
         line['km'] = int(line['Distance'])
@@ -258,10 +255,8 @@ class MooncardCsvImport(models.TransientModel):
                 line['Codes analytiques'].lower())
             analytic_distribution = {account_analytic_id: 100}
         if line.get('Compte de charge'):
-            account = bdio._match_account(
-                {'code': line['Compte de charge']}, [],
-                speed_dict=speeddict['accounts'])
-            account_id = account.id
+            account_id = npco._match_account(
+                line['Compte de charge'], speeddict['accounts'])
         typedict = {
             'Aller Simple': 'oneway',
             'Aller / Retour': 'roundtrip',
@@ -307,9 +302,7 @@ class MooncardCsvImport(models.TransientModel):
         })
         return vals
 
-    @api.model
     def _prepare_mileage_speeddict(self, company):
-        bdio = self.env['business.document.import']
         speeddict = {'partner': {}, 'analytic': {}, 'accounts': {}}
 
         partner_res = self.env['res.partner'].search_read(
@@ -323,21 +316,20 @@ class MooncardCsvImport(models.TransientModel):
         for analytic in analytic_res:
             analytic_code = analytic['code'].strip().lower()
             speeddict['analytic'][analytic_code] = analytic['id']
-        speeddict['accounts'] = bdio._prepare_account_speed_dict()
+        speeddict['accounts'] = self.company_id._prepare_account_import_speeddict()
         return speeddict
 
     def mooncard_import_mileage(self, fileobj):
         mmo = self.env['mooncard.mileage']
         speeddict = self._prepare_mileage_speeddict(self.company_id)
         fileobj.seek(0)
-        reader = unicodecsv.DictReader(
-            fileobj, delimiter=';',
-            quoting=unicodecsv.QUOTE_MINIMAL, encoding='latin1')
+        reader = csv.DictReader(fileobj, delimiter=';', quoting=csv.QUOTE_MINIMAL)
         i = 0
         exiting_mileage = {}
         existings = mmo.search([])
         for line in existings:
             exiting_mileage[line.unique_import_id] = line
+        vals_list = []
         mm_ids = []
         for line in reader:
             i += 1
@@ -368,10 +360,9 @@ class MooncardCsvImport(models.TransientModel):
                     mileage.write(wvals)
                     mm_ids.append(mileage.id)
                 continue
-            vals = self._prepare_mileage(line, speeddict)
-            mileage = mmo.create(vals)
-            mm_ids.append(mileage.id)
-        fileobj.close()
+            vals_list.append(self._prepare_mileage(line, speeddict))
+        mileages = mmo.create(vals_list)
+        mm_ids += mileages.ids
         if not mm_ids:
             raise UserError(_("No Mooncard mileage created nor updated."))
         action = self.env['ir.actions.actions']._for_xml_id(
@@ -386,7 +377,7 @@ class MooncardCsvImport(models.TransientModel):
         self.ensure_one()
         npcto = self.env['newgen.payment.card.transaction']
         ico = self.env['ir.config_parameter']
-        speeddict = npcto._prepare_import_speeddict(self.company_id)
+        speeddict = self.company_id._prepare_import_speeddict()
         # Temporary hack until mooncard restores the country_code column
         speeddict['country_names'] = {}
         countries = self.env['res.country'].with_context(lang='fr_FR').search_read(
@@ -397,22 +388,23 @@ class MooncardCsvImport(models.TransientModel):
         speeddict['partner_match_rule'] = ico.sudo().get_param(
             'mooncard.partner_match_rule', default='contain')
         logger.info('Importing Mooncard transactions.csv')
-        fileobj = TemporaryFile('wb+')
-        fileobj.write(base64.b64decode(self.mooncard_file))
+        fileobj = StringIO()
+        file_bytes = base64.b64decode(self.mooncard_file)
+        file_str = file_bytes.decode('utf-8')
+        fileobj.write(file_str)
         fileobj.seek(0)
-        file_content = fileobj.read()
-        if file_content.startswith(
-                'Identifiant unique;Date de dépense;Heure;Date de débit;Montant devise;Devise;Montant;Payment method;Pays;Adresse du marchand;Marchand;Fournisseur;Collaborateur'.encode('latin1')):  # noqa: E501
+        if file_str.startswith(
+                'Identifiant unique;Date de dépense;Heure;Date de débit;Montant devise;Devise;Montant;Payment method;Pays;Adresse du marchand;Marchand;Fournisseur;Collaborateur'):  # noqa: E501
             return self.mooncard_import_mileage(fileobj)
         fileobj.seek(0)
-        reader = unicodecsv.DictReader(
-            fileobj, delimiter=',',
-            quoting=unicodecsv.QUOTE_MINIMAL, encoding='utf8')
+        reader = csv.DictReader(
+            fileobj, delimiter=',', quoting=csv.QUOTE_MINIMAL)
         i = 0
         exiting_transactions = {}
         existings = npcto.search([])
         for line in existings:
             exiting_transactions[line.unique_import_id] = line
+        vals_list = []
         mt_ids = []
         for line in reader:
             i += 1
@@ -451,16 +443,15 @@ class MooncardCsvImport(models.TransientModel):
                     transaction.write(wvals)
                     mt_ids.append(transaction.id)
                 continue
-            vals = self._prepare_transaction(line, speeddict)
-            transaction = npcto.create(vals)
-            mt_ids.append(transaction.id)
-        fileobj.close()
+            vals_list.append(self._prepare_transaction(line, speeddict))
+        transactions = npcto.create(vals_list)
+        mt_ids += transactions.ids
         if not mt_ids:
             raise UserError(_(
                 "No payment card transaction created nor updated."))
-        action = self.env.ref(
-            'base_newgen_payment_card.newgen_payment_card_transaction_action'
-            ).read()[0]
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "base_newgen_payment_card.newgen_payment_card_transaction_action"
+            )
         action.update({
             'domain': "[('id', 'in', %s)]" % mt_ids,
             'views': False,
