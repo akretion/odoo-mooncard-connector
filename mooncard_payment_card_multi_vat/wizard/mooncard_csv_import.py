@@ -22,16 +22,6 @@ VAT_DETAIL = [
 class MooncardCsvImport(models.TransientModel):
     _inherit = "mooncard.csv.import"
 
-    @api.model
-    def _get_account(self, code, speeddict):
-        if code:
-            expense_account = self.env["business.document.import"]._match_account(
-                {"code": code}, [], speed_dict=speeddict["accounts"]
-            )
-        else:
-            expense_account = self.env["account.account"]
-        return expense_account
-
     def _prepare_transaction(self, line, speeddict, action="create"):
         vals = super()._prepare_transaction(line, speeddict, action=action)
         new_float_fields = [
@@ -67,8 +57,8 @@ class MooncardCsvImport(models.TransientModel):
                     raise exceptions.ValidationError(
                         _("Problem in the file, not expense account for line %(line_id)s - %(title)s", line_id=line["id"], title=line["title"])
                     )
-                expense_account = self._get_account(line.get(expense_col), speeddict)
-                if not expense_account:
+                expense_account_id = self.env["newgen.payment.card"]._match_account(line.get(expense_col), speeddict['accounts'])
+                if not expense_account_id:
                     raise exceptions.ValidationError(
                         _("No account found in Odoo fo code %(code)s", code=line[expense_col])
                     )
@@ -81,7 +71,7 @@ class MooncardCsvImport(models.TransientModel):
                             "vat_company_currency": line[vat_col],
                             "subtotal_company_currency": line[ht_col],
                             "total_company_currency": line[ttc_col],
-                            "expense_account_id": expense_account.id,
+                            "expense_account_id": expense_account_id,
                         },
                     )
                 )

@@ -3,30 +3,32 @@
 import base64
 
 from odoo.modules.module import get_resource_path
-from odoo.tests.common import SavepointCase
+from odoo.tests.common import TransactionCase
 
 
-class TestMooncardMultiVatImport(SavepointCase):
+class TestMooncardMultiVatImport(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        lang = cls.env['res.lang'].with_context(active_test=False).search([('code', '=', "fr_FR")], limit=1)
+        lang.write({"active": True})
         cls.env["account.account"].create(
             {
-                "user_type_id": cls.env.ref("account.data_account_type_expenses").id,
+                "account_type": "expense",
                 "name": "test expense 1",
                 "code": "62510030",
             }
         )
         cls.env["account.account"].create(
             {
-                "user_type_id": cls.env.ref("account.data_account_type_expenses").id,
+                "account_type": "expense",
                 "name": "test expense 2",
                 "code": "62510000",
             }
         )
         cls.env["account.account"].create(
             {
-                "user_type_id": cls.env.ref("account.data_account_type_expenses").id,
+                "account_type": "expense",
                 "name": "test expense 2",
                 "code": "62510020",
             }
