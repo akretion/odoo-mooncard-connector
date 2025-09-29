@@ -93,10 +93,21 @@ class MooncardCsvImport(models.TransientModel):
             line["vat_eur"],
             precision_rounding=precision,
         ):
-            raise UserError(
-                _("Problem in the file, the line %(title)s is not  consistent about the "
-                  "tax amounts.", title=line["title"] )
-            )
+            country_id = speeddict['countries'].get(line['country_code'])
+            # it is a case that happens, in case of intra eu vat, global vat is
+            # set but detailed id exempted...
+            if not total_vat and country_id != speeddict['my_country_id']:
+                vals["vat_company_currency"] = 0.0
+                vals["vat_rate"] = 0.0
+                if country_id in speeddict['eu_country_ids']:
+                    vals["autoliquidation"] = "intracom"
+                else:
+                    vals["autoliquidation"] = "extracom"
+            else:
+                raise UserError(
+                    _("Problem in the file, the line %(title)s is not  consistent about"
+                    " the tax amounts.", title=line["title"] )
+                )
         # Force account in transaction in case there is only 1 vat line because
         # I am not sure this main account will be consistent with this multiple
         # expense account file...
