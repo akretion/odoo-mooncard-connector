@@ -104,8 +104,8 @@ class MooncardCsvImport(models.TransientModel):
             precision_rounding=precision,
         ):
             raise UserError(
-                _("Problem in the file, the line %s is not  consistent about the "
-                  "tax amounts." % title )
+                _("Problem in the file, the line %(title)s is not  consistent about the "
+                  "tax amounts.", title=line["title"] )
             )
         # Force account in transaction in case there is only 1 vat line because
         # I am not sure this main account will be consistent with this multiple
