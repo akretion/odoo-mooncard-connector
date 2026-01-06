@@ -533,7 +533,8 @@ class NewgenPaymentCardTransaction(models.Model):
             'invoice_line_method': 'nline_no_product',
             'account': self.expense_account_id,
             'analytic_distribution': self.analytic_distribution or False,
-            }
+            'company': self.company_id,
+        }
         return import_config
 
     def generate_invoice(self):
@@ -542,7 +543,7 @@ class NewgenPaymentCardTransaction(models.Model):
         aiio = self.env['account.invoice.import']
         parsed_inv = self._prepare_invoice_import()
         logger.debug('Payment card invoice import parsed_inv=%s', parsed_inv)
-        parsed_inv = aiio.pre_process_parsed_inv(parsed_inv)
+        parsed_inv = aiio._pre_process_parsed_inv(parsed_inv, self.company_id)
         import_config = self._prepare_invoice_import_config()
         invoice = aiio.create_invoice(
             parsed_inv, import_config=import_config, origin='Mooncard connector')
