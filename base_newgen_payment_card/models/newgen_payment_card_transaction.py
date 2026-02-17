@@ -399,7 +399,6 @@ class NewgenPaymentCardTransaction(models.Model):
             'move_type': move_type,
             'ref': self.name,
             'invoice_origin': origin,
-            'attachment_ids': [],
             'invoice_line_ids': [Command.create({
                 'display_type': 'product',
                 'tax_ids': tax_ids,
@@ -410,6 +409,12 @@ class NewgenPaymentCardTransaction(models.Model):
                 'quantity': 1,
                 })],
             }
+        vals["attachment_ids"] = self._get_attachment_vals_list()
+        return vals
+
+    def _get_attachment_vals_list(self):
+        self.ensure_one()
+        attachment_vals_list = []
         url = self.image_url
         attachments = self.env['ir.attachment'].search([
             ('res_model', '=', self._name),
@@ -446,18 +451,18 @@ class NewgenPaymentCardTransaction(models.Model):
                     logger.info('Failed to rotate the image. Error: %s', e)
                     pass
             filename = 'Receipt-%s%s' % (self.name, file_extension)
-            vals['attachment_ids'].append(Command.create({
+            attachment_vals_list.append(Command.create({
                 'name': filename,
                 'res_model': 'account.move',
                 'raw': image_binary,
                 }))
         for att in attachments:
-            vals['attachment_ids'].append(Command.create({
+            attachment_vals_list.append(Command.create({
                 'name': att.name,
                 'res_model': 'account.move',
                 'raw': att.raw,
                 }))
-        return vals
+        return attachment_vals_list
 
     @api.model
     def _rotate_image(self, image_binary):
