@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from markupsafe import Markup
 import os
 import io
+import mimetypes
 
 TIMEOUT = 30
 
@@ -441,6 +442,9 @@ class NewgenPaymentCardTransaction(models.Model):
                     % (self.name, url, rimage.status_code))
             image_binary = rimage.content
             file_extension = os.path.splitext(urlparse(url).path)[1]
+            if not file_extension:
+                content_type = rimage.headers.get('Content-Type')
+                file_extension = mimetypes.guess_extension(content_type) if content_type else ''
             logger.debug('file_extension=%s', file_extension)
             if file_extension in ('.JPG', '.JPEG', '.jpg', '.jpeg'):
                 logger.debug('Trying to rotate the JPG image %s', url)
