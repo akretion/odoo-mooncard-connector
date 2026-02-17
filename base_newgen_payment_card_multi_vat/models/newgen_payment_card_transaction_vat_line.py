@@ -1,6 +1,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import fields, models
+from odoo import exceptions, fields, models
+from odoo.tools import float_compare
 
 
 class NewgenPaymentCardTransactionVatLine(models.Model):
@@ -47,7 +48,26 @@ class NewgenPaymentCardTransactionVatLine(models.Model):
     expense_account_id = fields.Many2one(
         "account.account",
         states={"done": [("readonly", True)]},
-        domain="[('deprecated', '=', False), ('company_id', '=', company_id), ('is_off_balance', '=', False)]",
+        domain="[('deprecated', '=', False), ('company_ids', 'in', company_id), ('account_type', '!=', 'off_balance')]",
         string="Expense Account",
         check_company=True,
     )
+
+    def _prepare_regular_taxes(self):
+        self.ensure_one()
+        domain = [
+            ('company_id', '=', self.transaction_id.company_id.id),
+            ('type_tax_use', '=', 'purchase'),
+            ('price_include', '=', False),
+            ('amount_type', '=', 'percent'),
+            ('amount', '>', 0),
+            ('unece_type_code', '=', 'VAT'),
+            ('unece_categ_code', '=', 'S'),
+            ]
+        taxes = self.env['account.tax'].search(domain)
+        for tax in taxes:
+            if not float_compare(tax.amount, self.vat_rate, precision_digits=4):
+                return [tax.id]
+        raise exceptions.UserError(self.env._(
+            "Failed to match regular purchase VAT tax %.2f %%.") % self.vat_rate)
+

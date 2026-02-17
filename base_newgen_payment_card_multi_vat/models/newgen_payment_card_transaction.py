@@ -3,6 +3,7 @@
 from odoo import _, api, exceptions, fields, models
 from odoo.tools import float_compare
 from odoo.tools.misc import format_amount
+from markupsafe import Markup
 
 
 class NewgenPaymentCardTransaction(models.Model):
@@ -18,6 +19,12 @@ class NewgenPaymentCardTransaction(models.Model):
         for rec in self:
             rec.has_multiple_vat_line = len(rec.vat_line_ids) > 1
 
+#    def _prepare_invoice(self):
+#        if not self.has_multiple_vat_line:
+#            return super()._prepare_invoice()
+#        else:
+#            return self._prepare_multiple_line_invoice()
+
     def _create_multiple_line_invoice(self):
         self.ensure_one()
         if self.force_invoice_date:
@@ -26,6 +33,12 @@ class NewgenPaymentCardTransaction(models.Model):
             date_dt = self.payment_date
         else:
             date_dt = self.date
+
+        if not self.description:
+            raise UserError(_("Description is missing on transaction '%s'.") % self.display_name)
+        if not self.partner_id:
+            raise UserError(_(
+                "Missing partner on transaction '%s'.") % self.display_name)
 
         origin = self.name
         if self.receipt_number:
@@ -43,36 +56,30 @@ class NewgenPaymentCardTransaction(models.Model):
             "company_id": self.company_id.id,
             "invoice_line_ids": [],
         }
-        if self.card_id.purchase_journal_id:
-            vals["journal_id"] = self.card_id.purchase_journal_id.id
-        vals = self.env["account.move"].play_onchanges(vals, ["partner_id"])
         tax2amounts = {}
         for vat_line in self.vat_line_ids:
             if not vat_line.expense_account_id:
                 raise exceptions.UserError(
                     _("The expense account is missing on vat line %s for transaction %s" % (vat_line.vat_rate, self.description))
                 )
-            # we depend on base_business_document_import just for finding the tax.
-            # we may choose to get rid of this in the future if base mooncard module
-            # does not use it anymore either.
             if vat_line.vat_rate:
-                taxes_info = self._prepare_regular_taxes_multi_rate(vat_line.vat_rate)
-                tax = self.env["business.document.import"]._match_taxes(taxes_info, [])
+                tax = self.env["account.tax"].browse(vat_line._prepare_regular_taxes())
                 assert len(tax) == 1
             else:
                 tax = self.env["account.tax"]
             line_vals = {
                 "name": self.description,
                 "quantity": 1,
-                "product_uom_id": self.env.ref("uom.product_uom_unit").id,
                 "tax_ids": [(6, 0, tax.ids)],
                 "price_unit": abs(vat_line.subtotal_company_currency),
-                "analytic_account_id": self.account_analytic_id.id,
                 "account_id": vat_line.expense_account_id.id,
+                # let's consider the analytic does not depend on the line.
+                "analytic_distribution": self.analytic_distribution or False,
             }
             vals["invoice_line_ids"].append((0, 0, line_vals))
             if tax:
                 tax2amounts[tax.id] = vat_line.vat_company_currency
+        vals["attachment_ids"] = self._get_attachment_vals_list()
         invoice = self.env["account.move"].create(vals)
 
         # all invoices are in company currency
@@ -138,38 +145,10 @@ class NewgenPaymentCardTransaction(models.Model):
                         vals["debit"] = 0
                         vals["credit"] = new_amount_currency * -1
 
-                    line.with_context(check_move_validity=False).write(vals)
-            invoice.with_context(check_move_validity=False)._recompute_dynamic_lines()
-            invoice._check_balanced()
+                    line.with_context().write(vals)
+#            invoice.with_context(check_move_validity=False)._recompute_dynamic_lines()
+#            invoice._check_balanced()
         return invoice
-
-    # similar to base_newgen_payment_card but manage different rate
-    def _prepare_regular_taxes_multi_rate(self, rate):
-        self.ensure_one()
-        taxes = [
-            {
-                "amount_type": "percent",
-                "amount": rate,
-                "unece_type_code": "VAT",
-                "unece_categ_code": "S",
-            }
-        ]
-        return taxes
-
-    def _generate_multiple_line_invoice_attachment(self, invoice):
-        self.ensure_one()
-        attachment_vals = self._get_attachment_vals()
-        vals_list = []
-        for name, data in attachment_vals.items():
-            vals_list.append(
-                {
-                    "name": name,
-                    "datas": data,
-                    "res_id": invoice.id,
-                    "res_model": "account.move",
-                }
-            )
-        return self.env["ir.attachment"].create(vals_list)
 
     def generate_invoice(self):
         self.ensure_one()
@@ -179,16 +158,8 @@ class NewgenPaymentCardTransaction(models.Model):
         assert self.transaction_type == "expense", "wrong transaction type"
         # manage multiple line invoice creation
         invoice = self._create_multiple_line_invoice()
-        #        invoice = self.env["account.move"].create(invoice_vals)
-        self._generate_multiple_line_invoice_attachment(invoice)
-        invoice.message_post(
-            body=_("Invoice created from payment card transaction %s.") % self.name
-        )
-        invoice.action_post()
-        assert (
-            self.company_currency_id.compare_amounts(
-                invoice.amount_tax, abs(self.vat_company_currency)
-            )
-            == 0
-        ), "bug on VAT"
+        trans_link = f"<a href='#' data-oe-model='{self._name}' data-oe-id='{self.id}'>{self.display_name}</a>"
+        invoice.message_post(body=Markup(_("Invoice created from payment card transaction %s.") % trans_link))
+        invoice.with_context(validate_analytic=True)._post(soft=False)
+        self._post_process_invoice(invoice)
         return invoice

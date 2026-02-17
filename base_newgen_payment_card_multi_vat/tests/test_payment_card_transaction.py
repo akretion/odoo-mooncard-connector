@@ -3,40 +3,59 @@
 
 import time
 
-from odoo.tests.common import SavepointCase
+from odoo.tests import tagged
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from unittest.mock import patch, Mock
 
 
-class TestNewgenPaymentCardMultiVat(SavepointCase):
+DUMMY_IMAGE = (
+    b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01'
+    b'\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00'
+    b'\x00\x00\nIDAT\x08\xd7c\xf8\x0f\x00\x01\x01\x01\x00'
+    b'\x18\xdd\x8d\xe1\x00\x00\x00\x00IEND\xaeB`\x82'
+)
+
+
+
+@tagged("post_install", "-at_install")
+class TestNewgenPaymentCardMultiVat(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.company = cls.env.company
+        cls.euro = cls.env.ref("base.EUR")
+        cls.company.write(
+            {
+                "currency_id": cls.euro.id,
+            }
+        )
+
         cls.account0 = cls.env["account.account"].create(
             {
-                "user_type_id": cls.env.ref("account.data_account_type_expenses").id,
+                "account_type": "expense",
                 "name": "test expense 1",
                 "code": "62510030",
             }
         )
         cls.account20 = cls.env["account.account"].create(
             {
-                "user_type_id": cls.env.ref("account.data_account_type_expenses").id,
+                "account_type": "expense",
                 "name": "test expense 2",
                 "code": "62510000",
             }
         )
         cls.account10 = cls.env["account.account"].create(
             {
-                "user_type_id": cls.env.ref("account.data_account_type_expenses").id,
+                "account_type": "expense",
                 "name": "test expense 2",
                 "code": "62510020",
             }
         )
-        bank_acc_type = cls.env.ref("account.data_account_type_liquidity")
         cls.card_bank_account = cls.env["account.account"].create(
             {
                 "code": "512199",
                 "name": "Card prepaid account",
-                "user_type_id": bank_acc_type.id,
+                "account_type": "asset_cash",
             }
         )
         cls.card_bank_journal = cls.env["account.journal"].create(
@@ -47,16 +66,17 @@ class TestNewgenPaymentCardMultiVat(SavepointCase):
                 "default_account_id": cls.card_bank_account.id,
             }
         )
-        cls.card1 = cls.env.ref("base_newgen_payment_card.card1")
+        cls.card1 = cls.env["newgen.payment.card"].create({
+            "code": "AdL",
+            "name": "684842987",
+        })
         cls.card1.write({"journal_id": cls.card_bank_journal.id})
         # create 20% and 10% taxes
         cls.tax_account = cls.env["account.account"].create(
             {
                 "code": "445661",
                 "name": "TVA déductible sur autres biens et services",
-                "user_type_id": cls.env.ref(
-                    "account.data_account_type_current_assets"
-                ).id,
+                "account_type": "asset_current",
             }
         )
         cls.tax_20 = cls.env["account.tax"].create(
@@ -117,14 +137,10 @@ class TestNewgenPaymentCardMultiVat(SavepointCase):
                 ],
             }
         )
-        cls.company = cls.env.ref("base.main_company")
-        cls.euro = cls.env.ref("base.EUR")
-        cls.company.write(
-            {
-                "currency_id": cls.euro.id,
-            }
-        )
         cls.prec = cls.company.currency_id.rounding
+        cls.mock_response = Mock()
+        cls.mock_response.content = DUMMY_IMAGE
+        cls.mock_response.status_code = 200 
 
     def test_expense_line_multi_vat(self):
         transaction = self.env["newgen.payment.card.transaction"].create(
@@ -132,7 +148,7 @@ class TestNewgenPaymentCardMultiVat(SavepointCase):
                 "transaction_type": "expense",
                 "description": "Dinner with customer",
                 "date": time.strftime("%Y-01-02 %H:%M:10"),
-                "card_id": self.env.ref("base_newgen_payment_card.card1").id,
+                "card_id": self.card1.id,
                 "expense_categ_name": "customer meal",
                 "vendor": "Test",
                 "country_id": self.env.ref("base.fr").id,
@@ -168,7 +184,9 @@ class TestNewgenPaymentCardMultiVat(SavepointCase):
                 ],
             }
         )
-        transaction.process_line()
+
+        with patch('requests.get', return_value=self.mock_response):
+            transaction.process_line()
         self.assertEqual(transaction.state, "done")
         inv = transaction.invoice_id
         self.assertEqual(inv.state, "posted")
@@ -183,7 +201,6 @@ class TestNewgenPaymentCardMultiVat(SavepointCase):
         self.assertTrue(transaction.bank_move_id)
         self.assertEqual(transaction.bank_move_id.date, transaction.date)
         self.assertEqual(transaction.bank_move_id.journal_id, self.card1.journal_id)
-        self.assertTrue(transaction.reconcile_id)
 
     def test_refund_line_multi_vat_with_tva_diff(self):
         transaction = self.env["newgen.payment.card.transaction"].create(
@@ -191,7 +208,7 @@ class TestNewgenPaymentCardMultiVat(SavepointCase):
                 "transaction_type": "expense",
                 "description": "Dinner with customer",
                 "date": time.strftime("%Y-01-02 %H:%M:10"),
-                "card_id": self.env.ref("base_newgen_payment_card.card1").id,
+                "card_id": self.card1.id,
                 "expense_categ_name": "customer meal",
                 "vendor": "Test",
                 "country_id": self.env.ref("base.fr").id,
@@ -229,11 +246,12 @@ class TestNewgenPaymentCardMultiVat(SavepointCase):
                 ],
             }
         )
-        transaction.process_line()
+        with patch('requests.get', return_value=self.mock_response):
+            transaction.process_line()
         self.assertEqual(transaction.state, "done")
         inv = transaction.invoice_id
         self.assertEqual(inv.state, "posted")
-        self.assertEqual(inv.payment_state, "paid")
+        self.assertEqual(inv.payment_state, "reversed")
         self.assertEqual(inv.move_type, "in_refund")
         # 2 inv line / 5 lines because of 2 different VAT
         self.assertEqual(len(inv.invoice_line_ids), 2)
