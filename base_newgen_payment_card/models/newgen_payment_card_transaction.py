@@ -306,7 +306,7 @@ class NewgenPaymentCardTransaction(models.Model):
             ('unece_categ_code', '=', autoliq2categ[self.autoliquidation]),
             ]
         if hasattr(ato, 'fr_vat_autoliquidation'):
-            domain.append(('fr_vat_autoliquidation', '=', True))
+            domain.append(('fr_vat_autoliquidation', '=', 'total'))
         tax = ato.search(domain, order='amount desc', limit=1)
         if not tax:
             raise UserError(_(
