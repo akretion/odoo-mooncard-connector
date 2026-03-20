@@ -57,6 +57,12 @@ class NewgenPaymentCardTransaction(models.Model):
             "invoice_line_ids": [],
         }
         tax2amounts = {}
+        total_compare = self.company_currency_id.compare_amounts(
+            self.total_company_currency, 0)
+        sign = -1
+        if total_compare > 0:  # refund
+            sign = 1
+
         for vat_line in self.vat_line_ids:
             if not vat_line.expense_account_id:
                 raise exceptions.UserError(
@@ -71,7 +77,7 @@ class NewgenPaymentCardTransaction(models.Model):
                 "name": self.description,
                 "quantity": 1,
                 "tax_ids": [(6, 0, tax.ids)],
-                "price_unit": abs(vat_line.subtotal_company_currency),
+                "price_unit": vat_line.subtotal_company_currency * sign,
                 "account_id": vat_line.expense_account_id.id,
                 # let's consider the analytic does not depend on the line.
                 "analytic_distribution": self.analytic_distribution or False,
@@ -85,7 +91,6 @@ class NewgenPaymentCardTransaction(models.Model):
         # all invoices are in company currency
         company_cur = invoice.company_id.currency_id
         prec = invoice.currency_id.rounding
-        # TODO float compare
         if float_compare(
             invoice.amount_untaxed,
             abs(self.total_company_currency - self.vat_company_currency),
@@ -95,8 +100,8 @@ class NewgenPaymentCardTransaction(models.Model):
             raise exceptions.UserError(
                 _(
                     "The untaxed amount of the invoice does not match the one of the "
-                    "transaction"
-                )
+                    "transaction for {name}"
+                ).format(name=self.name)
             )
         # Force tax amount if necessary
         if float_compare(
