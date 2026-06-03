@@ -59,19 +59,39 @@ class MooncardCsvImport(models.TransientModel):
             else:
                 line[float_field] = 0.0
         vals["vat_line_ids"] = []
+        no_vat_amount_to_merge = 0.0
         total_ttc = 0.0
         total_vat = 0.0
         for vat_col, ht_col, ttc_col, expense_col, rate in VAT_DETAIL:
-            if line[ht_col]:
+            ht = line[ht_col]
+            ttc = line[ttc_col]
+            account_num = line.get(expense_col)
+            # rate 0.0 is the last of the loop
+            # merge all no vat line into the exempt one to avoid multiple lines with
+            # no vat...
+            if rate == 0.0 and no_vat_amount_to_merge:
+                ht += no_vat_amount_to_merge
+                ttc += no_vat_amount_to_merge
+                if not account_num:
+                    account_num = no_vat_account_to_merge.code
+            if ht:
                 if not line.get(expense_col):
                     raise exceptions.ValidationError(
                         _("Problem in the file, not expense account for line %(line_id)s - %(title)s", line_id=line["id"], title=line["title"])
                     )
-                expense_account = self._get_account(line.get(expense_col), speeddict)
+                expense_account = self._get_account(account_num, speeddict)
                 if not expense_account:
                     raise exceptions.ValidationError(
                         _("No account found in Odoo fo code %(code)s", code=line[expense_col])
                     )
+                if rate != 0.0 and not line[vat_col] and line[ht_col] == line[ttc_col]:
+                    # weird case where we got untax amount for a rate > 0 column
+                    # bot no associated vat amount... (case of intracom or something?)
+                    # we want to merge whole amount into the 0.0 rate to avoid having
+                    # 2 duplicated lines
+                    no_vat_amount_to_merge += line[ht_col]
+                    no_vat_account_to_merge = expense_account
+                    continue
                 vals["vat_line_ids"].append(
                     (
                         0,
@@ -79,14 +99,15 @@ class MooncardCsvImport(models.TransientModel):
                         {
                             "vat_rate": rate,
                             "vat_company_currency": line[vat_col],
-                            "subtotal_company_currency": line[ht_col],
-                            "total_company_currency": line[ttc_col],
+                            "subtotal_company_currency": ht,
+                            "total_company_currency": ttc,
                             "expense_account_id": expense_account.id,
                         },
                     )
                 )
-                total_ttc += line[ttc_col]
+                total_ttc += ttc
                 total_vat += line[vat_col]
+
         precision = self.env.company.currency_id.rounding
         # check consistency between detailed and global amounts
         if float_compare(
