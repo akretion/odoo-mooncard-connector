@@ -6,15 +6,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-07 21:51+0000\n"
-"PO-Revision-Date: 2025-02-07 21:51+0000\n"
-"Last-Translator: Alexis de Lattre <alexis.delattre@akretion.com>\n"
+"POT-Creation-Date: 2026-10-01 15:33+0000\n"
+"PO-Revision-Date: 2026-10-01 17:37+0200\n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: \n"
-"Plural-Forms: \n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #. module: base_newgen_payment_card
 #: model:ir.model.constraint,message:base_newgen_payment_card.constraint_newgen_payment_card_transaction_unique_import_id
@@ -27,7 +28,8 @@ msgstr ""
 #: model:ir.model,name:base_newgen_payment_card.model_newgen_payment_card_account_mapping
 msgid "Account mapping for new generation payment cards"
 msgstr ""
-"Table de correspondance des comptes pour les cartes de paiement de nouvelle génération"
+"Table de correspondance des comptes pour les cartes de paiement de nouvelle "
+"génération"
 
 #. module: base_newgen_payment_card
 #: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
@@ -86,6 +88,16 @@ msgid "Analytic"
 msgstr "Analytique"
 
 #. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_account_names
+msgid "Analytic Account Names"
+msgstr "Noms des comptes analytiques"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_account_ids
+msgid "Analytic Accounts"
+msgstr "Comptes analytiques"
+
+#. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_distribution_search
 msgid "Analytic Distribution Search"
 msgstr "Recherche de distribution analytique"
@@ -94,6 +106,11 @@ msgstr "Recherche de distribution analytique"
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_precision
 msgid "Analytic Precision"
 msgstr "Précision analytique"
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_account_ids
+msgid "Analytic accounts computed from analytic distribution."
+msgstr "Comptes analytiques calculés depuis la distribution analytique."
 
 #. module: base_newgen_payment_card
 #: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_form
@@ -148,9 +165,9 @@ msgid ""
 "transaction if you want, but it may not be worth the additionnal work."
 msgstr ""
 "Par défaut, toutes les transactions sont liées au fournisseur générique "
-"\"Fournisseurs divers\". Vous pouvez remplacer ce partenaire par le véritable "
-"partenaire de la transaction si vous le souhaitez, "
-"mais cela ne vaut peut-être pas le travail supplémentaire."
+"\"Fournisseurs divers\". Vous pouvez remplacer ce partenaire par le "
+"véritable partenaire de la transaction si vous le souhaitez, mais cela ne "
+"vaut peut-être pas le travail supplémentaire."
 
 #. module: base_newgen_payment_card
 #. odoo-python
@@ -179,7 +196,16 @@ msgstr "Numéro de carte/compte"
 #. module: base_newgen_payment_card
 #: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
 msgid "Classification"
-msgstr "Classification"
+msgstr ""
+
+#. module: base_newgen_payment_card
+#: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__analytic_account_names
+msgid ""
+"Comma-separated analytic account names, in case it is useful to be included "
+"in the exported data."
+msgstr ""
+"Nom des comptes analytiques séparés par une virgule, par utilité pour être "
+"inclut dans les données d'export."
 
 #. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card__company_id
@@ -201,8 +227,8 @@ msgid ""
 "Could not download the image of transaction %s from URL %s (HTTP error code "
 "%s)."
 msgstr ""
-"Il n'a pas été possible de télécharger l'image de la transaction %s à partir "
-"de l'URL %s (code d'erreur HTTP %s)."
+"Il n'a pas été possible de télécharger l'image de la transaction %s à "
+"partir de l'URL %s (code d'erreur HTTP %s)."
 
 #. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__bank_counterpart_account_id
@@ -215,7 +241,8 @@ msgstr "Contrepartie de l'écriture comptable bancaire"
 #, python-format
 msgid "Counter-part of Bank Journal Item is empty on transaction %s."
 msgstr ""
-"La contrepartie de l'écriture comptable bancaire est vide sur la transaction %s."
+"La contrepartie de l'écriture comptable bancaire est vide sur la "
+"transaction %s."
 
 #. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__country_id
@@ -252,12 +279,12 @@ msgstr "Devise"
 #. module: base_newgen_payment_card
 #: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
 msgid "Date"
-msgstr "Date"
+msgstr ""
 
 #. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__description
 msgid "Description"
-msgstr "Description"
+msgstr ""
 
 #. module: base_newgen_payment_card
 #. odoo-python
@@ -284,6 +311,22 @@ msgstr "Terminé"
 #: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_search
 msgid "Draft"
 msgstr "Brouillon"
+
+#. module: base_newgen_payment_card
+#: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_form
+msgid ""
+"Existing bills possibly matching this transactions were detected.\n"
+"                You may want to enable <b>Generate Bank Journal Entry Only</"
+"b>.\n"
+"                <br/>\n"
+"                Similar bills:"
+msgstr ""
+"Des facteurs fournisseurs possiblement identique à cette transaction ont "
+"été détectées.\n"
+"Peut-être souhaitez-vous activer <b>Générer uniquement la pièce du journal "
+"de banque</b>.\n"
+"<br />\n"
+"Factures similaires :"
 
 #. module: base_newgen_payment_card
 #: model:ir.model.fields.selection,name:base_newgen_payment_card.selection__newgen_payment_card_transaction__transaction_type__expense
@@ -372,7 +415,7 @@ msgstr "A un message"
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_account_mapping__id
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_exception_icon
@@ -481,7 +524,7 @@ msgstr "Erreur d'envoi du message"
 #. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__message_ids
 msgid "Messages"
-msgstr "Messages"
+msgstr ""
 
 #. module: base_newgen_payment_card
 #. odoo-python
@@ -511,8 +554,8 @@ msgid ""
 "receipt, you can mark this transaction as 'Receipt Lost'."
 msgstr ""
 "Absence de l'URL de l'image et/ou des pièces jointes sur la transaction %s. "
-"Si vous avez perdu ce reçu, vous pouvez cocher la case "
-"\"Reçu perdu\" de cette transaction."
+"Si vous avez perdu ce reçu, vous pouvez cocher la case \"Reçu perdu\" de "
+"cette transaction."
 
 #. module: base_newgen_payment_card
 #. odoo-python
@@ -675,6 +718,11 @@ msgid "Short Name"
 msgstr "Nom court"
 
 #. module: base_newgen_payment_card
+#: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__similar_invoice_ids
+msgid "Similar bills"
+msgstr "Factures similaires"
+
+#. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__state
 msgid "State"
 msgstr "État"
@@ -718,8 +766,8 @@ msgid ""
 "The transaction %s is linked to invoice %s which is not a supplier invoice/"
 "refund!"
 msgstr ""
-"La transaction %s est liée à la facture %s qui n'est pas une facture/"
-"avoir fournisseur !"
+"La transaction %s est liée à la facture %s qui n'est pas une facture/avoir "
+"fournisseur !"
 
 #. module: base_newgen_payment_card
 #. odoo-python
@@ -728,8 +776,7 @@ msgstr ""
 msgid ""
 "The transaction %s is linked to invoice %s which is not in unpaid state."
 msgstr ""
-"La transaction %s est liée à la facture %s qui n'est pas à l'état "
-"impayé."
+"La transaction %s est liée à la facture %s qui n'est pas à l'état impayé."
 
 #. module: base_newgen_payment_card
 #. odoo-python
@@ -739,8 +786,8 @@ msgid ""
 "The transaction %s is linked to partner '%s' whereas the related invoice %s "
 "is linked to partner '%s'."
 msgstr ""
-"La transaction %s est liée au partenaire \"%s\" tandis que la facture "
-"%s est liée au partenaire \"%s\"."
+"La transaction %s est liée au partenaire \"%s\" tandis que la facture %s "
+"est liée au partenaire \"%s\"."
 
 #. module: base_newgen_payment_card
 #. odoo-python
@@ -750,8 +797,8 @@ msgid ""
 "The transaction %s is linked to the invoice/refund %s whose total amount is "
 "%s, but the amount of the transaction is %s."
 msgstr ""
-"La transaction %s est liée à la facture/avoir %s dont le montant "
-"total est %s, mais le montant de la transaction est %s."
+"La transaction %s est liée à la facture/avoir %s dont le montant total est "
+"%s, mais le montant de la transaction est %s."
 
 #. module: base_newgen_payment_card
 #. odoo-python
@@ -770,7 +817,8 @@ msgstr ""
 #: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__date
 msgid ""
 "This is the date of the bank transaction written on the bank statement. It "
-"may be a few days after the payment date. It is used for the payment move."
+"may be a few days after the payment date. It is used for the bank journal "
+"entry."
 msgstr ""
 "Il s'agit de la date de l'opération bancaire inscrite sur le relevé de "
 "compte. Elle peut être postérieure de quelques jours à la date de paiement. "
@@ -795,7 +843,7 @@ msgstr "Numéro de jeton, nom abrégé ou utilisateur"
 #. module: base_newgen_payment_card
 #: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
 msgid "Total"
-msgstr "Total"
+msgstr ""
 
 #. module: base_newgen_payment_card
 #: model:ir.model.fields,field_description:base_newgen_payment_card.field_newgen_payment_card_transaction__total_company_currency
@@ -821,7 +869,7 @@ msgstr "Type de transaction"
 #. module: base_newgen_payment_card
 #: model_terms:ir.ui.view,arch_db:base_newgen_payment_card.newgen_payment_card_transaction_tree
 msgid "Type"
-msgstr "Type"
+msgstr ""
 
 #. module: base_newgen_payment_card
 #: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__activity_exception_decoration
@@ -898,12 +946,11 @@ msgstr "Historique des échanges sur le site Web"
 #: model:ir.model.fields,help:base_newgen_payment_card.field_newgen_payment_card_transaction__bank_move_only
 msgid ""
 "When you process a transaction on which this option is enabled, Odoo will "
-"only generate the move in the bank journal, it will not generate a supplier "
-"invoice/refund. This option is useful when you make a payment in advance and "
-"you haven't received the invoice yet."
+"only generate the journal entry in the bank journal, it will not generate a "
+"supplier invoice/refund. This option is useful when you make a payment in "
+"advance and you haven't received the invoice yet."
 msgstr ""
 "Lorsque vous traitez une transaction sur laquelle cette option est activée, "
-"Odoo ne génère que la pièce du journal de banque, il ne génère pas "
-"de facture/avoir fournisseur. Cette option est utile lorsque vous "
-"effectuez un paiement à l'avance et que vous n'avez pas encore reçu la "
-"facture."
+"Odoo ne génère que la pièce du journal de banque, il ne génère pas de "
+"facture/avoir fournisseur. Cette option est utile lorsque vous effectuez un "
+"paiement à l'avance et que vous n'avez pas encore reçu la facture."
