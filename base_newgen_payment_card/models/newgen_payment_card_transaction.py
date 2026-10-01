@@ -137,6 +137,11 @@ class NewgenPaymentCardTransaction(models.Model):
         string="Counter-part of Bank Journal Item", check_company=True)
     bank_move_id = fields.Many2one(
         'account.move', string="Bank Journal Entry", readonly=True, check_company=True)
+    similar_invoice_ids = fields.Many2many(
+        comodel_name="account.move",
+        compute="_compute_similar_invoice_ids",
+        string="Similar bills",
+    )
 
     _sql_constraints = [(
         'unique_import_id',
@@ -237,6 +242,53 @@ class NewgenPaymentCardTransaction(models.Model):
                         trans.company_id.id)._get(
                             'property_account_payable_id', 'res.partner')
             trans.bank_counterpart_account_id = account_id
+
+    @api.depends("date", "total_currency")
+    def _compute_similar_invoice_ids(self):
+        """Find invoice on same date & amount than the transaction, to display a warning"""
+        # Don't compute this for Done transactions
+        transactions = self.filtered(
+            lambda x:
+                x.state == "draft"
+                and x.transaction_type == "expense"
+                and not x.bank_move_only
+        )
+        if not transactions:
+            self.similar_invoice_ids = False
+            return
+
+        # Get all similar vendor invoice (largely)
+        dates = transactions.mapped("payment_date") + transactions.mapped("force_invoice_date")
+        AccountMove = self.env["account.move"]
+        invoices = AccountMove.search(
+            [("date", "in", dates), ("move_type", "=", "in_invoice")]
+        )
+        if not transactions or not invoices:
+            self.similar_invoice_ids = False
+            return
+
+        # Group invoices by dates (for perf: it reduces complexity)
+        invoices_by_date = {}
+        for invoice in invoices:
+            if invoice.date not in invoices_by_date:
+                invoices_by_date[invoice.date] = AccountMove
+            invoices_by_date[invoice.date] |= invoice
+
+        # Match
+        (self-transactions).similar_invoice_ids = False
+        for transaction in transactions:
+            date_invoices = invoices_by_date.get(
+                transaction.payment_date.date(),
+                invoices_by_date.get(transaction.force_invoice_date, AccountMove)
+            )
+            similar_invoices = AccountMove
+            for invoice in date_invoices:
+                if transaction.company_currency_id.compare_amounts(
+                    invoice.amount_total_signed,
+                    transaction.total_company_currency
+                ) == 0:
+                    similar_invoices |= invoice
+            transaction.similar_invoice_ids = similar_invoices
 
     def process_line(self):
         for line in self:
@@ -659,3 +711,20 @@ class NewgenPaymentCardTransaction(models.Model):
             speeddict['default_vat_rate'] =\
                 company.account_purchase_tax_id.amount
         return speeddict
+
+    def open_similar_invoices(self):
+        self.ensure_one()
+        invoices = self.similar_invoice_ids
+        action = self.env.ref("account.action_move_in_invoice_type").sudo().read()[0]
+        if len(invoices) == 1:
+            action.update(
+                {
+                    "view_mode": "form,tree",
+                    "res_id": invoices.id,
+                    "view_id": False,
+                    "views": False,
+                }
+            )
+        else:
+            action["domain"] = [("id", "in", invoices.ids)]
+        return action
