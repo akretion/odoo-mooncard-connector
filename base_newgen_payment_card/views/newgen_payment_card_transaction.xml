@@ -18,6 +18,20 @@
                 <field name="state" widget="statusbar"/>
             </header>
             <sheet>
+            <field name="similar_invoice_ids" invisible="1" />
+            <div
+                attrs="{'invisible': [('similar_invoice_ids', '=', [])]}"
+                class="alert alert-info"
+                role="alert"
+            >
+                Existing bills possibly matching this transactions were detected.
+                You may want to enable <b>Generate Bank Journal Entry Only</b>.
+                <br />
+                Similar bills:
+                <a type="object" name="open_similar_invoices">
+                    <field name="similar_invoice_ids" widget="many2many_tags" />
+                </a>
+            </div>
             <div class="oe_title">
                 <h1>
                     <field name="name"/>
@@ -125,6 +139,8 @@
             <field name="total_company_currency" sum="Total" string="Amount"/>
             <field name="company_currency_id" invisible="1"/>
             <field name="total_currency" string="Amount in Expense Currency"/>
+            <field name="similar_invoice_ids" widget="many2many_tags" optional="hide"/>
+            <field name="bank_move_only" widget="boolean_toggle" optional="hide"/>
             <field name="currency_id" invisible="1"/>
             <field name="image_url" invisible="1"/>
             <field name="company_id" groups="base.group_multi_company" optional="show"/>
