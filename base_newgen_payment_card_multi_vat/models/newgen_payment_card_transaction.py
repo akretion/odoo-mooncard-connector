@@ -18,7 +18,7 @@ class NewgenPaymentCardTransaction(models.Model):
         for rec in self:
             rec.has_multiple_vat_line = len(rec.vat_line_ids) > 1
 
-    def _create_multiple_line_invoice(self):
+    def _create_multiple_line_invoice(self, force_accounting_date=None):
         self.ensure_one()
         if self.force_invoice_date:
             date_dt = self.force_invoice_date
@@ -31,11 +31,12 @@ class NewgenPaymentCardTransaction(models.Model):
         if self.receipt_number:
             origin = "%s (%s)" % (origin, self.receipt_number)
         move_type = "in_invoice" if self.total_company_currency <= 0.0 else "in_refund"
+        accounting_date = force_accounting_date or date_dt
         vals = {
             "move_type": move_type,
             "partner_id": self.partner_id.id,
             "invoice_date": date_dt,
-            "date": date_dt,
+            "date": accounting_date,
             "invoice_date_due": date_dt,
             "currency_id": self.company_id.currency_id.id,
             "ref": self.name,
