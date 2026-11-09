@@ -2,125 +2,155 @@
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import models, fields, api, _
+import base64
+import csv
+import logging
+from datetime import datetime, timezone
+from io import StringIO
+
+import pycountry
+from odoo import _, api, fields, models
+from odoo.addons.base_newgen_payment_card.models.res_company import (
+    MEANINGFUL_PARTNER_NAME_MIN_SIZE,
+)
 from odoo.exceptions import UserError
 from odoo.tools import float_compare, float_is_zero
-from datetime import datetime
-import csv
-from unidecode import unidecode
-from io import StringIO
 from stdnum.vatin import is_valid
-import logging
-import pycountry
-import base64
-from odoo.addons.base_newgen_payment_card.models.res_company\
-    import MEANINGFUL_PARTNER_NAME_MIN_SIZE
+from unidecode import unidecode
 
 logger = logging.getLogger(__name__)
 
 
 class MooncardCsvImport(models.TransientModel):
-    _name = 'mooncard.csv.import'
-    _description = 'Import Mooncard Transactions'
+    _name = "mooncard.csv.import"
+    _description = "Import Mooncard Transactions"
 
-    mooncard_file = fields.Binary(string='CSV File', required=True)
-    filename = fields.Char(string='Filename')
+    mooncard_file = fields.Binary(string="CSV File", required=True)
+    filename = fields.Char(string="Filename")
     company_id = fields.Many2one(
-        'res.company', string='Company', required=True,
-        default=lambda self: self.env.company)
+        "res.company",
+        string="Company",
+        required=True,
+        default=lambda self: self.env.company,
+    )
 
     @api.model
-    def partner_match(self, vendor, speed_entry, partner_match_rule='contain'):
-        if partner_match_rule == 'contain':
+    def partner_match(self, vendor, speed_entry, partner_match_rule="contain"):
+        if partner_match_rule == "contain":
             if speed_entry[0] in vendor or vendor in speed_entry[0]:
                 return speed_entry[1]
             else:
                 return False
-        elif partner_match_rule == 'equal':
+        elif partner_match_rule == "equal":
             if speed_entry[0] == vendor:
                 return speed_entry[1]
             else:
                 return False
         return False
 
-    def _prepare_transaction(self, line, speeddict, action='create'):
-        npco = self.env['newgen.payment.card']
+    def _prepare_transaction(self, line, speeddict, action="create"):
+        npco = self.env["newgen.payment.card"]
         analytic_distribution = expense_account_id = card_id = partner_id = False
         vendor_vat = False
         # convert to float
         float_fields = [
-            'vat_eur', 'amount_eur', 'amount_currency',
-            'vat_20_id', 'vat_10_id', 'vat_55_id', 'vat_21_id']
+            "vat_eur",
+            "amount_eur",
+            "amount_currency",
+            "vat_20_id",
+            "vat_10_id",
+            "vat_55_id",
+            "vat_21_id",
+        ]
         for float_field in float_fields:
             if line.get(float_field):
                 try:
                     line[float_field] = float(line[float_field])
                 except Exception:
-                    raise UserError(_(
-                        "Cannot convert float field '%s' with value '%s'.")
-                        % (float_field, line.get(float_field)))
+                    raise UserError(
+                        _("Cannot convert float field '%s' with value '%s'.")
+                        % (float_field, line.get(float_field))
+                    )
             else:
                 line[float_field] = 0.0
-        total_vat_rates = line['vat_20_id'] + line['vat_10_id'] +\
-            line['vat_55_id'] + line['vat_21_id']
-        if float_compare(line['vat_eur'], total_vat_rates, precision_digits=2):
+        total_vat_rates = (
+            line["vat_20_id"]
+            + line["vat_10_id"]
+            + line["vat_55_id"]
+            + line["vat_21_id"]
+        )
+        if float_compare(line["vat_eur"], total_vat_rates, precision_digits=2):
             logger.warning(
                 "In the Mooncard CSV file: for transaction ID '%s' "
                 "the column 'vat_eur' (%.2f) doesn't have the same value "
                 "as the sum of the 4 columns per VAT rate (%.2f). Check "
                 "that it is foreign VAT.",
-                line['id'], line['vat_eur'], total_vat_rates)
+                line["id"],
+                line["vat_eur"],
+                total_vat_rates,
+            )
 
         # Transaction Type
         ttype2odoo = {
-            'P': 'expense',
-            'L': 'load',
-            }
-        if line.get('transaction_type') not in ttype2odoo:
-            raise UserError(_(
-                "Wrong transaction type '%s'. The only possible values are "
-                "'P' (expense) or 'L' (load).")
-                % line.get('transaction_type'))
-        transaction_type = ttype2odoo[line['transaction_type']]
+            "P": "expense",
+            "L": "load",
+        }
+        if line.get("transaction_type") not in ttype2odoo:
+            raise UserError(
+                _(
+                    "Wrong transaction type '%s'. The only possible values are "
+                    "'P' (expense) or 'L' (load)."
+                )
+                % line.get("transaction_type")
+            )
+        transaction_type = ttype2odoo[line["transaction_type"]]
 
         # Card
-        if line.get('card_token'):
-            if line['card_token'] not in speeddict['tokens']:
-                existing_card = npco.search([
-                    ('company_id', '=', self.company_id.id),
-                    ('journal_id', '!=', False),
-                    ], limit=1, order='id desc')
+        if line.get("card_token"):
+            if line["card_token"] not in speeddict["tokens"]:
+                existing_card = npco.search(
+                    [
+                        ("company_id", "=", self.company_id.id),
+                        ("journal_id", "!=", False),
+                    ],
+                    limit=1,
+                    order="id desc",
+                )
                 journal_id = existing_card and existing_card.journal_id.id or False
-                card = npco.sudo().create({
-                    'name': line['card_token'],
-                    'company_id': self.company_id.id,
-                    'journal_id': journal_id,
-                    })
-                speeddict['tokens'][line['card_token']] = card.id
-            card_id = speeddict['tokens'][line['card_token']]
+                card = npco.sudo().create(
+                    {
+                        "name": line["card_token"],
+                        "company_id": self.company_id.id,
+                        "journal_id": journal_id,
+                    }
+                )
+                speeddict["tokens"][line["card_token"]] = card.id
+            card_id = speeddict["tokens"][line["card_token"]]
 
         # Accounts
-        if transaction_type == 'expense':
-            if line.get('charge_account'):
+        if transaction_type == "expense":
+            if line.get("charge_account"):
                 expense_account_id = npco._match_account(
-                    line['charge_account'], speeddict['accounts'])
+                    line["charge_account"], speeddict["accounts"]
+                )
 
             if card_id and expense_account_id:
                 tuple_match = (card_id, expense_account_id)
-                if tuple_match in speeddict['mapping']:
-                    expense_account_id = speeddict['mapping'][tuple_match]
+                if tuple_match in speeddict["mapping"]:
+                    expense_account_id = speeddict["mapping"][tuple_match]
 
-            if line.get('analytic_code_1'):
-                account_analytic_id = speeddict['analytic'].get(
-                    line['analytic_code_1'].lower())
+            if line.get("analytic_code_1"):
+                account_analytic_id = speeddict["analytic"].get(
+                    line["analytic_code_1"].lower()
+                )
                 analytic_distribution = {account_analytic_id: 100}
 
         # Partner
-        if transaction_type == 'expense':
-            vendor = line.get('supplier') and line['supplier'].strip()
+        if transaction_type == "expense":
+            vendor = line.get("supplier") and line["supplier"].strip()
 
-            if line.get('supplier_vat_number') and line['supplier_vat_number'].strip():
-                raw_vat = line['supplier_vat_number'].strip().replace(' ', '').upper()
+            if line.get("supplier_vat_number") and line["supplier_vat_number"].strip():
+                raw_vat = line["supplier_vat_number"].strip().replace(" ", "").upper()
                 if is_valid(raw_vat):
                     vendor_vat = raw_vat
                 else:
@@ -128,202 +158,233 @@ class MooncardCsvImport(models.TransientModel):
 
             # Partner matching
             # 1. Try to match on VAT
-            if vendor_vat and vendor_vat in speeddict['partner_vat']:
-                partner_id = speeddict['partner_vat'][vendor_vat]
-                logger.debug('Partner ID %d matched on VAT %s', partner_id, vendor_vat)
+            if vendor_vat and vendor_vat in speeddict["partner_vat"]:
+                partner_id = speeddict["partner_vat"][vendor_vat]
+                logger.debug("Partner ID %d matched on VAT %s", partner_id, vendor_vat)
 
             if (
-                    not partner_id and
-                    vendor and
-                    len(vendor) >= MEANINGFUL_PARTNER_NAME_MIN_SIZE):
+                not partner_id
+                and vendor
+                and len(vendor) >= MEANINGFUL_PARTNER_NAME_MIN_SIZE
+            ):
                 # 2. Try to match on labels : exact match
                 vendor_label = unidecode(vendor).upper()
-                if vendor_label in speeddict['partner_labels']:
-                    partner_id = speeddict['partner_labels'][vendor_label]
+                if vendor_label in speeddict["partner_labels"]:
+                    partner_id = speeddict["partner_labels"][vendor_label]
                     logger.debug(
-                        'Partner ID %d matched on label %s', partner_id, vendor_label)
+                        "Partner ID %d matched on label %s", partner_id, vendor_label
+                    )
 
                 # 3. Try to match on partner name (configurable)
                 if (
-                        not partner_id and
-                        speeddict['partner_match_rule'] and
-                        speeddict['partner_match_rule'] != 'False'):
-                    for speed_entry in speeddict['partner_names'].items():
+                    not partner_id
+                    and speeddict["partner_match_rule"]
+                    and speeddict["partner_match_rule"] != "False"
+                ):
+                    for speed_entry in speeddict["partner_names"].items():
                         partner_match = self.partner_match(
-                            vendor_label, speed_entry, speeddict['partner_match_rule'])
+                            vendor_label, speed_entry, speeddict["partner_match_rule"]
+                        )
                         if partner_match:
                             partner_id = partner_match
                             logger.debug(
                                 "Partner ID %d matched on name '%s' with "
                                 "partner_match_rule=%s",
-                                partner_id, vendor_label,
-                                speeddict['partner_match_rule'])
+                                partner_id,
+                                vendor_label,
+                                speeddict["partner_match_rule"],
+                            )
                             break
             # Fallback on Mooncard misc supplier
             if not partner_id:
-                partner_id = speeddict['default_partner_id']
+                partner_id = speeddict["default_partner_id"]
 
         country_id = False
-        if line.get('country_code'):
-            if len(line['country_code']) == 2:
-                country_id = speeddict['countries'].get(line['country_code'])
-            elif len(line['country_code']) == 3:
+        if line.get("country_code"):
+            if len(line["country_code"]) == 2:
+                country_id = speeddict["countries"].get(line["country_code"])
+            elif len(line["country_code"]) == 3:
                 logger.debug(
-                    'search country with code %s with pycountry',
-                    line['country_code'])
-                pcountry = pycountry.countries.get(alpha_3=line['country_code'])
+                    "search country with code %s with pycountry", line["country_code"]
+                )
+                pcountry = pycountry.countries.get(alpha_3=line["country_code"])
                 if pcountry and pcountry.alpha_2:
-                    country_id = speeddict['countries'].get(pcountry.alpha_2)
-            elif len(line['country_code']) > 3:
+                    country_id = speeddict["countries"].get(pcountry.alpha_2)
+            elif len(line["country_code"]) > 3:
                 # Workaround Mooncard bug, fixed by mooncard on 20/09/2022
-                country_name = unidecode(line['country_code'].strip()).lower()
-                if country_name in speeddict['country_names']:
-                    country_id = speeddict['country_names'][country_name]
+                country_name = unidecode(line["country_code"].strip()).lower()
+                if country_name in speeddict["country_names"]:
+                    country_id = speeddict["country_names"][country_name]
 
         # VAT rate
         vat_rate = 0
-        autoliquidation = 'none'
-        if not float_is_zero(line['vat_eur'], precision_digits=2):
+        autoliquidation = "none"
+        if not float_is_zero(line["vat_eur"], precision_digits=2):
             rates_amount = [
-                ('20.0', abs(line['vat_20_id'])),
-                ('10.0', abs(line['vat_10_id'])),
-                ('5.5', abs(line['vat_55_id'])),
-                ('2.1', abs(line['vat_21_id'])),
-                ]
-            rates_amount_sorted = sorted(
-                rates_amount, key=lambda to_sort: to_sort[1])
+                ("20.0", abs(line["vat_20_id"])),
+                ("10.0", abs(line["vat_10_id"])),
+                ("5.5", abs(line["vat_55_id"])),
+                ("2.1", abs(line["vat_21_id"])),
+            ]
+            rates_amount_sorted = sorted(rates_amount, key=lambda to_sort: to_sort[1])
             vat_rate = rates_amount_sorted[-1][0]
         else:
-            if country_id and country_id != speeddict['my_country_id']:
-                if country_id in speeddict['eu_country_ids']:
-                    autoliquidation = 'intracom'
+            if country_id and country_id != speeddict["my_country_id"]:
+                if country_id in speeddict["eu_country_ids"]:
+                    autoliquidation = "intracom"
                 else:
-                    autoliquidation = 'extracom'
+                    autoliquidation = "extracom"
 
         vals = {
-            'transaction_type': transaction_type,
-            'description': line.get('title'),
-            'expense_categ_name': line.get('expense_category_name'),
-            'expense_account_id': expense_account_id,
-            'analytic_distribution': analytic_distribution,
-            'vat_company_currency': line['vat_eur'],
-            'vat_rate': vat_rate,
-            'image_url': line.get('attachment'),
-            'receipt_number': line.get('receipt_code'),
-            'partner_id': partner_id,
-            'country_id': country_id,
-            'vendor_vat': vendor_vat,
-            'autoliquidation': autoliquidation,
-            }
+            "transaction_type": transaction_type,
+            "description": line.get("title"),
+            "expense_categ_name": line.get("expense_category_name"),
+            "expense_account_id": expense_account_id,
+            "analytic_distribution": analytic_distribution,
+            "vat_company_currency": line["vat_eur"],
+            "vat_rate": vat_rate,
+            "image_url": line.get("attachment"),
+            "receipt_number": line.get("receipt_code"),
+            "partner_id": partner_id,
+            "country_id": country_id,
+            "vendor_vat": vendor_vat,
+            "autoliquidation": autoliquidation,
+        }
 
-        if action == 'update':
+        if action == "update":
             return vals
 
         # Continue with fields required for create
         payment_date = False
-        currency_id = speeddict['currencies'].get(line.get('original_currency'))
-        if (
-                transaction_type == 'expense' and
-                line.get('date_authorization')):
-            # Mooncard now always gives us datetime in UTC
-            # example : 2019-04-18 13:35:06 UTC
-            payment_date = datetime.strptime(
-                line['date_authorization'], '%Y-%m-%d %H:%M:%S %Z')
+        currency_id = speeddict["currencies"].get(line.get("original_currency"))
+        if transaction_type == "expense" and line.get("date_authorization"):
+            datetime_formats = [
+                "%Y-%m-%d %H:%M:%S %Z",  # 2019-04-18 13:35:06 UTC (used before oct 2026)
+                "%Y-%m-%d %H:%M:%S %z",  # 2026-09-30 07:42:49 +0200 (used since oct 2026)
+            ]
+            payment_date = False
+            for datetime_format in datetime_formats:
+                try:
+                    payment_date = datetime.strptime(
+                        line["date_authorization"], datetime_format
+                    )
+                    break
+                except ValueError:
+                    continue
+            if not payment_date:
+                raise UserError(
+                    _(
+                        "Failed to parse authorization date '%s'",
+                        line["date_authorization"],
+                    )
+                )
+            payment_date_aware_utc = payment_date.astimezone(timezone.utc)
+            payment_date = payment_date_aware_utc.replace(tzinfo=None)
 
-        vals.update({
-            'company_id': self.company_id.id,
-            'unique_import_id': line.get('id'),
-            'date': line['date_transaction'] and line['date_transaction'][:10],
-            'payment_date': payment_date,
-            'card_id': card_id,
-            'vendor': line.get('supplier') and line['supplier'].strip(),
-            'total_company_currency': line['amount_eur'],
-            'total_currency': line['amount_currency'],
-            'currency_id': currency_id,
-        })
+        vals.update(
+            {
+                "company_id": self.company_id.id,
+                "unique_import_id": line.get("id"),
+                "date": line["date_transaction"] and line["date_transaction"][:10],
+                "payment_date": payment_date,
+                "card_id": card_id,
+                "vendor": line.get("supplier") and line["supplier"].strip(),
+                "total_company_currency": line["amount_eur"],
+                "total_currency": line["amount_currency"],
+                "currency_id": currency_id,
+            }
+        )
         return vals
 
     @api.model
-    def _prepare_mileage(self, line, speeddict, action='create'):
-        npco = self.env['newgen.payment.card']
+    def _prepare_mileage(self, line, speeddict, action="create"):
+        npco = self.env["newgen.payment.card"]
         # convert to float/int
-        line['price_unit'] = float(line['Barème kilométrique'])
-        line['km'] = int(line['Distance'])
+        line["price_unit"] = float(line["Barème kilométrique"])
+        line["km"] = int(line["Distance"])
         analytic_distribution = account_id = trip_type = False
-        if line.get('Codes analytiques'):
-            account_analytic_id = speeddict['analytic'].get(
-                line['Codes analytiques'].lower())
+        if line.get("Codes analytiques"):
+            account_analytic_id = speeddict["analytic"].get(
+                line["Codes analytiques"].lower()
+            )
             analytic_distribution = {account_analytic_id: 100}
-        if line.get('Compte de charge'):
+        if line.get("Compte de charge"):
             account_id = npco._match_account(
-                line['Compte de charge'], speeddict['accounts'])
+                line["Compte de charge"], speeddict["accounts"]
+            )
         typedict = {
-            'Aller Simple': 'oneway',
-            'Aller / Retour': 'roundtrip',
-            }
-        if line.get('Type de trajet') and line['Type de trajet'] in typedict:
-            trip_type = typedict[line['Type de trajet']]
-        date_str = line['Date de dépense']
-        date = datetime.strptime(date_str, '%d/%m/%y')
+            "Aller Simple": "oneway",
+            "Aller / Retour": "roundtrip",
+        }
+        if line.get("Type de trajet") and line["Type de trajet"] in typedict:
+            trip_type = typedict[line["Type de trajet"]]
+        date_str = line["Date de dépense"]
+        date = datetime.strptime(date_str, "%d/%m/%y")
 
         vals = {
-            'company_id': self.company_id.id,
-            'km': line['km'],
-            'price_unit': line['price_unit'],
-            'date': date,
-            'description': line['Description'],
-            'car_name': line['Véhicule'],
-            'car_plate': line.get("Immatriculation"),
-            'car_fiscal_power': line.get('Puissance fiscale'),
-            'departure': line.get('Départ'),
-            'arrival': line.get('Arrivée'),
-            'trip_type': trip_type,
-            'analytic_distribution': analytic_distribution,
-            'expense_account_id': account_id,
-            }
+            "company_id": self.company_id.id,
+            "km": line["km"],
+            "price_unit": line["price_unit"],
+            "date": date,
+            "description": line["Description"],
+            "car_name": line["Véhicule"],
+            "car_plate": line.get("Immatriculation"),
+            "car_fiscal_power": line.get("Puissance fiscale"),
+            "departure": line.get("Départ"),
+            "arrival": line.get("Arrivée"),
+            "trip_type": trip_type,
+            "analytic_distribution": analytic_distribution,
+            "expense_account_id": account_id,
+        }
 
-        if action == 'update':
+        if action == "update":
             return vals
 
         # Continue with fields required for create
-        email = line.get('Code utilisateur')
+        email = line.get("Code utilisateur")
         if not email:
-            raise UserError(_(
-                "Code utilisateur is missing. "
-                "It should contain the email of the employee."))
+            raise UserError(
+                _(
+                    "Code utilisateur is missing. "
+                    "It should contain the email of the employee."
+                )
+            )
         email = email.strip().lower()
-        if email not in speeddict['partner']:
-            raise UserError(_(
-                "No partner with email '%s' found") % email)
-        partner_id = speeddict['partner'][email]
-        vals.update({
-            'unique_import_id': line.get('Identifiant unique'),
-            'partner_id': partner_id,
-        })
+        if email not in speeddict["partner"]:
+            raise UserError(_("No partner with email '%s' found") % email)
+        partner_id = speeddict["partner"][email]
+        vals.update(
+            {
+                "unique_import_id": line.get("Identifiant unique"),
+                "partner_id": partner_id,
+            }
+        )
         return vals
 
     def _prepare_mileage_speeddict(self, company):
-        speeddict = {'partner': {}, 'analytic': {}, 'accounts': {}}
+        speeddict = {"partner": {}, "analytic": {}, "accounts": {}}
 
-        partner_res = self.env['res.partner'].search_read(
-            [('email', '!=', False)], ['email'])
+        partner_res = self.env["res.partner"].search_read(
+            [("email", "!=", False)], ["email"]
+        )
         for partner in partner_res:
-            email = partner['email'].strip().lower()
-            speeddict['partner'][email] = partner['id']
+            email = partner["email"].strip().lower()
+            speeddict["partner"][email] = partner["id"]
 
-        analytic_res = self.env['account.analytic.account'].search_read(
-            [('company_id', '=', company.id), ('code', '!=', False)], ['code'])
+        analytic_res = self.env["account.analytic.account"].search_read(
+            [("company_id", "=", company.id), ("code", "!=", False)], ["code"]
+        )
         for analytic in analytic_res:
-            analytic_code = analytic['code'].strip().lower()
-            speeddict['analytic'][analytic_code] = analytic['id']
-        speeddict['accounts'] = self.company_id._prepare_account_import_speeddict()
+            analytic_code = analytic["code"].strip().lower()
+            speeddict["analytic"][analytic_code] = analytic["id"]
+        speeddict["accounts"] = self.company_id._prepare_account_import_speeddict()
         return speeddict
 
     def mooncard_import_mileage(self, fileobj):
-        mmo = self.env['mooncard.mileage']
+        mmo = self.env["mooncard.mileage"]
         speeddict = self._prepare_mileage_speeddict(self.company_id)
         fileobj.seek(0)
-        reader = csv.DictReader(fileobj, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+        reader = csv.DictReader(fileobj, delimiter=";", quoting=csv.QUOTE_MINIMAL)
         i = 0
         exiting_mileage = {}
         existings = mmo.search([])
@@ -342,21 +403,22 @@ class MooncardCsvImport(models.TransientModel):
                 else:
                     line[key] = False
             logger.debug("line=%s", line)
-            if not line.get('Identifiant unique'):
-                raise UserError(_(
-                    "Missing ID in CSV file line %d.") % i)
+            if not line.get("Identifiant unique"):
+                raise UserError(_("Missing ID in CSV file line %d.") % i)
             existing_import_id = False
-            if line['Identifiant unique'] in exiting_mileage:
-                existing_import_id = line['Identifiant unique']
+            if line["Identifiant unique"] in exiting_mileage:
+                existing_import_id = line["Identifiant unique"]
 
                 mileage = exiting_mileage[existing_import_id]
                 logger.debug(
-                    'Existing line with unique ID %s (odoo ID %s, state %s)',
-                    existing_import_id, mileage.id, mileage.state)
-                if mileage.state == 'draft':
+                    "Existing line with unique ID %s (odoo ID %s, state %s)",
+                    existing_import_id,
+                    mileage.id,
+                    mileage.state,
+                )
+                if mileage.state == "draft":
                     # update existing lines
-                    wvals = self._prepare_mileage(
-                        line, speeddict, action='update')
+                    wvals = self._prepare_mileage(line, speeddict, action="update")
                     mileage.write(wvals)
                     mm_ids.append(mileage.id)
                 continue
@@ -365,40 +427,47 @@ class MooncardCsvImport(models.TransientModel):
         mm_ids += mileages.ids
         if not mm_ids:
             raise UserError(_("No Mooncard mileage created nor updated."))
-        action = self.env['ir.actions.actions']._for_xml_id(
-            'mooncard_payment_card.mooncard_mileage_action')
-        action.update({
-            'domain': "[('id', 'in', %s)]" % mm_ids,
-            'views': False,
-            })
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "mooncard_payment_card.mooncard_mileage_action"
+        )
+        action.update(
+            {
+                "domain": "[('id', 'in', %s)]" % mm_ids,
+                "views": False,
+            }
+        )
         return action
 
     def mooncard_import(self):
         self.ensure_one()
-        npcto = self.env['newgen.payment.card.transaction']
-        ico = self.env['ir.config_parameter']
+        npcto = self.env["newgen.payment.card.transaction"]
+        ico = self.env["ir.config_parameter"]
         speeddict = self.company_id._prepare_import_speeddict()
         # Temporary hack until mooncard restores the country_code column
-        speeddict['country_names'] = {}
-        countries = self.env['res.country'].with_context(lang='fr_FR').search_read(
-            [('name', '!=', False)], ['name'])
+        speeddict["country_names"] = {}
+        countries = (
+            self.env["res.country"]
+            .with_context(lang="fr_FR")
+            .search_read([("name", "!=", False)], ["name"])
+        )
         for country in countries:
-            country_name = unidecode(country['name'].strip()).lower()
-            speeddict['country_names'][country_name] = country['id']
-        speeddict['partner_match_rule'] = ico.sudo().get_param(
-            'mooncard.partner_match_rule', default='contain')
-        logger.info('Importing Mooncard transactions.csv')
+            country_name = unidecode(country["name"].strip()).lower()
+            speeddict["country_names"][country_name] = country["id"]
+        speeddict["partner_match_rule"] = ico.sudo().get_param(
+            "mooncard.partner_match_rule", default="contain"
+        )
+        logger.info("Importing Mooncard transactions.csv")
         fileobj = StringIO()
         file_bytes = base64.b64decode(self.mooncard_file)
-        file_str = file_bytes.decode('utf-8')
+        file_str = file_bytes.decode("utf-8")
         fileobj.write(file_str)
         fileobj.seek(0)
         if file_str.startswith(
-                'Identifiant unique;Date de dépense;Heure;Date de débit;Montant devise;Devise;Montant;Payment method;Pays;Adresse du marchand;Marchand;Fournisseur;Collaborateur'):  # noqa: E501
+            "Identifiant unique;Date de dépense;Heure;Date de débit;Montant devise;Devise;Montant;Payment method;Pays;Adresse du marchand;Marchand;Fournisseur;Collaborateur"
+        ):  # noqa: E501
             return self.mooncard_import_mileage(fileobj)
         fileobj.seek(0)
-        reader = csv.DictReader(
-            fileobj, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        reader = csv.DictReader(fileobj, delimiter=",", quoting=csv.QUOTE_MINIMAL)
         i = 0
         exiting_transactions = {}
         existings = npcto.search([])
@@ -417,29 +486,31 @@ class MooncardCsvImport(models.TransientModel):
                 else:
                     line[key] = False
             logger.debug("line=%s", line)
-            if not line.get('id'):
-                raise UserError(_(
-                    "Missing ID in CSV file line %d.") % i)
+            if not line.get("id"):
+                raise UserError(_("Missing ID in CSV file line %d.") % i)
             # line['transaction_id'] used for the transition
             # from transactions.csv to Mooncard bank statements
             existing_import_id = False
-            if line['id'] in exiting_transactions:
-                existing_import_id = line['id']
+            if line["id"] in exiting_transactions:
+                existing_import_id = line["id"]
             # only for the transition to CSV bank statements on July 2017
             # To be removed
             elif (
-                    line['transaction_id'] and
-                    line['transaction_id'] in exiting_transactions):
-                existing_import_id = line['transaction_id']
+                line["transaction_id"]
+                and line["transaction_id"] in exiting_transactions
+            ):
+                existing_import_id = line["transaction_id"]
             if existing_import_id:
                 transaction = exiting_transactions[existing_import_id]
                 logger.debug(
-                    'Existing line with unique ID %s (odoo ID %s, state %s)',
-                    existing_import_id, transaction.id, transaction.state)
-                if transaction.state == 'draft':
+                    "Existing line with unique ID %s (odoo ID %s, state %s)",
+                    existing_import_id,
+                    transaction.id,
+                    transaction.state,
+                )
+                if transaction.state == "draft":
                     # update existing lines
-                    wvals = self._prepare_transaction(
-                        line, speeddict, action='update')
+                    wvals = self._prepare_transaction(line, speeddict, action="update")
                     transaction.write(wvals)
                     mt_ids.append(transaction.id)
                 continue
@@ -447,13 +518,14 @@ class MooncardCsvImport(models.TransientModel):
         transactions = npcto.create(vals_list)
         mt_ids += transactions.ids
         if not mt_ids:
-            raise UserError(_(
-                "No payment card transaction created nor updated."))
+            raise UserError(_("No payment card transaction created nor updated."))
         action = self.env["ir.actions.actions"]._for_xml_id(
             "base_newgen_payment_card.newgen_payment_card_transaction_action"
-            )
-        action.update({
-            'domain': "[('id', 'in', %s)]" % mt_ids,
-            'views': False,
-            })
+        )
+        action.update(
+            {
+                "domain": "[('id', 'in', %s)]" % mt_ids,
+                "views": False,
+            }
+        )
         return action
