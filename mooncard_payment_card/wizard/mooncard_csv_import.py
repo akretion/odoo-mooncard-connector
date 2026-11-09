@@ -5,7 +5,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from odoo.tools import float_compare, float_is_zero
-from datetime import datetime
+from datetime import datetime, timezone
 import unicodecsv
 from unidecode import unidecode
 from tempfile import TemporaryFile
@@ -234,10 +234,24 @@ class MooncardCsvImport(models.TransientModel):
         if (
                 transaction_type == 'expense' and
                 line.get('date_authorization')):
-            # Mooncard now always gives us datetime in UTC
-            # example : 2019-04-18 13:35:06 UTC
-            payment_date = datetime.strptime(
-                line['date_authorization'], '%Y-%m-%d %H:%M:%S %Z')
+            datetime_formats = [
+               "%Y-%m-%d %H:%M:%S %Z",  # 2019-04-18 13:35:06 UTC (used before oct 2026)
+               "%Y-%m-%d %H:%M:%S %z",   # 2026-09-30 07:42:49 +0200 (used since oct 2026)
+            ]
+            payment_date = False
+            for datetime_format in datetime_formats:
+                try:
+                    payment_date = datetime.strptime(
+                        line['date_authorization'], datetime_format)
+                    break
+                except ValueError:
+                    continue
+            if not payment_date:
+                raise UserError(_(
+                    "Failed to parse authorization date '%s'",
+                    line['date_authorization']))
+            payment_date_aware_utc = payment_date.astimezone(timezone.utc)
+            payment_date = payment_date_aware_utc.replace(tzinfo=None)
 
         vals.update({
             'company_id': self.company_id.id,
