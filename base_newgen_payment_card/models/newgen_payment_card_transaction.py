@@ -592,6 +592,7 @@ class NewgenPaymentCardTransaction(models.Model):
         speeddict['default_partner_id'] = default_partner.id
         speeddict['partner_labels'] = {}
         specific_partner_existing_transactions = npcto.search_read([
+            ('company_id', '=', company.id),
             ('state', '=', 'done'),
             ('transaction_type', '=', 'expense'),
             ('vendor', '!=', False),
@@ -605,7 +606,11 @@ class NewgenPaymentCardTransaction(models.Model):
         speeddict['partner_vat'] = {}
         speeddict['partner_names'] = {}
         partners = self.env['res.partner'].search_read(
-            [('parent_id', '=', False), ('id', '!=', company.partner_id.id)],
+            [
+                ('parent_id', '=', False),
+                ('id', '!=', company.partner_id.id),
+                ('company_id', 'in', (False, company.id)),
+            ],
             ['name', 'vat'])
         for partner in partners:
             partner_name = unidecode(partner['name'].strip().upper())

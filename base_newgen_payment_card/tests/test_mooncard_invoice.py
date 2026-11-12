@@ -80,3 +80,60 @@ class TestNewgenPaymentCard(TransactionCase):
             self.assertEqual(
                 expense.bank_move_id.journal_id, self.card1.journal_id)
             self.assertTrue(expense.reconcile_id)
+
+
+class TestNewgenPaymentCardImportSpeeddict(TransactionCase):
+
+    def test_import_speeddict_partners_of_company(self):
+        company = self.env.ref('base.main_company')
+        other_company = self.env['res.company'].create({
+            'name': 'Other Mooncard Company',
+            'country_id': self.env.ref('base.fr').id,
+            })
+        other_partner = self.env['res.partner'].create({
+            'name': 'INTERMARCHE OTHER COMPANY',
+            'vat': 'FR40303265045',
+            'company_id': other_company.id,
+            })
+        shared_partner = self.env['res.partner'].create({
+            'name': 'SHARED SUPPLIER',
+            'vat': 'FR23334175221',
+            })
+        payable_type = self.env.ref('account.data_account_type_payable')
+        other_payable = self.env['account.account'].create({
+            'code': '401OTHER',
+            'name': 'Other Payable',
+            'user_type_id': payable_type.id,
+            'reconcile': True,
+            'company_id': other_company.id,
+            })
+        self.env['newgen.payment.card.transaction'].create({
+            'company_id': other_company.id,
+            'transaction_type': 'expense',
+            'date': '2026-01-01',
+            'vendor': 'Intermarche Other Label',
+            'partner_id': other_partner.id,
+            'bank_counterpart_account_id': other_payable.id,
+            'state': 'done',
+            })
+        if not company.transfer_account_id:
+            company.transfer_account_id = self.env['account.account'].create({
+                'code': '580TEST',
+                'name': 'Test Transfer',
+                'user_type_id': self.env.ref(
+                    'account.data_account_type_current_assets').id,
+                'reconcile': True,
+                })
+        speeddict = self.env[
+            'newgen.payment.card.transaction'
+        ].sudo()._prepare_import_speeddict(company)
+        self.assertNotIn(
+            other_partner.id, speeddict['partner_names'].values())
+        self.assertNotIn(
+            other_partner.id, speeddict['partner_vat'].values())
+        self.assertNotIn(
+            'INTERMARCHE OTHER LABEL', speeddict['partner_labels'])
+        self.assertEqual(
+            speeddict['partner_names']['SHARED SUPPLIER'], shared_partner.id)
+        self.assertEqual(
+            speeddict['partner_vat']['FR23334175221'], shared_partner.id)
