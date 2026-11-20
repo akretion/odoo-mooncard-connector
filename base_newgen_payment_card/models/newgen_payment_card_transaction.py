@@ -200,13 +200,8 @@ class NewgenPaymentCardTransaction(models.Model):
             account_id = False
             if trans.transaction_type == 'load':
                 account_id = trans.company_id.transfer_account_id.id or False
-            elif trans.transaction_type == 'expense':
-                if trans.partner_id:
-                    account_id = trans.with_company(trans.company_id.id).partner_id.property_account_payable_id.id
-                else:
-                    account_id = self.env['ir.property'].with_company(
-                        trans.company_id.id)._get(
-                            'property_account_payable_id', 'res.partner')
+            elif trans.transaction_type == 'expense' and trans.partner_id:
+                account_id = trans.with_company(trans.company_id.id).partner_id.property_account_payable_id.id
             trans.bank_counterpart_account_id = account_id
 
     def process_line(self):
@@ -259,6 +254,7 @@ class NewgenPaymentCardTransaction(models.Model):
         elif self.transaction_type == 'load':
             partner_id = False
         mvals = {
+            'company_id': self.company_id.id,
             'journal_id': journal.id,
             'date': self.date,
             'ref': ref,
@@ -383,7 +379,7 @@ class NewgenPaymentCardTransaction(models.Model):
 
         origin = self.name
         if self.receipt_number:
-            origin = '%s (%s)' % (origin, self.receipt_number)
+            origin = f"{origin} ({self.receipt_number})"
         amount_untaxed = self.total_company_currency * -1\
             - self.vat_company_currency * -1
         if total_compare > 0:  # refund
@@ -393,6 +389,7 @@ class NewgenPaymentCardTransaction(models.Model):
             move_type = 'in_invoice'
             price_unit = amount_untaxed
         vals = {
+            'company_id': self.company_id.id,
             'partner_id': self.partner_id.id,
             'invoice_date': date,
             'invoice_date_due': date,
@@ -409,8 +406,8 @@ class NewgenPaymentCardTransaction(models.Model):
                 'name': self.description,
                 'quantity': 1,
                 })],
+            "attachment_ids": self._get_attachment_vals_list(),
             }
-        vals["attachment_ids"] = self._get_attachment_vals_list()
         return vals
 
     def _get_attachment_vals_list(self):
