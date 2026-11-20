@@ -2,7 +2,7 @@
 # @author: Alexis de Lattre <alexis.delattre@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import api, fields, models, _
+from odoo import Command, api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare
 from odoo.tools.misc import format_amount
@@ -10,8 +10,10 @@ import requests
 import base64
 import logging
 from urllib.parse import urlparse
+from markupsafe import Markup
 import os
 import io
+import mimetypes
 import logging
 from unidecode import unidecode
 
@@ -289,6 +291,7 @@ class NewgenPaymentCardTransaction(models.Model):
         elif self.transaction_type == 'load':
             partner_id = False
         mvals = {
+            'company_id': self.company_id.id,
             'journal_id': journal.id,
             'date': self.date,
             'ref': ref,
@@ -345,29 +348,37 @@ class NewgenPaymentCardTransaction(models.Model):
                     self._fields['autoliquidation'].convert_to_export(
                         self.autoliquidation, self),
                     self.company_id.display_name))
-        taxes = [{'id': tax.id}]
-        return taxes
+        tax_ids = [tax.id]
+        return tax_ids
 
     def _prepare_regular_taxes(self):
         # This method is inherited in l10n_fr_base_newgen_payment_card
         self.ensure_one()
-        taxes = [{
-            'amount_type': 'percent',
-            'amount': self.vat_rate,
-            'unece_type_code': 'VAT',
-            'unece_categ_code': 'S',
-            }]
-        return taxes
+        domain = [
+            ('company_id', '=', self.company_id.id),
+            ('type_tax_use', '=', 'purchase'),
+            ('price_include', '=', False),
+            ('amount_type', '=', 'percent'),
+            ('amount', '>', 0),
+            ('unece_type_code', '=', 'VAT'),
+            ('unece_categ_code', '=', 'S'),
+            ]
+        taxes = self.env['account.tax'].search(domain)
+        for tax in taxes:
+            # self.vat_rate = 20.0
+            if not float_compare(tax.amount, self.vat_rate, precision_digits=4):
+                return [tax.id]
+        raise UserError(_(
+            "Failed to match regular purchase VAT tax %.2f %%.") % self.vat_rate)
 
     def _prepare_invoice(self):
         self.ensure_one()
         if self.force_invoice_date:
-            date_dt = self.force_invoice_date
+            date = self.force_invoice_date
         elif self.payment_date:
-            date_dt = self.payment_date
+            date = self.payment_date
         else:
-            date_dt = self.date
-        date = fields.Date.to_string(date_dt)
+            date = self.date
         vat_compare = self.company_currency_id.compare_amounts(
             self.vat_company_currency, 0)
         total_compare = self.company_currency_id.compare_amounts(
@@ -389,46 +400,57 @@ class NewgenPaymentCardTransaction(models.Model):
                     "the sign of the total amount (%s).")
                     % (self.vat_company_currency, self.total_company_currency))
 
-            taxes = self._prepare_regular_taxes()
+            tax_ids = self._prepare_regular_taxes()
         elif self.autoliquidation in ('intracom', 'extracom'):
-            taxes = self._prepare_autoliquidation_taxes()
+            tax_ids = self._prepare_autoliquidation_taxes()
         else:
-            taxes = []
+            tax_ids = []
         if not self.description:
             raise UserError(_("Description is missing on transaction %s.", self.name))
         if not self.expense_account_id:
             raise UserError(_(
                 "Missing expense account on transaction %s.", self.name))
+        if not self.partner_id:
+            raise UserError(_(
+                "Missing partner on transaction '%s'.", self.display_name))
+
         origin = self.name
         if self.receipt_number:
-            origin = '%s (%s)' % (origin, self.receipt_number)
-        price_unit = amount_untaxed
-        qty = 1
-        move_type = "in_invoice"
-        if total_compare > 0:
-            move_type = "in_refund"
-            qty *= -1
-            price_unit *= -1
+            origin = f"{origin} ({self.receipt_number})"
+        amount_untaxed = self.total_company_currency * -1\
+            - self.vat_company_currency * -1
+        if total_compare > 0:  # refund
+            move_type = 'in_refund'
+            price_unit = amount_untaxed * -1
+        else:  # invoice
+            move_type = 'in_invoice'
+            price_unit = amount_untaxed
+
         vals = {
-            'company': self.company_id,
-            'move_type': move_type,
+            'company_id': self.company_id.id,
             'partner_id': self.partner_id.id,
             'invoice_date': date,
             'invoice_date_due': date,
-            'currency': self.company_id.currency_id.id,
+            'currency_id': self.company_id.currency_id.id,
+            'move_type': move_type,
             'ref': self.name,
-            'invoice_line_ids': [{
+            'invoice_origin': origin,
+            'invoice_line_ids': [Command.create({
                 "display_type": "product",
-                'name': self.description,
-                'tax_ids': [Command.set([taxes.ids])],
-                'price_unit': price_unit,
-                'quantity': qty,
+                'tax_ids': [Command.set(tax_ids)],
                 'account_id': self.expense_account_id.id,
                 'analytic_distribution': self.analytic_distribution or False,
-                }],
-            'invoice_origin': origin,
-            'attachment_ids': [],
+                'price_unit': price_unit,
+                'name': self.description,
+                'quantity': 1,
+                })],
+            'attachment_ids': self._get_attachment_vals_list(),
             }
+        return vals
+
+    def _get_attachment_vals_list(self):
+        self.ensure_one()
+        attachment_vals_list = []
         url = self.image_url
         attachments = self.env['ir.attachment'].search([
             ('res_model', '=', self._name),
@@ -455,6 +477,9 @@ class NewgenPaymentCardTransaction(models.Model):
                     % (self.name, url, rimage.status_code))
             image_binary = rimage.content
             file_extension = os.path.splitext(urlparse(url).path)[1]
+            if not file_extension:
+                content_type = rimage.headers.get('Content-Type')
+                file_extension = mimetypes.guess_extension(content_type) if content_type else ''
             logger.debug('file_extension=%s', file_extension)
             if file_extension in ('.JPG', '.JPEG', '.jpg', '.jpeg'):
                 logger.debug('Trying to rotate the JPG image %s', url)
@@ -465,17 +490,18 @@ class NewgenPaymentCardTransaction(models.Model):
                     logger.info('Failed to rotate the image. Error: %s', e)
                     pass
             filename = 'Receipt-%s%s' % (self.name, file_extension)
-            vals['attachment_ids'].append(Command.create({
+            attachment_vals_list.append(Command.create({
                 'name': filename,
+                'res_model': 'account.move',
                 'raw': image_binary,
                 }))
-        if attachments:
-            for att in attachments:
-                vals['attachment_ids'].append(Command.create({
-                    'name': att.name,
-                    'raw': att.raw,
-                    }))
-        return vals
+        for att in attachments:
+            attachment_vals_list.append(Command.create({
+                'name': att.name,
+                'res_model': 'account.move',
+                'raw': att.raw,
+                }))
+        return attachment_vals_list
 
     @api.model
     def _rotate_image(self, image_binary):
@@ -536,27 +562,38 @@ class NewgenPaymentCardTransaction(models.Model):
     def generate_invoice(self):
         self.ensure_one()
         assert self.transaction_type == 'expense', 'wrong transaction type'
-        move_obj = self.env['account.move']
-        vals = self._prepare_invoice()
-        logger.debug('Supplier invoice vals=%s', vals)
-        invoice = move_obj.create(vals)
-        invoice.message_post(
-            body=_(
-                "Invoice created from payment card transaction "
-                "<a href=# data-oe-model=newgen.payment.card.transaction "
-                "data-oe-id=%(trans_id)s>%(trans_name)s</a>.",
-                trans_id=self.id,
-                trans_name=self.name))
+        inv_vals = self._prepare_invoice()
+        logger.debug('Payment card invoice inv_vals=%s', inv_vals)
+        invoice = self.env['account.move'].create(inv_vals)
+        trans_link = f"<a href='#' data-oe-model='{self._name}' data-oe-id='{self.id}'>{self.display_name}</a>"
+        invoice.message_post(body=Markup(_("Invoice created from payment card transaction %s.", trans_link)))
         invoice.with_context(validate_analytic=True)._post(soft=False)
-        amount_untaxed = abs(self.total_company_currency * -1\
-            - self.vat_company_currency * -1)
-        assert self.company_currency_id.compare_amounts(
-            invoice.amount_untaxed, amount_untaxed) == 0, 'bug on total untaxed'
-        amount_total = abs(self.total_company_currency)
-        invoice._check_total_amount(amount_total)
-        assert self.company_currency_id.compare_amounts(
-            invoice.amount_total, amount_total) == 0, 'bug on total amount'
+        self._post_process_invoice(invoice)
         return invoice
+
+    def _post_process_invoice(self, invoice):
+        cur = self.company_currency_id
+        total_compare = cur.compare_amounts(
+            self.total_company_currency, 0)
+        amount_total = self.total_company_currency
+        amount_tax = self.vat_company_currency
+        if total_compare < 0:
+            amount_total *= -1
+            amount_tax *= -1
+        # force total tax amount to match total amount
+        invoice._check_total_amount(amount_total)
+        if self.company_currency_id.compare_amounts(invoice.amount_total, amount_total):
+            raise UserError(_(
+                "Wrong total amount. Transaction total amount: %(trans_total)s. "
+                "Vendor bill/refund total amount: %(invoice_total)s. This should never happen.",
+                trans_total=format_amount(self.env, amount_total, cur),
+                invoice_total=format_amount(self.env, invoice.amount_total, cur),
+                )
+                )
+        if self.company_currency_id.compare_amounts(invoice.amount_tax, amount_tax):
+            raise UserError(_(
+                "Wrong tax amount. Maybe the code to force the tax amount didn't work. "
+                "This should never happen."))
 
     def reconcile(self, bank_move, invoice):
         self.ensure_one()
