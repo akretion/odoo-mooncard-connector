@@ -10,7 +10,7 @@
     'summary': 'New-generation payment card',
     'author': 'Akretion',
     'website': 'http://www.akretion.com',
-    'depends': ['account_invoice_import'],
+    'depends': ['account'],
     'external_dependencies': {'python': ['unidecode', 'PIL']},
     'data': [
         'data/partner.xml',

@@ -359,7 +359,7 @@ class NewgenPaymentCardTransaction(models.Model):
             }]
         return taxes
 
-    def _prepare_invoice_import(self):
+    def _prepare_invoice(self):
         self.ensure_one()
         if self.force_invoice_date:
             date_dt = self.force_invoice_date
@@ -395,33 +395,39 @@ class NewgenPaymentCardTransaction(models.Model):
         else:
             taxes = []
         if not self.description:
-            raise UserError(_("Description is missing on transaction %s.") % self.name)
+            raise UserError(_("Description is missing on transaction %s.", self.name))
+        if not self.expense_account_id:
+            raise UserError(_(
+                "Missing expense account on transaction %s.", self.name))
         origin = self.name
         if self.receipt_number:
             origin = '%s (%s)' % (origin, self.receipt_number)
-        amount_untaxed = self.total_company_currency * -1\
-            - self.vat_company_currency * -1
         price_unit = amount_untaxed
         qty = 1
-        if total_compare > 0:  # refund
+        move_type = "in_invoice"
+        if total_compare > 0:
+            move_type = "in_refund"
             qty *= -1
             price_unit *= -1
-        parsed_inv = {
-            'partner': {'recordset': self.partner_id},
-            'date': date,
-            'date_due': date,
-            'currency': {'recordset': self.company_id.currency_id},
-            'amount_total': self.total_company_currency * -1,
-            'amount_untaxed': amount_untaxed,
-            'invoice_number': self.name,
-            'lines': [{
-                'taxes': taxes,
-                'price_unit': price_unit,
+        vals = {
+            'company': self.company_id,
+            'move_type': move_type,
+            'partner_id': self.partner_id.id,
+            'invoice_date': date,
+            'invoice_date_due': date,
+            'currency': self.company_id.currency_id.id,
+            'ref': self.name,
+            'invoice_line_ids': [{
+                "display_type": "product",
                 'name': self.description,
-                'qty': qty,
-                'uom': {'recordset': self.env.ref('uom.product_uom_unit')},
+                'tax_ids': [Command.set([taxes.ids])],
+                'price_unit': price_unit,
+                'quantity': qty,
+                'account_id': self.expense_account_id.id,
+                'analytic_distribution': self.analytic_distribution or False,
                 }],
-            'origin': origin,
+            'invoice_origin': origin,
+            'attachment_ids': [],
             }
         url = self.image_url
         attachments = self.env['ir.attachment'].search([
@@ -435,7 +441,6 @@ class NewgenPaymentCardTransaction(models.Model):
                 "as 'Receipt Lost'.")
                 % self.name)
 
-        parsed_inv['attachments'] = {}
         if url:
             try:
                 rimage = requests.get(url, timeout=TIMEOUT)
@@ -460,13 +465,17 @@ class NewgenPaymentCardTransaction(models.Model):
                     logger.info('Failed to rotate the image. Error: %s', e)
                     pass
             filename = 'Receipt-%s%s' % (self.name, file_extension)
-            image_b64 = base64.encodebytes(image_binary)
-            parsed_inv['attachments'] = {filename: image_b64}
+            vals['attachment_ids'].append(Command.create({
+                'name': filename,
+                'raw': image_binary,
+                }))
         if attachments:
             for att in attachments:
-                parsed_inv['attachments'][att.name] = att.datas
-        # TODO: delete attachments on transaction once invoice is created ?
-        return parsed_inv
+                vals['attachment_ids'].append(Command.create({
+                    'name': att.name,
+                    'raw': att.raw,
+                    }))
+        return vals
 
     @api.model
     def _rotate_image(self, image_binary):
@@ -524,35 +533,29 @@ class NewgenPaymentCardTransaction(models.Model):
                     self.env, self.total_company_currency, self.company_currency_id),
                 ))
 
-    def _prepare_invoice_import_config(self):
-        self.ensure_one()
-        if not self.expense_account_id:
-            raise UserError(_(
-                "Missing expense account on transaction %s.") % self.name)
-        import_config = {
-            'invoice_line_method': 'nline_no_product',
-            'account': self.expense_account_id,
-            'analytic_distribution': self.analytic_distribution or False,
-            'company': self.company_id,
-        }
-        return import_config
-
     def generate_invoice(self):
         self.ensure_one()
         assert self.transaction_type == 'expense', 'wrong transaction type'
-        aiio = self.env['account.invoice.import']
-        parsed_inv = self._prepare_invoice_import()
-        logger.debug('Payment card invoice import parsed_inv=%s', parsed_inv)
-        parsed_inv = aiio._pre_process_parsed_inv(parsed_inv, self.company_id)
-        import_config = self._prepare_invoice_import_config()
-        invoice = aiio.create_invoice(
-            parsed_inv, import_config=import_config, origin='Mooncard connector')
+        move_obj = self.env['account.move']
+        vals = self._prepare_invoice()
+        logger.debug('Supplier invoice vals=%s', vals)
+        invoice = move_obj.create(vals)
         invoice.message_post(
-            body=_("Invoice created from payment card transaction %s.")
-            % self.name)
+            body=_(
+                "Invoice created from payment card transaction "
+                "<a href=# data-oe-model=newgen.payment.card.transaction "
+                "data-oe-id=%(trans_id)s>%(trans_name)s</a>.",
+                trans_id=self.id,
+                trans_name=self.name))
         invoice.with_context(validate_analytic=True)._post(soft=False)
+        amount_untaxed = abs(self.total_company_currency * -1\
+            - self.vat_company_currency * -1)
         assert self.company_currency_id.compare_amounts(
-            invoice.amount_tax, abs(self.vat_company_currency)) == 0, 'bug on VAT'
+            invoice.amount_untaxed, amount_untaxed) == 0, 'bug on total untaxed'
+        amount_total = abs(self.total_company_currency)
+        invoice._check_total_amount(amount_total)
+        assert self.company_currency_id.compare_amounts(
+            invoice.amount_total, amount_total) == 0, 'bug on total amount'
         return invoice
 
     def reconcile(self, bank_move, invoice):
