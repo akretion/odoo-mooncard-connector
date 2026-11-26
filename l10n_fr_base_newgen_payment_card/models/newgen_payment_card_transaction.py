@@ -45,6 +45,6 @@ class NewgenPaymentCardTransaction(models.Model):
                 for line in lines:
                     if not float_compare(
                             line.tax_id.amount, self.vat_rate, precision_digits=2):
-                        taxes = [{"id": line.tax_id.id}]
+                        taxes = [line.tax_id.id]
                         break
         return taxes
